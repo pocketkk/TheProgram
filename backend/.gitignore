@@ -1,0 +1,5 @@
+
+# Backup encryption keys (NEVER commit these)
+*.key
+data/backup.key
+backup_*.key

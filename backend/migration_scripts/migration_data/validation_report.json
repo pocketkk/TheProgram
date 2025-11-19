@@ -1,0 +1,11 @@
+{
+  "timestamp": "1763251304.675663",
+  "user_email": "test@example.com",
+  "user_id": null,
+  "validation_results": {},
+  "errors": [
+    "Some error"
+  ],
+  "warnings": [],
+  "overall_status": "FAIL"
+}

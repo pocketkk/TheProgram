@@ -1,0 +1,63 @@
+# Production overrides for docker-compose.yml
+# Usage: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
+version: '3.8'
+
+services:
+  # Backend production configuration
+  backend:
+    environment:
+      APP_ENV: production
+      DEBUG: "false"
+      LOG_LEVEL: warning
+      # Disable Redis caching for single-user mode
+      REDIS_ENABLED: "false"
+    # Production command with workers
+    command: >
+      sh -c "
+        echo 'Ensuring data directory exists...' &&
+        mkdir -p /app/data &&
+        echo 'Running database migrations...' &&
+        alembic upgrade head &&
+        echo 'Starting application with Gunicorn...' &&
+        gunicorn app.main:app -w 4 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000 --access-logfile - --error-logfile -
+      "
+    # Production resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    # Production restart policy
+    restart: always
+
+  # Frontend production configuration
+  frontend:
+    environment:
+      - NODE_ENV=production
+    # Production resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+    # Production restart policy
+    restart: always
+
+  # Nginx reverse proxy (enable with --profile with-nginx)
+  nginx:
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 64M

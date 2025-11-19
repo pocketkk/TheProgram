@@ -1,0 +1,27 @@
+{
+  "user": {
+    "email": "pocketkk@gmail.com",
+    "password_hash": "$2b$12$UKq1gjwQDbXidV2vtXK9M.1Tlzm9fFRoJgks2ZCnusRGklLGOi4Ry",
+    "full_name": "Test User",
+    "business_name": null,
+    "is_active": true,
+    "is_verified": false,
+    "is_superuser": false,
+    "subscription_tier": "free",
+    "last_login": "2025-11-15T22:26:46.119865",
+    "id": "ec88bad0-7ab7-416f-a32c-f9fdd57af310",
+    "created_at": "2025-10-28T23:15:39.217702",
+    "updated_at": "2025-11-15T22:26:46.121054"
+  },
+  "preferences": {
+    "user_id": "ec88bad0-7ab7-416f-a32c-f9fdd57af310",
+    "default_house_system": "placidus",
+    "default_ayanamsa": "lahiri",
+    "default_zodiac": "tropical",
+    "aspect_orbs": null,
+    "color_scheme": "light",
+    "displayed_points": null,
+    "updated_at": null,
+    "id": "bfd61ab4-6301-4db1-ba8f-93d462226ee6"
+  }
+}

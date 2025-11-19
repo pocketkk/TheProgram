@@ -1,0 +1,75 @@
+{
+  "name": "theprogram",
+  "version": "1.0.0",
+  "description": "A professional astrology application for personal chart analysis, featuring comprehensive support for Western (Tropical), Vedic (Jyotish), and Human Design systems.",
+  "main": "dist/electron/main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "electron:compile": "tsc -p electron/tsconfig.json",
+    "electron:dev": "NODE_ENV=development electron . --no-sandbox",
+    "electron:prod": "NODE_ENV=production electron . --no-sandbox",
+    "electron:start": "npm run electron:compile && npm run electron:dev",
+    "electron:start:prod": "npm run build:all && npm run electron:prod",
+    "dev:all": "concurrently \"npm run electron:compile -- --watch\" \"npm --prefix frontend run dev\" \"npm --prefix backend run dev\" \"sleep 3 && npm run electron:dev\"",
+    "build:electron": "npm run electron:compile",
+    "build:frontend": "cd frontend && npx vite build",
+    "build:backend": "echo 'Backend build (PyInstaller) - to be implemented'",
+    "build:all": "npm run build:frontend && npm run build:electron",
+    "package": "electron-builder",
+    "dist:linux": "electron-builder --linux",
+    "dist": "npm run build:all && npm run package"
+  },
+  "keywords": [
+    "astrology",
+    "birth chart",
+    "desktop app",
+    "electron"
+  ],
+  "author": {
+    "name": "The Program Team",
+    "email": "info@theprogram.app"
+  },
+  "homepage": "https://github.com/theprogram/desktop",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "concurrently": "^9.2.1",
+    "electron": "^39.2.1",
+    "electron-builder": "^26.0.12",
+    "tree-kill": "^1.2.2",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "tree-kill": "^1.2.2"
+  },
+  "build": {
+    "appId": "com.theprogram.desktop",
+    "productName": "The Program",
+    "files": [
+      "dist/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "frontend/dist",
+        "to": "frontend/dist",
+        "filter": ["**/*"]
+      },
+      {
+        "from": "backend/dist/backend",
+        "to": "backend/backend"
+      }
+    ],
+    "directories": {
+      "output": "release"
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "category": "Office",
+      "icon": "build/icon.png"
+    }
+  }
+}
