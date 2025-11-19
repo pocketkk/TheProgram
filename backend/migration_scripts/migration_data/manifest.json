@@ -1,0 +1,30 @@
+{
+  "export_timestamp": "2025-11-16T00:01:44.675240",
+  "user_email": "pocketkk@gmail.com",
+  "user_id": "ec88bad0-7ab7-416f-a32c-f9fdd57af310",
+  "row_counts": {
+    "users": 1,
+    "user_preferences": 1,
+    "clients": 7,
+    "birth_data": 6,
+    "charts": 5,
+    "chart_interpretations": 162,
+    "interpretations": 0,
+    "aspect_patterns": 0,
+    "transit_events": 0,
+    "session_notes": 0,
+    "location_cache": 0
+  },
+  "checksums": {
+    "user_data.json": "fe4ebc13c72a7a5cc57aa6461bcbbfb888e74943bc0e0527a2845e84d0118704",
+    "clients.json": "fe0fa045837f0c09e5e3ab8ba9836868cc1596131814e9228cb2768bc9389031",
+    "birth_data.json": "445d356682af083430c3186d5b1ad180be6e651bac95358c690e2ec396d59594",
+    "charts.json": "1143354a51175dbdcb5e0308ff14a2b17d9e8dc3023b4680f27cfe9a76173160",
+    "chart_interpretations.json": "37723d84abe7ec59e06e2bd7082c0513cce42c4e27033b16f024cb9e1f441941",
+    "interpretations.json": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "aspect_patterns.json": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "transit_events.json": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "session_notes.json": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "location_cache.json": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+  }
+}

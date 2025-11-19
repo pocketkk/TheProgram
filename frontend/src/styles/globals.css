@@ -1,0 +1,285 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 0%;
+    --foreground: 0 0% 98%;
+    --card: 263 80% 5%;
+    --card-foreground: 0 0% 98%;
+    --popover: 263 80% 5%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 263 70% 50%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 263 60% 10%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 263 40% 12%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 263 50% 15%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 263 40% 15%;
+    --input: 263 40% 12%;
+    --ring: 263 70% 50%;
+    --radius: 0.5rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: 'rlig' 1, 'calt' 1;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-cosmic-950;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-cosmic-700 rounded-lg;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-cosmic-600;
+}
+
+/* Cosmic background effects */
+.cosmic-bg {
+  background: linear-gradient(135deg, #000000 0%, #050008 15%, #0a0118 30%, #120525 45%, #220f3a 60%, #2d1b4e 75%, #120525 90%, #000000 100%);
+  background-size: 400% 400%;
+  animation: gradient-shift 15s ease infinite;
+}
+
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Glassmorphism effect */
+.glass {
+  background: rgba(26, 11, 46, 0.6);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(183, 148, 246, 0.1);
+}
+
+.glass-strong {
+  background: rgba(26, 11, 46, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(183, 148, 246, 0.2);
+}
+
+/* Glow effects */
+.glow-purple {
+  box-shadow: 0 0 20px rgba(183, 148, 246, 0.3);
+}
+
+.glow-cyan {
+  box-shadow: 0 0 20px rgba(0, 217, 255, 0.3);
+}
+
+.glow-gold {
+  box-shadow: 0 0 20px rgba(247, 179, 43, 0.3);
+}
+
+/* Text glow */
+.text-glow-purple {
+  text-shadow: 0 0 10px rgba(183, 148, 246, 0.5);
+}
+
+.text-glow-gold {
+  text-shadow: 0 0 10px rgba(247, 179, 43, 0.5);
+}
+
+/* Gradient text */
+.text-gradient-cosmic {
+  background: linear-gradient(135deg, #b794f6 0%, #6b4c9a 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-celestial {
+  background: linear-gradient(135deg, #f7b32b 0%, #ff6ec7 50%, #00d9ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Loading spinner */
+.spinner {
+  border: 3px solid rgba(183, 148, 246, 0.1);
+  border-top: 3px solid #b794f6;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Starfield background */
+.starfield {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  background: #000000;
+}
+
+.starfield::before,
+.starfield::after {
+  content: '';
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background: white;
+  box-shadow:
+    100px 200px white,
+    200px 100px white,
+    300px 300px white,
+    400px 150px white,
+    500px 250px white,
+    600px 350px white,
+    700px 100px white,
+    800px 400px white,
+    900px 50px white,
+    1000px 300px white,
+    1100px 200px white,
+    1200px 100px white,
+    1300px 400px white,
+    1400px 250px white,
+    1500px 150px white;
+  animation: twinkle 3s infinite;
+}
+
+.starfield::after {
+  animation-delay: 1.5s;
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+
+/* Page transitions */
+.page-enter {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.page-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.3s, transform 0.3s;
+}
+
+.page-exit {
+  opacity: 1;
+}
+
+.page-exit-active {
+  opacity: 0;
+  transform: translateY(-20px);
+  transition: opacity 0.3s, transform 0.3s;
+}
+
+/* Card hover effect */
+.card-hover {
+  transition: all 0.3s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 40px rgba(183, 148, 246, 0.3);
+}
+
+/* Button ripple effect */
+@keyframes ripple {
+  to {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+.ripple {
+  position: relative;
+  overflow: hidden;
+}
+
+.ripple::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.5);
+  opacity: 0;
+  border-radius: 100%;
+  transform: scale(1, 1) translate(-50%, -50%);
+  transform-origin: 50% 50%;
+}
+
+.ripple:focus:not(:active)::after {
+  animation: ripple 1s ease-out;
+}
+
+/* Zodiac symbols font (if needed) */
+@font-face {
+  font-family: 'Zodiac';
+  src: local('Zodiac');
+  /* Add zodiac symbol font if available */
+}
+
+/* Selection */
+::selection {
+  background-color: rgba(183, 148, 246, 0.3);
+  color: white;
+}
+
+/* Focus visible */
+:focus-visible {
+  outline: 2px solid #b794f6;
+  outline-offset: 2px;
+}
+
+/* Smooth scroll */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Hide scrollbar in specific cases */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}

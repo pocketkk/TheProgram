@@ -1,0 +1,268 @@
+242 INFO: PyInstaller: 6.16.0, contrib hooks: 2025.9
+243 INFO: Python: 3.12.3
+245 INFO: Platform: Linux-6.14.0-35-generic-x86_64-with-glibc2.39
+248 INFO: Python environment: /home/sylvia/ClaudeWork/TheProgram/backend/test_venv
+251 INFO: Removing temporary files and cleaning cache in /home/sylvia/.cache/pyinstaller
+6899 WARNING: collect_data_files - skipping data collection for module 'swisseph' as it is not a package.
+6900 INFO: Module search paths (PYTHONPATH):
+['/usr/lib/python312.zip',
+ '/usr/lib/python3.12',
+ '/usr/lib/python3.12/lib-dynload',
+ '/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages',
+ '/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/setuptools/_vendor',
+ '/home/sylvia/ClaudeWork/TheProgram/backend',
+ '/home/sylvia/ClaudeWork/TheProgram/backend']
+7211 INFO: Appending 'datas' from .spec
+7217 INFO: checking Analysis
+7217 INFO: Building Analysis because Analysis-00.toc is non existent
+7217 INFO: Looking for Python shared library...
+7241 INFO: Using Python shared library: /lib/x86_64-linux-gnu/libpython3.12.so.1.0
+7242 INFO: Running Analysis Analysis-00.toc
+7242 INFO: Target bytecode optimization level: 0
+7242 INFO: Initializing module dependency graph...
+7245 INFO: Initializing module graph hook caches...
+7254 INFO: Analyzing modules for base_library.zip ...
+8120 INFO: Processing standard module hook 'hook-heapq.py' from '/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/PyInstaller/hooks'
+8660 INFO: Processing standard module hook 'hook-encodings.py' from '/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/PyInstaller/hooks'
+10481 INFO: Processing standard module hook 'hook-pickle.py' from '/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/PyInstaller/hooks'
+12397 INFO: Caching module dependency graph...
+12449 INFO: Analyzing /home/sylvia/ClaudeWork/TheProgram/backend/main.py
+12454 INFO: Processing standard module hook 'hook-uvicorn.py' from '/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/_pyinstaller_hooks_contrib/stdhooks'
+13047 INFO: Processing standard module hook 'hook-multiprocessing.util.py' from '/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/PyInstaller/hooks'
+13286 INFO: Processing standard module hook 'hook-xml.py' from '/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/PyInstaller/hooks'
+13591 INFO: Processing standard module hook 'hook-_ctypes.py' from '/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/PyInstaller/hooks'
+14565 INFO: Processing pre-safe-import-module hook 'hook-typing_extensions.py' from '/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/PyInstaller/hooks/pre_safe_import_module'
+14566 INFO: SetuptoolsInfo: initializing cached setuptools info...
+20149 INFO: Processing standard module hook 'hook-platform.py' from '/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/PyInstaller/hooks'
+20238 INFO: Processing standard module hook 'hook-difflib.py' from '/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/PyInstaller/hooks'
+20863 INFO: Processing standard module hook 'hook-websockets.py' from '/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/_pyinstaller_hooks_contrib/stdhooks'
+21889 INFO: Processing standard module hook 'hook-anyio.py' from '/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/_pyinstaller_hooks_contrib/stdhooks'
+23024 INFO: Analyzing hidden import 'uvicorn.__main__'
+23025 INFO: Analyzing hidden import 'uvicorn.lifespan'
+23026 INFO: Analyzing hidden import 'uvicorn.lifespan.off'
+23029 INFO: Analyzing hidden import 'uvicorn.lifespan.on'
+23041 INFO: Analyzing hidden import 'uvicorn.loops'
+23041 INFO: Analyzing hidden import 'uvicorn.loops.asyncio'
+23042 INFO: Analyzing hidden import 'uvicorn.loops.auto'
+23051 INFO: Processing standard module hook 'hook-uvloop.py' from '/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/_pyinstaller_hooks_contrib/stdhooks'
+23387 INFO: Analyzing hidden import 'uvicorn.protocols.http.auto'
+23388 INFO: Analyzing hidden import 'uvicorn.protocols.websockets.auto'
+23390 INFO: Analyzing hidden import 'uvicorn.workers'
+23540 INFO: Processing pre-safe-import-module hook 'hook-importlib_metadata.py' from '/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/PyInstaller/hooks/pre_safe_import_module'
+23542 INFO: Setuptools: 'importlib_metadata' appears to be a setuptools-vendored copy - creating alias to 'setuptools._vendor.importlib_metadata'!
+23557 INFO: Processing standard module hook 'hook-setuptools.py' from '/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/PyInstaller/hooks'
+23571 INFO: Processing pre-safe-import-module hook 'hook-distutils.py' from '/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/PyInstaller/hooks/pre_safe_import_module'
+23631 INFO: Processing standard module hook 'hook-sysconfig.py' from '/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/PyInstaller/hooks'
+23639 INFO: Processing pre-safe-import-module hook 'hook-jaraco.functools.py' from '/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/PyInstaller/hooks/pre_safe_import_module'
+23655 INFO: Processing pre-safe-import-module hook 'hook-more_itertools.py' from '/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/PyInstaller/hooks/pre_safe_import_module'
+23945 INFO: Processing pre-safe-import-module hook 'hook-packaging.py' from '/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/PyInstaller/hooks/pre_safe_import_module'
+24125 INFO: Processing pre-safe-import-module hook 'hook-jaraco.text.py' from '/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/PyInstaller/hooks/pre_safe_import_module'
+24128 INFO: Setuptools: 'jaraco.text' appears to be a setuptools-vendored copy - creating alias to 'setuptools._vendor.jaraco.text'!
+24142 INFO: Processing standard module hook 'hook-setuptools._vendor.jaraco.text.py' from '/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/PyInstaller/hooks'
+24144 INFO: Processing pre-safe-import-module hook 'hook-importlib_resources.py' from '/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/PyInstaller/hooks/pre_safe_import_module'
+24145 INFO: Processing pre-safe-import-module hook 'hook-jaraco.context.py' from '/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/PyInstaller/hooks/pre_safe_import_module'
+24155 INFO: Processing pre-safe-import-module hook 'hook-backports.tarfile.py' from '/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/PyInstaller/hooks/pre_safe_import_module'
+24155 INFO: Setuptools: 'backports.tarfile' appears to be a setuptools-vendored copy - creating alias to 'setuptools._vendor.backports.tarfile'!
+24274 INFO: Processing standard module hook 'hook-backports.py' from '/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/_pyinstaller_hooks_contrib/stdhooks'
+24803 INFO: Processing pre-safe-import-module hook 'hook-tomli.py' from '/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/PyInstaller/hooks/pre_safe_import_module'
+24803 INFO: Setuptools: 'tomli' appears to be a setuptools-vendored copy - creating alias to 'setuptools._vendor.tomli'!
+25435 INFO: Processing pre-safe-import-module hook 'hook-wheel.py' from '/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/PyInstaller/hooks/pre_safe_import_module'
+25438 INFO: Setuptools: 'wheel' appears to be a setuptools-vendored copy - creating alias to 'setuptools._vendor.wheel'!
+25840 INFO: Processing standard module hook 'hook-setuptools._vendor.importlib_metadata.py' from '/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/PyInstaller/hooks'
+25844 INFO: Processing pre-safe-import-module hook 'hook-zipp.py' from '/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/PyInstaller/hooks/pre_safe_import_module'
+25844 INFO: Setuptools: 'zipp' appears to be a setuptools-vendored copy - creating alias to 'setuptools._vendor.zipp'!
+25979 INFO: Analyzing hidden import 'fastapi'
+26229 INFO: Processing standard module hook 'hook-pydantic.py' from '/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/_pyinstaller_hooks_contrib/stdhooks'
+27575 INFO: Processing standard module hook 'hook-certifi.py' from '/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/_pyinstaller_hooks_contrib/stdhooks'
+28222 INFO: Processing standard module hook 'hook-pygments.py' from '/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/PyInstaller/hooks'
+29849 INFO: Processing standard module hook 'hook-dns.rdata.py' from '/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/_pyinstaller_hooks_contrib/stdhooks'
+31542 INFO: Analyzing hidden import 'fastapi.middleware.cors'
+31552 INFO: Analyzing hidden import 'fastapi.middleware.gzip'
+31560 INFO: Analyzing hidden import 'fastapi.middleware.httpsredirect'
+31563 INFO: Analyzing hidden import 'fastapi.middleware.trustedhost'
+31567 INFO: Analyzing hidden import 'fastapi.middleware.wsgi'
+31574 INFO: Analyzing hidden import 'fastapi.staticfiles'
+31588 INFO: Analyzing hidden import 'fastapi.templating'
+31596 INFO: Analyzing hidden import 'fastapi.testclient'
+31634 INFO: Analyzing hidden import 'pydantic.alias_generators'
+31637 INFO: Analyzing hidden import 'pydantic.datetime_parse'
+31638 INFO: Analyzing hidden import 'pydantic.decorator'
+31638 INFO: Analyzing hidden import 'pydantic.deprecated.decorator'
+31654 INFO: Analyzing hidden import 'pydantic.env_settings'
+31654 INFO: Analyzing hidden import 'pydantic.generics'
+31655 INFO: Analyzing hidden import 'pydantic.json'
+31655 INFO: Analyzing hidden import 'pydantic.mypy'
+35455 INFO: Analyzing hidden import 'pydantic.parse'
+35456 INFO: Analyzing hidden import 'pydantic.tools'
+35457 INFO: Analyzing hidden import 'pydantic.v1'
+35961 INFO: Analyzing hidden import 'pydantic.v1._hypothesis_plugin'
+35978 INFO: Analyzing hidden import 'pydantic.v1.generics'
+35993 INFO: Analyzing hidden import 'pydantic.v1.mypy'
+36030 INFO: Analyzing hidden import 'starlette.authentication'
+36040 INFO: Analyzing hidden import 'starlette.config'
+36048 INFO: Analyzing hidden import 'starlette.endpoints'
+36056 INFO: Analyzing hidden import 'starlette.middleware.authentication'
+36060 INFO: Analyzing hidden import 'starlette.middleware.sessions'
+36065 INFO: Analyzing hidden import 'starlette.schemas'
+36076 INFO: Analyzing hidden import 'sqlalchemy'
+36090 INFO: Processing standard module hook 'hook-sqlalchemy.py' from '/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/PyInstaller/hooks'
+41440 INFO: Analyzing hidden import 'sqlalchemy.connectors'
+41441 INFO: Analyzing hidden import 'sqlalchemy.connectors.aioodbc'
+41472 INFO: Analyzing hidden import 'sqlalchemy.dialects._typing'
+41474 INFO: Analyzing hidden import 'sqlalchemy.dialects.mssql'
+41622 INFO: Analyzing hidden import 'sqlalchemy.dialects.mssql.provision'
+41629 INFO: Analyzing hidden import 'sqlalchemy.dialects.mysql'
+41851 INFO: Analyzing hidden import 'sqlalchemy.dialects.mysql.mariadb'
+41853 INFO: Analyzing hidden import 'sqlalchemy.dialects.mysql.provision'
+41857 INFO: Analyzing hidden import 'sqlalchemy.dialects.oracle'
+42070 INFO: Analyzing hidden import 'sqlalchemy.dialects.oracle.provision'
+42081 INFO: Analyzing hidden import 'sqlalchemy.dialects.postgresql'
+42609 INFO: Processing standard module hook 'hook-psycopg2.py' from '/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/_pyinstaller_hooks_contrib/stdhooks'
+42706 INFO: Analyzing hidden import 'sqlalchemy.dialects.postgresql.provision'
+42714 INFO: Analyzing hidden import 'sqlalchemy.dialects.sqlite'
+42804 INFO: Processing standard module hook 'hook-sqlite3.py' from '/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/PyInstaller/hooks'
+43088 INFO: Analyzing hidden import 'sqlalchemy.dialects.sqlite.provision'
+43096 INFO: Analyzing hidden import 'sqlalchemy.engine.strategies'
+43097 INFO: Analyzing hidden import 'sqlalchemy.events'
+43098 INFO: Analyzing hidden import 'sqlalchemy.ext.associationproxy'
+43170 INFO: Analyzing hidden import 'sqlalchemy.ext.automap'
+43194 INFO: Analyzing hidden import 'sqlalchemy.ext.baked'
+43208 INFO: Analyzing hidden import 'sqlalchemy.ext.declarative'
+43221 INFO: Analyzing hidden import 'sqlalchemy.ext.horizontal_shard'
+43236 INFO: Analyzing hidden import 'sqlalchemy.ext.hybrid'
+43255 INFO: Analyzing hidden import 'sqlalchemy.ext.indexable'
+43261 INFO: Analyzing hidden import 'sqlalchemy.ext.instrumentation'
+43274 INFO: Analyzing hidden import 'sqlalchemy.ext.mutable'
+43297 INFO: Analyzing hidden import 'sqlalchemy.ext.mypy'
+43298 INFO: Analyzing hidden import 'sqlalchemy.ext.mypy.apply'
+43353 INFO: Analyzing hidden import 'sqlalchemy.ext.mypy.decl_class'
+43369 INFO: Analyzing hidden import 'sqlalchemy.ext.mypy.plugin'
+43381 INFO: Analyzing hidden import 'sqlalchemy.ext.orderinglist'
+43391 INFO: Analyzing hidden import 'sqlalchemy.ext.serializer'
+43398 INFO: Analyzing hidden import 'sqlalchemy.testing'
+45399 INFO: Analyzing hidden import 'sqlalchemy.testing.pickleable'
+45406 INFO: Analyzing hidden import 'sqlalchemy.testing.plugin.bootstrap'
+45408 INFO: Analyzing hidden import 'sqlalchemy.testing.plugin.pytestplugin'
+45444 INFO: Analyzing hidden import 'sqlalchemy.testing.suite'
+45991 INFO: Analyzing hidden import 'sqlalchemy.util.tool_support'
+45999 INFO: Analyzing hidden import 'swisseph'
+45999 INFO: Analyzing hidden import 'passlib'
+46000 INFO: Analyzing hidden import 'passlib.apache'
+46022 INFO: Processing standard module hook 'hook-passlib.py' from '/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/_pyinstaller_hooks_contrib/stdhooks'
+46390 INFO: Processing standard module hook 'hook-bcrypt.py' from '/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/_pyinstaller_hooks_contrib/stdhooks'
+46674 INFO: Analyzing hidden import 'passlib.apps'
+46679 INFO: Analyzing hidden import 'passlib.crypto._blowfish._gen_files'
+46684 INFO: Analyzing hidden import 'passlib.crypto.scrypt._gen_files'
+46688 INFO: Analyzing hidden import 'passlib.ext'
+46688 INFO: Analyzing hidden import 'passlib.ext.django'
+46689 INFO: Analyzing hidden import 'passlib.ext.django.models'
+46721 INFO: Analyzing hidden import 'passlib.hosts'
+46723 INFO: Analyzing hidden import 'passlib.pwd'
+46883 INFO: Processing standard module hook 'hook-pkg_resources.py' from '/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/PyInstaller/hooks'
+47238 INFO: Processing pre-safe-import-module hook 'hook-platformdirs.py' from '/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/PyInstaller/hooks/pre_safe_import_module'
+47250 INFO: Processing standard module hook 'hook-platformdirs.py' from '/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/_pyinstaller_hooks_contrib/stdhooks'
+47319 INFO: Analyzing hidden import 'passlib.tests'
+47320 INFO: Analyzing hidden import 'passlib.tests.__main__'
+47322 INFO: Analyzing hidden import 'passlib.tests._test_bad_register'
+47323 INFO: Analyzing hidden import 'passlib.tests.backports'
+47326 INFO: Analyzing hidden import 'passlib.tests.test_apache'
+/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/passlib/tests/test_apache.py:210: SyntaxWarning: invalid escape sequence '\('
+  with self.assertWarningList("update\(\) is deprecated"):
+/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/passlib/tests/test_apache.py:280: SyntaxWarning: invalid escape sequence '\('
+  with self.assertWarningList(["verify\(\) is deprecated"]*2):
+/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/passlib/tests/test_apache.py:370: SyntaxWarning: invalid escape sequence '\('
+  with self.assertWarningList("find\(\) is deprecated"):
+/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/passlib/tests/test_apache.py:606: SyntaxWarning: invalid escape sequence '\('
+  with self.assertWarningList("update\(\) is deprecated"):
+/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/passlib/tests/test_apache.py:640: SyntaxWarning: invalid escape sequence '\('
+  with self.assertWarningList(["verify\(\) is deprecated"]*2):
+/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/passlib/tests/test_apache.py:728: SyntaxWarning: invalid escape sequence '\('
+  with self.assertWarningList("find\(\) is deprecated"):
+47506 INFO: Analyzing hidden import 'passlib.tests.test_apps'
+47514 INFO: Analyzing hidden import 'passlib.tests.test_context'
+47638 INFO: Analyzing hidden import 'passlib.tests.test_context_deprecated'
+/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/passlib/tests/test_context_deprecated.py:554: SyntaxWarning: invalid escape sequence '\.'
+  warnings.filterwarnings("ignore", ".*(CryptPolicy|context\.policy).*(has|have) been deprecated.*")
+/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/passlib/tests/test_context_deprecated.py:707: SyntaxWarning: invalid escape sequence '\.'
+  warnings.filterwarnings("ignore", ".*(CryptPolicy|context\.policy).*(has|have) been deprecated.*")
+47670 INFO: Analyzing hidden import 'passlib.tests.test_crypto_builtin_md4'
+47677 INFO: Analyzing hidden import 'passlib.tests.test_crypto_des'
+47686 INFO: Analyzing hidden import 'passlib.tests.test_crypto_digest'
+47718 INFO: Analyzing hidden import 'passlib.tests.test_crypto_scrypt'
+47737 INFO: Analyzing hidden import 'passlib.tests.test_ext_django'
+/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/passlib/tests/test_ext_django.py:916: SyntaxWarning: invalid escape sequence '\.'
+  with self.assertWarningList("another library has patched.*User\.set_password"):
+/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/passlib/tests/test_handlers.py:1523: SyntaxWarning: invalid escape sequence '\d'
+  ("freebsd(9|1\d)|linux", True),
+/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/passlib/tests/test_handlers.py:1761: SyntaxWarning: invalid escape sequence '\('
+  warnings.filterwarnings("ignore", "passing settings to .*.hash\(\) is deprecated")
+47809 INFO: Analyzing hidden import 'passlib.tests.test_ext_django_source'
+47818 INFO: Analyzing hidden import 'passlib.tests.test_handlers_argon2'
+47831 INFO: Analyzing hidden import 'passlib.tests.test_handlers_bcrypt'
+47851 INFO: Analyzing hidden import 'passlib.tests.test_handlers_cisco'
+47862 INFO: Analyzing hidden import 'passlib.tests.test_handlers_django'
+47873 INFO: Analyzing hidden import 'passlib.tests.test_handlers_pbkdf2'
+47890 INFO: Analyzing hidden import 'passlib.tests.test_handlers_scrypt'
+47894 INFO: Analyzing hidden import 'passlib.tests.test_hosts'
+47898 INFO: Analyzing hidden import 'passlib.tests.test_pwd'
+47906 INFO: Analyzing hidden import 'passlib.tests.test_registry'
+47916 INFO: Analyzing hidden import 'passlib.tests.test_totp'
+48009 INFO: Processing standard module hook 'hook-cryptography.py' from '/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/_pyinstaller_hooks_contrib/stdhooks'
+48907 INFO: hook-cryptography: cryptography does not seem to be using dynamically linked OpenSSL.
+49478 INFO: Analyzing hidden import 'passlib.tests.test_utils'
+/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/passlib/tests/test_utils.py:144: SyntaxWarning: invalid escape sequence '\('
+  warnings.filterwarnings("ignore", "The function.*generate_password\(\) is deprecated")
+49535 INFO: Analyzing hidden import 'passlib.tests.test_utils_md4'
+49539 INFO: Analyzing hidden import 'passlib.tests.test_utils_pbkdf2'
+49556 INFO: Analyzing hidden import 'passlib.tests.test_win32'
+49561 INFO: Analyzing hidden import 'passlib.tests.tox_support'
+49565 INFO: Analyzing hidden import 'passlib.utils.compat._ordered_dict'
+49575 INFO: Analyzing hidden import 'passlib.utils.des'
+49577 INFO: Analyzing hidden import 'jose'
+49580 INFO: Analyzing hidden import 'jose.backends'
+49951 INFO: Processing pre-safe-import-module hook 'hook-six.moves.py' from '/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/PyInstaller/hooks/pre_safe_import_module'
+50644 INFO: Analyzing hidden import 'jose.jwe'
+50661 INFO: Analyzing hidden import 'jose.jws'
+50670 INFO: Analyzing hidden import 'jose.jwt'
+50680 INFO: Analyzing hidden import 'app.main'
+51899 INFO: Processing standard module hook 'hook-keyring.py' from '/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/PyInstaller/hooks'
+52518 INFO: Processing module hooks (post-graph stage)...
+53143 WARNING: Hidden import "mx.DateTime" not found!
+53213 INFO: Processing standard module hook 'hook-PIL.py' from '/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/PyInstaller/hooks'
+53342 INFO: Processing standard module hook 'hook-PIL.Image.py' from '/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/PyInstaller/hooks'
+53806 INFO: Processing standard module hook 'hook-pycparser.py' from '/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/_pyinstaller_hooks_contrib/stdhooks'
+55084 INFO: Processing standard module hook 'hook-PIL.ImageFilter.py' from '/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/PyInstaller/hooks'
+58451 INFO: Processing standard module hook 'hook-PIL.SpiderImagePlugin.py' from '/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/PyInstaller/hooks'
+58880 INFO: Processing pre-safe-import-module hook 'hook-gi.py' from '/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/PyInstaller/hooks/pre_safe_import_module'
+58976 INFO: Processing standard module hook 'hook-sqlalchemy.py' from '/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/PyInstaller/hooks'
+59445 WARNING: Hidden import "pysqlite2" not found!
+59445 WARNING: Hidden import "MySQLdb" not found!
+59493 INFO: Performing binary vs. data reclassification (202 entries)
+59512 INFO: Looking for ctypes DLLs
+59738 INFO: Analyzing run-time hooks ...
+59760 INFO: Including run-time hook 'pyi_rth_inspect.py' from '/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/PyInstaller/hooks/rthooks'
+59765 INFO: Including run-time hook 'pyi_rth_pkgutil.py' from '/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/PyInstaller/hooks/rthooks'
+59768 INFO: Including run-time hook 'pyi_rth_multiprocessing.py' from '/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/PyInstaller/hooks/rthooks'
+59771 INFO: Including run-time hook 'pyi_rth_setuptools.py' from '/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/PyInstaller/hooks/rthooks'
+59773 INFO: Including run-time hook 'pyi_rth_cryptography_openssl.py' from '/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/_pyinstaller_hooks_contrib/rthooks'
+59774 INFO: Including run-time hook 'pyi_rth_pkgres.py' from '/home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/PyInstaller/hooks/rthooks'
+59855 INFO: Creating base_library.zip...
+59883 INFO: Looking for dynamic libraries
+62873 INFO: Warnings written to /home/sylvia/ClaudeWork/TheProgram/backend/build/backend/warn-backend.txt
+63093 INFO: Graph cross-reference written to /home/sylvia/ClaudeWork/TheProgram/backend/build/backend/xref-backend.html
+63173 INFO: checking PYZ
+63173 INFO: Building PYZ because PYZ-00.toc is non existent
+63173 INFO: Building PYZ (ZlibArchive) /home/sylvia/ClaudeWork/TheProgram/backend/build/backend/PYZ-00.pyz
+65595 INFO: Building PYZ (ZlibArchive) /home/sylvia/ClaudeWork/TheProgram/backend/build/backend/PYZ-00.pyz completed successfully.
+65675 INFO: checking PKG
+65675 INFO: Building PKG because PKG-00.toc is non existent
+65675 INFO: Building PKG (CArchive) backend.pkg
+96958 INFO: Building PKG (CArchive) backend.pkg completed successfully.
+96969 INFO: Bootloader /home/sylvia/ClaudeWork/TheProgram/backend/test_venv/lib/python3.12/site-packages/PyInstaller/bootloader/Linux-64bit-intel/run
+96969 INFO: checking EXE
+96969 INFO: Building EXE because EXE-00.toc is non existent
+96969 INFO: Building EXE from EXE-00.toc
+96969 INFO: Copying bootloader EXE to /home/sylvia/ClaudeWork/TheProgram/backend/dist/backend
+96970 INFO: Appending PKG archive to custom ELF section in EXE
+97133 INFO: Building EXE from EXE-00.toc completed successfully.
+97143 INFO: Build complete! The results are available in: /home/sylvia/ClaudeWork/TheProgram/backend/dist

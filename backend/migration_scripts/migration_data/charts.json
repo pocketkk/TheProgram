@@ -1,0 +1,2452 @@
+[
+  {
+    "user_id": "ec88bad0-7ab7-416f-a32c-f9fdd57af310",
+    "client_id": "bc63188b-07ba-4d0e-a71b-2e47575713fa",
+    "birth_data_id": "8a7500c5-55ee-4086-b6e6-223813730f12",
+    "chart_name": "Birth Chart - Eugene, Oregon",
+    "chart_type": "natal",
+    "astro_system": "western",
+    "house_system": "placidus",
+    "ayanamsa": null,
+    "zodiac_type": "tropical",
+    "calculation_params": null,
+    "chart_data": {
+      "houses": [
+        {
+          "cusp": 176.59051753707058,
+          "sign": "Virgo",
+          "degree": 26,
+          "minute": 35,
+          "number": 1
+        },
+        {
+          "cusp": 206.59051753707058,
+          "sign": "Libra",
+          "degree": 26,
+          "minute": 35,
+          "number": 2
+        },
+        {
+          "cusp": 236.59051753707058,
+          "sign": "Scorpio",
+          "degree": 26,
+          "minute": 35,
+          "number": 3
+        },
+        {
+          "cusp": 266.5905175370706,
+          "sign": "Sagittarius",
+          "degree": 26,
+          "minute": 35,
+          "number": 4
+        },
+        {
+          "cusp": 296.5905175370706,
+          "sign": "Capricorn",
+          "degree": 26,
+          "minute": 35,
+          "number": 5
+        },
+        {
+          "cusp": 326.5905175370706,
+          "sign": "Aquarius",
+          "degree": 26,
+          "minute": 35,
+          "number": 6
+        },
+        {
+          "cusp": 356.5905175370706,
+          "sign": "Pisces",
+          "degree": 26,
+          "minute": 35,
+          "number": 7
+        },
+        {
+          "cusp": 26.590517537070582,
+          "sign": "Aries",
+          "degree": 26,
+          "minute": 35,
+          "number": 8
+        },
+        {
+          "cusp": 56.59051753707058,
+          "sign": "Taurus",
+          "degree": 26,
+          "minute": 35,
+          "number": 9
+        },
+        {
+          "cusp": 86.59051753707058,
+          "sign": "Gemini",
+          "degree": 26,
+          "minute": 35,
+          "number": 10
+        },
+        {
+          "cusp": 116.59051753707058,
+          "sign": "Cancer",
+          "degree": 26,
+          "minute": 35,
+          "number": 11
+        },
+        {
+          "cusp": 146.59051753707058,
+          "sign": "Leo",
+          "degree": 26,
+          "minute": 35,
+          "number": 12
+        }
+      ],
+      "aspects": [
+        {
+          "orb": 2.842170943040401e-14,
+          "angle": 180,
+          "planet1": "sun",
+          "planet2": "earth",
+          "applying": true,
+          "aspect_type": "opposition"
+        },
+        {
+          "orb": 6.634712338221618,
+          "angle": 0,
+          "planet1": "sun",
+          "planet2": "moon",
+          "applying": false,
+          "aspect_type": "conjunction"
+        },
+        {
+          "orb": 0.8460204214874523,
+          "angle": 150,
+          "planet1": "sun",
+          "planet2": "chiron",
+          "applying": false,
+          "aspect_type": "quincunx"
+        },
+        {
+          "orb": 5.810807974962728,
+          "angle": 90,
+          "planet1": "sun",
+          "planet2": "lilith_mean",
+          "applying": true,
+          "aspect_type": "square"
+        },
+        {
+          "orb": 6.63471233822159,
+          "angle": 180,
+          "planet1": "earth",
+          "planet2": "moon",
+          "applying": true,
+          "aspect_type": "opposition"
+        },
+        {
+          "orb": 6.235373324005479,
+          "angle": 120,
+          "planet1": "earth",
+          "planet2": "saturn",
+          "applying": true,
+          "aspect_type": "trine"
+        },
+        {
+          "orb": 2.6731035132768284,
+          "angle": 150,
+          "planet1": "earth",
+          "planet2": "uranus",
+          "applying": true,
+          "aspect_type": "quincunx"
+        },
+        {
+          "orb": 0.8460204214874238,
+          "angle": 30,
+          "planet1": "earth",
+          "planet2": "chiron",
+          "applying": true,
+          "aspect_type": "semisextile"
+        },
+        {
+          "orb": 5.8108079749626995,
+          "angle": 90,
+          "planet1": "earth",
+          "planet2": "lilith_mean",
+          "applying": true,
+          "aspect_type": "square"
+        },
+        {
+          "orb": 2.4908006009640644,
+          "angle": 0,
+          "planet1": "moon",
+          "planet2": "mars",
+          "applying": true,
+          "aspect_type": "conjunction"
+        },
+        {
+          "orb": 6.206276629277738,
+          "angle": 0,
+          "planet1": "moon",
+          "planet2": "pluto",
+          "applying": true,
+          "aspect_type": "conjunction"
+        },
+        {
+          "orb": 0.8239043632588903,
+          "angle": 90,
+          "planet1": "moon",
+          "planet2": "lilith_mean",
+          "applying": true,
+          "aspect_type": "square"
+        },
+        {
+          "orb": 1.5548809420994445,
+          "angle": 90,
+          "planet1": "mercury",
+          "planet2": "saturn",
+          "applying": false,
+          "aspect_type": "square"
+        },
+        {
+          "orb": 1.3722262862193588,
+          "angle": 180,
+          "planet1": "venus",
+          "planet2": "jupiter",
+          "applying": true,
+          "aspect_type": "opposition"
+        },
+        {
+          "orb": 0.9106136998715897,
+          "angle": 45,
+          "planet1": "venus",
+          "planet2": "uranus",
+          "applying": true,
+          "aspect_type": "semisquare"
+        },
+        {
+          "orb": 3.038002981836371,
+          "angle": 90,
+          "planet1": "venus",
+          "planet2": "neptune",
+          "applying": true,
+          "aspect_type": "square"
+        },
+        {
+          "orb": 0.9164693919178148,
+          "angle": 135,
+          "planet1": "venus",
+          "planet2": "chiron",
+          "applying": false,
+          "aspect_type": "sesquiquadrate"
+        },
+        {
+          "orb": 4.5989738923832135,
+          "angle": 60,
+          "planet1": "mars",
+          "planet2": "neptune",
+          "applying": true,
+          "aspect_type": "sextile"
+        },
+        {
+          "orb": 3.715476028313674,
+          "angle": 0,
+          "planet1": "mars",
+          "planet2": "pluto",
+          "applying": true,
+          "aspect_type": "conjunction"
+        },
+        {
+          "orb": 3.3147049642229547,
+          "angle": 90,
+          "planet1": "mars",
+          "planet2": "lilith_mean",
+          "applying": true,
+          "aspect_type": "square"
+        },
+        {
+          "orb": 5.629910576369923,
+          "angle": 120,
+          "planet1": "jupiter",
+          "planet2": "saturn",
+          "applying": true,
+          "aspect_type": "trine"
+        },
+        {
+          "orb": 0.46161258634776914,
+          "angle": 135,
+          "planet1": "jupiter",
+          "planet2": "uranus",
+          "applying": true,
+          "aspect_type": "sesquiquadrate"
+        },
+        {
+          "orb": 4.41022926805573,
+          "angle": 90,
+          "planet1": "jupiter",
+          "planet2": "neptune",
+          "applying": true,
+          "aspect_type": "square"
+        },
+        {
+          "orb": 7.081393745492889,
+          "angle": 90,
+          "planet1": "saturn",
+          "planet2": "chiron",
+          "applying": false,
+          "aspect_type": "square"
+        },
+        {
+          "orb": 1.8270830917894045,
+          "angle": 180,
+          "planet1": "uranus",
+          "planet2": "chiron",
+          "applying": false,
+          "aspect_type": "opposition"
+        },
+        {
+          "orb": 3.137704461685871,
+          "angle": 60,
+          "planet1": "uranus",
+          "planet2": "lilith_mean",
+          "applying": false,
+          "aspect_type": "sextile"
+        },
+        {
+          "orb": 0.8834978640695397,
+          "angle": 60,
+          "planet1": "neptune",
+          "planet2": "pluto",
+          "applying": true,
+          "aspect_type": "sextile"
+        },
+        {
+          "orb": 7.0301809925366285,
+          "angle": 90,
+          "planet1": "pluto",
+          "planet2": "lilith_mean",
+          "applying": false,
+          "aspect_type": "square"
+        },
+        {
+          "orb": 4.964787553475276,
+          "angle": 120,
+          "planet1": "chiron",
+          "planet2": "lilith_mean",
+          "applying": false,
+          "aspect_type": "trine"
+        }
+      ],
+      "planets": {
+        "sun": {
+          "house": 12,
+          "distance": 1.0052932642873336,
+          "latitude": -6.62185013251585e-05,
+          "longitude": 173.33790590613236,
+          "sign_name": "Virgo",
+          "retrograde": false,
+          "degree_in_sign": 23.333333333333332,
+          "speed_longitude": 0.9758173266905601
+        },
+        "mars": {
+          "house": 1,
+          "distance": 2.624254382623467,
+          "latitude": 0.7635692021727043,
+          "longitude": 182.46341884531805,
+          "sign_name": "Libra",
+          "retrograde": false,
+          "degree_in_sign": 2.45,
+          "speed_longitude": 0.6488825543110011
+        },
+        "moon": {
+          "house": 1,
+          "distance": 0.002430587686749699,
+          "latitude": -4.81578119333338,
+          "longitude": 179.97261824435398,
+          "sign_name": "Virgo",
+          "retrograde": false,
+          "degree_in_sign": 29.966666666666665,
+          "speed_longitude": 14.630763399065756
+        },
+        "earth": {
+          "house": 6,
+          "distance": 0,
+          "latitude": 0,
+          "longitude": 353.3379059061324,
+          "sign_name": "Pisces",
+          "retrograde": false,
+          "degree_in_sign": 23.333333333333332,
+          "speed_longitude": -0.9758173266905601
+        },
+        "pluto": {
+          "house": 1,
+          "distance": 31.802771926414824,
+          "latitude": 16.198260266077284,
+          "longitude": 186.17889487363172,
+          "sign_name": "Libra",
+          "retrograde": false,
+          "degree_in_sign": 6.166666666666667,
+          "speed_longitude": 0.0378078497021761
+        },
+        "venus": {
+          "house": 12,
+          "distance": 1.6585628214934105,
+          "latitude": 1.3314803971647828,
+          "longitude": 160.10039571953763,
+          "sign_name": "Virgo",
+          "retrograde": false,
+          "degree_in_sign": 10.1,
+          "speed_longitude": 1.2400566999451144
+        },
+        "chiron": {
+          "house": 7,
+          "distance": 13.7,
+          "latitude": 0,
+          "longitude": 24.183926327619815,
+          "sign_name": "Aries",
+          "retrograde": false,
+          "degree_in_sign": 24.183333333333334,
+          "speed_longitude": 0.01945
+        },
+        "saturn": {
+          "house": 10,
+          "distance": 9.379783448676713,
+          "latitude": -0.5041073307166686,
+          "longitude": 107.10253258212693,
+          "sign_name": "Cancer",
+          "retrograde": false,
+          "degree_in_sign": 17.1,
+          "speed_longitude": 0.07558111870777395
+        },
+        "uranus": {
+          "house": 1,
+          "distance": 19.287753165778543,
+          "latitude": 0.535163654010231,
+          "longitude": 206.01100941940922,
+          "sign_name": "Libra",
+          "retrograde": false,
+          "degree_in_sign": 26,
+          "speed_longitude": 0.05555541020078181
+        },
+        "jupiter": {
+          "house": 6,
+          "distance": 3.995542642640153,
+          "latitude": -1.458342563741998,
+          "longitude": 341.472622005757,
+          "sign_name": "Pisces",
+          "retrograde": true,
+          "degree_in_sign": 11.466666666666667,
+          "speed_longitude": -0.12628890187414754
+        },
+        "mercury": {
+          "house": 1,
+          "distance": 1.1995812239394488,
+          "latitude": -1.0345339128159214,
+          "longitude": 195.54765164002748,
+          "sign_name": "Libra",
+          "retrograde": false,
+          "degree_in_sign": 15.533333333333333,
+          "speed_longitude": 1.3893678048613367
+        },
+        "neptune": {
+          "house": 3,
+          "distance": 30.57143242195486,
+          "latitude": 1.5598292066384183,
+          "longitude": 247.06239273770126,
+          "sign_name": "Sagittarius",
+          "retrograde": false,
+          "degree_in_sign": 7.05,
+          "speed_longitude": 0.015566103429591749
+        },
+        "lilith_mean": {
+          "house": 4,
+          "distance": 0,
+          "latitude": 0,
+          "longitude": 269.1487138810951,
+          "sign_name": "Sagittarius",
+          "retrograde": false,
+          "degree_in_sign": 29.133333333333333,
+          "speed_longitude": 0.11140353
+        }
+      },
+      "patterns": [],
+      "houses_metadata": {
+        "mc": 86.59051753707058,
+        "armc": 0,
+        "cusps": [
+          176.59051753707058,
+          206.59051753707058,
+          236.59051753707058,
+          266.5905175370706,
+          296.5905175370706,
+          326.5905175370706,
+          356.5905175370706,
+          26.590517537070582,
+          56.59051753707058,
+          86.59051753707058,
+          116.59051753707058,
+          146.59051753707058
+        ],
+        "vertex": 0,
+        "ascendant": 176.59051753707058,
+        "co_ascendant_koch": 0,
+        "equatorial_ascendant": 0
+      },
+      "calculation_info": {
+        "zodiac_type": "tropical",
+        "house_system": "placidus",
+        "birth_datetime": "2025-11-15T20:11:17.904Z"
+      }
+    },
+    "last_viewed": "2025-11-15T22:26:49.752333",
+    "id": "5228be21-11fb-43d4-865e-f1aacf2b2e4d",
+    "created_at": "2025-11-15T20:11:17.934927",
+    "updated_at": "2025-11-15T22:26:49.753299"
+  },
+  {
+    "user_id": "ec88bad0-7ab7-416f-a32c-f9fdd57af310",
+    "client_id": "9c34cde9-d2d5-4ce0-9902-f667eb3ba05b",
+    "birth_data_id": "3f1baa91-03d3-4f0b-af86-3a28ec4486fb",
+    "chart_name": "Birth Chart - Eugene, Oregon",
+    "chart_type": "natal",
+    "astro_system": "western",
+    "house_system": "placidus",
+    "ayanamsa": null,
+    "zodiac_type": "tropical",
+    "calculation_params": null,
+    "chart_data": {
+      "ic": 266.5905175370706,
+      "houses": [
+        {
+          "cusp": 176.59051753707058,
+          "sign": "Virgo",
+          "degree": 26,
+          "minute": 35,
+          "number": 1
+        },
+        {
+          "cusp": 206.59051753707058,
+          "sign": "Libra",
+          "degree": 26,
+          "minute": 35,
+          "number": 2
+        },
+        {
+          "cusp": 236.59051753707058,
+          "sign": "Scorpio",
+          "degree": 26,
+          "minute": 35,
+          "number": 3
+        },
+        {
+          "cusp": 266.5905175370706,
+          "sign": "Sagittarius",
+          "degree": 26,
+          "minute": 35,
+          "number": 4
+        },
+        {
+          "cusp": 296.5905175370706,
+          "sign": "Capricorn",
+          "degree": 26,
+          "minute": 35,
+          "number": 5
+        },
+        {
+          "cusp": 326.5905175370706,
+          "sign": "Aquarius",
+          "degree": 26,
+          "minute": 35,
+          "number": 6
+        },
+        {
+          "cusp": 356.5905175370706,
+          "sign": "Pisces",
+          "degree": 26,
+          "minute": 35,
+          "number": 7
+        },
+        {
+          "cusp": 26.590517537070582,
+          "sign": "Aries",
+          "degree": 26,
+          "minute": 35,
+          "number": 8
+        },
+        {
+          "cusp": 56.59051753707058,
+          "sign": "Taurus",
+          "degree": 26,
+          "minute": 35,
+          "number": 9
+        },
+        {
+          "cusp": 86.59051753707058,
+          "sign": "Gemini",
+          "degree": 26,
+          "minute": 35,
+          "number": 10
+        },
+        {
+          "cusp": 116.59051753707058,
+          "sign": "Cancer",
+          "degree": 26,
+          "minute": 35,
+          "number": 11
+        },
+        {
+          "cusp": 146.59051753707058,
+          "sign": "Leo",
+          "degree": 26,
+          "minute": 35,
+          "number": 12
+        }
+      ],
+      "aspects": [
+        {
+          "orb": 2.842170943040401e-14,
+          "type": "Opposition",
+          "angle": 180,
+          "planet1": "Sun",
+          "planet2": "Earth",
+          "isApplying": true
+        },
+        {
+          "orb": 6.634712338221618,
+          "type": "Conjunction",
+          "angle": 0,
+          "planet1": "Sun",
+          "planet2": "Moon",
+          "isApplying": false
+        },
+        {
+          "orb": 0.8460204214874523,
+          "type": "Quincunx",
+          "angle": 150,
+          "planet1": "Sun",
+          "planet2": "Chiron",
+          "isApplying": false
+        },
+        {
+          "orb": 5.810807974962728,
+          "type": "Square",
+          "angle": 90,
+          "planet1": "Sun",
+          "planet2": "Lilith",
+          "isApplying": true
+        },
+        {
+          "orb": 6.63471233822159,
+          "type": "Opposition",
+          "angle": 180,
+          "planet1": "Earth",
+          "planet2": "Moon",
+          "isApplying": true
+        },
+        {
+          "orb": 6.235373324005479,
+          "type": "Trine",
+          "angle": 120,
+          "planet1": "Earth",
+          "planet2": "Saturn",
+          "isApplying": true
+        },
+        {
+          "orb": 2.6731035132768284,
+          "type": "Quincunx",
+          "angle": 150,
+          "planet1": "Earth",
+          "planet2": "Uranus",
+          "isApplying": true
+        },
+        {
+          "orb": 0.8460204214874238,
+          "type": "Semisextile",
+          "angle": 30,
+          "planet1": "Earth",
+          "planet2": "Chiron",
+          "isApplying": true
+        },
+        {
+          "orb": 5.8108079749626995,
+          "type": "Square",
+          "angle": 90,
+          "planet1": "Earth",
+          "planet2": "Lilith",
+          "isApplying": true
+        },
+        {
+          "orb": 2.4908006009640644,
+          "type": "Conjunction",
+          "angle": 0,
+          "planet1": "Moon",
+          "planet2": "Mars",
+          "isApplying": true
+        },
+        {
+          "orb": 6.206276629277738,
+          "type": "Conjunction",
+          "angle": 0,
+          "planet1": "Moon",
+          "planet2": "Pluto",
+          "isApplying": true
+        },
+        {
+          "orb": 0.8239043632588903,
+          "type": "Square",
+          "angle": 90,
+          "planet1": "Moon",
+          "planet2": "Lilith",
+          "isApplying": true
+        },
+        {
+          "orb": 1.5548809420994445,
+          "type": "Square",
+          "angle": 90,
+          "planet1": "Mercury",
+          "planet2": "Saturn",
+          "isApplying": false
+        },
+        {
+          "orb": 1.3722262862193588,
+          "type": "Opposition",
+          "angle": 180,
+          "planet1": "Venus",
+          "planet2": "Jupiter",
+          "isApplying": true
+        },
+        {
+          "orb": 0.9106136998715897,
+          "type": "Semisquare",
+          "angle": 45,
+          "planet1": "Venus",
+          "planet2": "Uranus",
+          "isApplying": true
+        },
+        {
+          "orb": 3.038002981836371,
+          "type": "Square",
+          "angle": 90,
+          "planet1": "Venus",
+          "planet2": "Neptune",
+          "isApplying": true
+        },
+        {
+          "orb": 0.9164693919178148,
+          "type": "Sesquiquadrate",
+          "angle": 135,
+          "planet1": "Venus",
+          "planet2": "Chiron",
+          "isApplying": false
+        },
+        {
+          "orb": 4.5989738923832135,
+          "type": "Sextile",
+          "angle": 60,
+          "planet1": "Mars",
+          "planet2": "Neptune",
+          "isApplying": true
+        },
+        {
+          "orb": 3.715476028313674,
+          "type": "Conjunction",
+          "angle": 0,
+          "planet1": "Mars",
+          "planet2": "Pluto",
+          "isApplying": true
+        },
+        {
+          "orb": 3.3147049642229547,
+          "type": "Square",
+          "angle": 90,
+          "planet1": "Mars",
+          "planet2": "Lilith",
+          "isApplying": true
+        },
+        {
+          "orb": 5.629910576369923,
+          "type": "Trine",
+          "angle": 120,
+          "planet1": "Jupiter",
+          "planet2": "Saturn",
+          "isApplying": true
+        },
+        {
+          "orb": 0.46161258634776914,
+          "type": "Sesquiquadrate",
+          "angle": 135,
+          "planet1": "Jupiter",
+          "planet2": "Uranus",
+          "isApplying": true
+        },
+        {
+          "orb": 4.41022926805573,
+          "type": "Square",
+          "angle": 90,
+          "planet1": "Jupiter",
+          "planet2": "Neptune",
+          "isApplying": true
+        },
+        {
+          "orb": 7.081393745492889,
+          "type": "Square",
+          "angle": 90,
+          "planet1": "Saturn",
+          "planet2": "Chiron",
+          "isApplying": false
+        },
+        {
+          "orb": 1.8270830917894045,
+          "type": "Opposition",
+          "angle": 180,
+          "planet1": "Uranus",
+          "planet2": "Chiron",
+          "isApplying": false
+        },
+        {
+          "orb": 3.137704461685871,
+          "type": "Sextile",
+          "angle": 60,
+          "planet1": "Uranus",
+          "planet2": "Lilith",
+          "isApplying": false
+        },
+        {
+          "orb": 0.8834978640695397,
+          "type": "Sextile",
+          "angle": 60,
+          "planet1": "Neptune",
+          "planet2": "Pluto",
+          "isApplying": true
+        },
+        {
+          "orb": 7.0301809925366285,
+          "type": "Square",
+          "angle": 90,
+          "planet1": "Pluto",
+          "planet2": "Lilith",
+          "isApplying": false
+        },
+        {
+          "orb": 4.964787553475276,
+          "type": "Trine",
+          "angle": 120,
+          "planet1": "Chiron",
+          "planet2": "Lilith",
+          "isApplying": false
+        }
+      ],
+      "planets": [
+        {
+          "name": "Sun",
+          "sign": "Virgo",
+          "house": 12,
+          "speed": 0.9758173266905601,
+          "degree": 23,
+          "minute": 20,
+          "symbol": "☉",
+          "element": "Earth",
+          "distance": 1.0052932642873336,
+          "latitude": -6.62185013251585e-05,
+          "modality": "Mutable",
+          "longitude": 173.33790590613236,
+          "isRetrograde": false
+        },
+        {
+          "name": "Earth",
+          "sign": "Pisces",
+          "house": 6,
+          "speed": -0.9758173266905601,
+          "degree": 23,
+          "minute": 20,
+          "symbol": "♁",
+          "element": "Water",
+          "distance": 0,
+          "latitude": 0,
+          "modality": "Mutable",
+          "longitude": 353.3379059061324,
+          "isRetrograde": false
+        },
+        {
+          "name": "Moon",
+          "sign": "Virgo",
+          "house": 1,
+          "speed": 14.630763399065756,
+          "degree": 29,
+          "minute": 58,
+          "symbol": "☽",
+          "element": "Earth",
+          "distance": 0.002430587686749699,
+          "latitude": -4.81578119333338,
+          "modality": "Mutable",
+          "longitude": 179.97261824435398,
+          "isRetrograde": false
+        },
+        {
+          "name": "Mercury",
+          "sign": "Libra",
+          "house": 1,
+          "speed": 1.3893678048613367,
+          "degree": 15,
+          "minute": 32,
+          "symbol": "☿",
+          "element": "Air",
+          "distance": 1.1995812239394488,
+          "latitude": -1.0345339128159214,
+          "modality": "Cardinal",
+          "longitude": 195.54765164002748,
+          "isRetrograde": false
+        },
+        {
+          "name": "Venus",
+          "sign": "Virgo",
+          "house": 12,
+          "speed": 1.2400566999451144,
+          "degree": 10,
+          "minute": 6,
+          "symbol": "♀",
+          "element": "Earth",
+          "distance": 1.6585628214934105,
+          "latitude": 1.3314803971647828,
+          "modality": "Mutable",
+          "longitude": 160.10039571953763,
+          "isRetrograde": false
+        },
+        {
+          "name": "Mars",
+          "sign": "Libra",
+          "house": 1,
+          "speed": 0.6488825543110011,
+          "degree": 2,
+          "minute": 27,
+          "symbol": "♂",
+          "element": "Air",
+          "distance": 2.624254382623467,
+          "latitude": 0.7635692021727043,
+          "modality": "Cardinal",
+          "longitude": 182.46341884531805,
+          "isRetrograde": false
+        },
+        {
+          "name": "Jupiter",
+          "sign": "Pisces",
+          "house": 6,
+          "speed": -0.12628890187414754,
+          "degree": 11,
+          "minute": 28,
+          "symbol": "♃",
+          "element": "Water",
+          "distance": 3.995542642640153,
+          "latitude": -1.458342563741998,
+          "modality": "Mutable",
+          "longitude": 341.472622005757,
+          "isRetrograde": true
+        },
+        {
+          "name": "Saturn",
+          "sign": "Cancer",
+          "house": 10,
+          "speed": 0.07558111870777395,
+          "degree": 17,
+          "minute": 6,
+          "symbol": "♄",
+          "element": "Water",
+          "distance": 9.379783448676713,
+          "latitude": -0.5041073307166686,
+          "modality": "Cardinal",
+          "longitude": 107.10253258212693,
+          "isRetrograde": false
+        },
+        {
+          "name": "Uranus",
+          "sign": "Libra",
+          "house": 1,
+          "speed": 0.05555541020078181,
+          "degree": 26,
+          "minute": 0,
+          "symbol": "♅",
+          "element": "Air",
+          "distance": 19.287753165778543,
+          "latitude": 0.535163654010231,
+          "modality": "Cardinal",
+          "longitude": 206.01100941940922,
+          "isRetrograde": false
+        },
+        {
+          "name": "Neptune",
+          "sign": "Sagittarius",
+          "house": 3,
+          "speed": 0.015566103429591749,
+          "degree": 7,
+          "minute": 3,
+          "symbol": "♆",
+          "element": "Fire",
+          "distance": 30.57143242195486,
+          "latitude": 1.5598292066384183,
+          "modality": "Mutable",
+          "longitude": 247.06239273770126,
+          "isRetrograde": false
+        },
+        {
+          "name": "Pluto",
+          "sign": "Libra",
+          "house": 1,
+          "speed": 0.0378078497021761,
+          "degree": 6,
+          "minute": 10,
+          "symbol": "♇",
+          "element": "Air",
+          "distance": 31.802771926414824,
+          "latitude": 16.198260266077284,
+          "modality": "Cardinal",
+          "longitude": 186.17889487363172,
+          "isRetrograde": false
+        },
+        {
+          "name": "Chiron",
+          "sign": "Aries",
+          "house": 7,
+          "speed": 0.01945,
+          "degree": 24,
+          "minute": 11,
+          "symbol": "⚷",
+          "element": "Fire",
+          "distance": 13.7,
+          "latitude": 0,
+          "modality": "Cardinal",
+          "longitude": 24.183926327619815,
+          "isRetrograde": false
+        },
+        {
+          "name": "Lilith",
+          "sign": "Sagittarius",
+          "house": 4,
+          "speed": 0.11140353,
+          "degree": 29,
+          "minute": 8,
+          "symbol": "⚸",
+          "element": "Fire",
+          "distance": 0,
+          "latitude": 0,
+          "modality": "Mutable",
+          "longitude": 269.1487138810951,
+          "isRetrograde": false
+        }
+      ],
+      "ascendant": 176.59051753707058,
+      "birthData": {
+        "date": "1974-09-16T14:14:00.000Z",
+        "latitude": 44.0521,
+        "longitude": -123.0868
+      },
+      "midheaven": 86.59051753707058,
+      "descendant": 356.5905175370706
+    },
+    "last_viewed": null,
+    "id": "64a9cf9a-5c31-4a20-b206-b2b4a3c06224",
+    "created_at": "2025-11-15T16:55:46.375616",
+    "updated_at": "2025-11-15T16:55:46.375621"
+  },
+  {
+    "user_id": "ec88bad0-7ab7-416f-a32c-f9fdd57af310",
+    "client_id": "5e635c13-b87e-4040-9be1-47d261e6e9b7",
+    "birth_data_id": "ae7aa079-6eee-4471-847d-d6114bfcdcea",
+    "chart_name": "Birth Chart - Eugene, Oregon",
+    "chart_type": "natal",
+    "astro_system": "western",
+    "house_system": "placidus",
+    "ayanamsa": null,
+    "zodiac_type": "tropical",
+    "calculation_params": null,
+    "chart_data": {
+      "houses": {
+        "mc": 86.59051753707058,
+        "armc": 0,
+        "cusps": [
+          176.59051753707058,
+          206.59051753707058,
+          236.59051753707058,
+          266.5905175370706,
+          296.5905175370706,
+          326.5905175370706,
+          356.5905175370706,
+          26.590517537070582,
+          56.59051753707058,
+          86.59051753707058,
+          116.59051753707058,
+          146.59051753707058
+        ],
+        "vertex": 0,
+        "ascendant": 176.59051753707058,
+        "co_ascendant_koch": 0,
+        "equatorial_ascendant": 0
+      },
+      "aspects": [
+        {
+          "orb": 2.842170943040401e-14,
+          "angle": 180,
+          "planet1": "sun",
+          "planet2": "earth",
+          "applying": true,
+          "aspect_type": "opposition"
+        },
+        {
+          "orb": 6.634712338221618,
+          "angle": 0,
+          "planet1": "sun",
+          "planet2": "moon",
+          "applying": false,
+          "aspect_type": "conjunction"
+        },
+        {
+          "orb": 0.8460204214874523,
+          "angle": 150,
+          "planet1": "sun",
+          "planet2": "chiron",
+          "applying": false,
+          "aspect_type": "quincunx"
+        },
+        {
+          "orb": 5.810807974962728,
+          "angle": 90,
+          "planet1": "sun",
+          "planet2": "lilith_mean",
+          "applying": true,
+          "aspect_type": "square"
+        },
+        {
+          "orb": 6.63471233822159,
+          "angle": 180,
+          "planet1": "earth",
+          "planet2": "moon",
+          "applying": true,
+          "aspect_type": "opposition"
+        },
+        {
+          "orb": 6.235373324005479,
+          "angle": 120,
+          "planet1": "earth",
+          "planet2": "saturn",
+          "applying": true,
+          "aspect_type": "trine"
+        },
+        {
+          "orb": 2.6731035132768284,
+          "angle": 150,
+          "planet1": "earth",
+          "planet2": "uranus",
+          "applying": true,
+          "aspect_type": "quincunx"
+        },
+        {
+          "orb": 0.8460204214874238,
+          "angle": 30,
+          "planet1": "earth",
+          "planet2": "chiron",
+          "applying": true,
+          "aspect_type": "semisextile"
+        },
+        {
+          "orb": 5.8108079749626995,
+          "angle": 90,
+          "planet1": "earth",
+          "planet2": "lilith_mean",
+          "applying": true,
+          "aspect_type": "square"
+        },
+        {
+          "orb": 2.4908006009640644,
+          "angle": 0,
+          "planet1": "moon",
+          "planet2": "mars",
+          "applying": true,
+          "aspect_type": "conjunction"
+        },
+        {
+          "orb": 6.206276629277738,
+          "angle": 0,
+          "planet1": "moon",
+          "planet2": "pluto",
+          "applying": true,
+          "aspect_type": "conjunction"
+        },
+        {
+          "orb": 0.8239043632588903,
+          "angle": 90,
+          "planet1": "moon",
+          "planet2": "lilith_mean",
+          "applying": true,
+          "aspect_type": "square"
+        },
+        {
+          "orb": 1.5548809420994445,
+          "angle": 90,
+          "planet1": "mercury",
+          "planet2": "saturn",
+          "applying": false,
+          "aspect_type": "square"
+        },
+        {
+          "orb": 1.3722262862193588,
+          "angle": 180,
+          "planet1": "venus",
+          "planet2": "jupiter",
+          "applying": true,
+          "aspect_type": "opposition"
+        },
+        {
+          "orb": 0.9106136998715897,
+          "angle": 45,
+          "planet1": "venus",
+          "planet2": "uranus",
+          "applying": true,
+          "aspect_type": "semisquare"
+        },
+        {
+          "orb": 3.038002981836371,
+          "angle": 90,
+          "planet1": "venus",
+          "planet2": "neptune",
+          "applying": true,
+          "aspect_type": "square"
+        },
+        {
+          "orb": 0.9164693919178148,
+          "angle": 135,
+          "planet1": "venus",
+          "planet2": "chiron",
+          "applying": false,
+          "aspect_type": "sesquiquadrate"
+        },
+        {
+          "orb": 4.5989738923832135,
+          "angle": 60,
+          "planet1": "mars",
+          "planet2": "neptune",
+          "applying": true,
+          "aspect_type": "sextile"
+        },
+        {
+          "orb": 3.715476028313674,
+          "angle": 0,
+          "planet1": "mars",
+          "planet2": "pluto",
+          "applying": true,
+          "aspect_type": "conjunction"
+        },
+        {
+          "orb": 3.3147049642229547,
+          "angle": 90,
+          "planet1": "mars",
+          "planet2": "lilith_mean",
+          "applying": true,
+          "aspect_type": "square"
+        },
+        {
+          "orb": 5.629910576369923,
+          "angle": 120,
+          "planet1": "jupiter",
+          "planet2": "saturn",
+          "applying": true,
+          "aspect_type": "trine"
+        },
+        {
+          "orb": 0.46161258634776914,
+          "angle": 135,
+          "planet1": "jupiter",
+          "planet2": "uranus",
+          "applying": true,
+          "aspect_type": "sesquiquadrate"
+        },
+        {
+          "orb": 4.41022926805573,
+          "angle": 90,
+          "planet1": "jupiter",
+          "planet2": "neptune",
+          "applying": true,
+          "aspect_type": "square"
+        },
+        {
+          "orb": 7.081393745492889,
+          "angle": 90,
+          "planet1": "saturn",
+          "planet2": "chiron",
+          "applying": false,
+          "aspect_type": "square"
+        },
+        {
+          "orb": 1.8270830917894045,
+          "angle": 180,
+          "planet1": "uranus",
+          "planet2": "chiron",
+          "applying": false,
+          "aspect_type": "opposition"
+        },
+        {
+          "orb": 3.137704461685871,
+          "angle": 60,
+          "planet1": "uranus",
+          "planet2": "lilith_mean",
+          "applying": false,
+          "aspect_type": "sextile"
+        },
+        {
+          "orb": 0.8834978640695397,
+          "angle": 60,
+          "planet1": "neptune",
+          "planet2": "pluto",
+          "applying": true,
+          "aspect_type": "sextile"
+        },
+        {
+          "orb": 7.0301809925366285,
+          "angle": 90,
+          "planet1": "pluto",
+          "planet2": "lilith_mean",
+          "applying": false,
+          "aspect_type": "square"
+        },
+        {
+          "orb": 4.964787553475276,
+          "angle": 120,
+          "planet1": "chiron",
+          "planet2": "lilith_mean",
+          "applying": false,
+          "aspect_type": "trine"
+        }
+      ],
+      "planets": {
+        "sun": {
+          "house": 12,
+          "distance": 1.0052932642873336,
+          "latitude": -6.62185013251585e-05,
+          "longitude": 173.33790590613236,
+          "sign_name": "Virgo",
+          "retrograde": false,
+          "degree_in_sign": 23.333333333333332,
+          "speed_longitude": 0.9758173266905601
+        },
+        "mars": {
+          "house": 1,
+          "distance": 2.624254382623467,
+          "latitude": 0.7635692021727043,
+          "longitude": 182.46341884531805,
+          "sign_name": "Libra",
+          "retrograde": false,
+          "degree_in_sign": 2.45,
+          "speed_longitude": 0.6488825543110011
+        },
+        "moon": {
+          "house": 1,
+          "distance": 0.002430587686749699,
+          "latitude": -4.81578119333338,
+          "longitude": 179.97261824435398,
+          "sign_name": "Virgo",
+          "retrograde": false,
+          "degree_in_sign": 29.966666666666665,
+          "speed_longitude": 14.630763399065756
+        },
+        "earth": {
+          "house": 6,
+          "distance": 0,
+          "latitude": 0,
+          "longitude": 353.3379059061324,
+          "sign_name": "Pisces",
+          "retrograde": false,
+          "degree_in_sign": 23.333333333333332,
+          "speed_longitude": -0.9758173266905601
+        },
+        "pluto": {
+          "house": 1,
+          "distance": 31.802771926414824,
+          "latitude": 16.198260266077284,
+          "longitude": 186.17889487363172,
+          "sign_name": "Libra",
+          "retrograde": false,
+          "degree_in_sign": 6.166666666666667,
+          "speed_longitude": 0.0378078497021761
+        },
+        "venus": {
+          "house": 12,
+          "distance": 1.6585628214934105,
+          "latitude": 1.3314803971647828,
+          "longitude": 160.10039571953763,
+          "sign_name": "Virgo",
+          "retrograde": false,
+          "degree_in_sign": 10.1,
+          "speed_longitude": 1.2400566999451144
+        },
+        "chiron": {
+          "house": 7,
+          "distance": 13.7,
+          "latitude": 0,
+          "longitude": 24.183926327619815,
+          "sign_name": "Aries",
+          "retrograde": false,
+          "degree_in_sign": 24.183333333333334,
+          "speed_longitude": 0.01945
+        },
+        "saturn": {
+          "house": 10,
+          "distance": 9.379783448676713,
+          "latitude": -0.5041073307166686,
+          "longitude": 107.10253258212693,
+          "sign_name": "Cancer",
+          "retrograde": false,
+          "degree_in_sign": 17.1,
+          "speed_longitude": 0.07558111870777395
+        },
+        "uranus": {
+          "house": 1,
+          "distance": 19.287753165778543,
+          "latitude": 0.535163654010231,
+          "longitude": 206.01100941940922,
+          "sign_name": "Libra",
+          "retrograde": false,
+          "degree_in_sign": 26,
+          "speed_longitude": 0.05555541020078181
+        },
+        "jupiter": {
+          "house": 6,
+          "distance": 3.995542642640153,
+          "latitude": -1.458342563741998,
+          "longitude": 341.472622005757,
+          "sign_name": "Pisces",
+          "retrograde": true,
+          "degree_in_sign": 11.466666666666667,
+          "speed_longitude": -0.12628890187414754
+        },
+        "mercury": {
+          "house": 1,
+          "distance": 1.1995812239394488,
+          "latitude": -1.0345339128159214,
+          "longitude": 195.54765164002748,
+          "sign_name": "Libra",
+          "retrograde": false,
+          "degree_in_sign": 15.533333333333333,
+          "speed_longitude": 1.3893678048613367
+        },
+        "neptune": {
+          "house": 3,
+          "distance": 30.57143242195486,
+          "latitude": 1.5598292066384183,
+          "longitude": 247.06239273770126,
+          "sign_name": "Sagittarius",
+          "retrograde": false,
+          "degree_in_sign": 7.05,
+          "speed_longitude": 0.015566103429591749
+        },
+        "lilith_mean": {
+          "house": 4,
+          "distance": 0,
+          "latitude": 0,
+          "longitude": 269.1487138810951,
+          "sign_name": "Sagittarius",
+          "retrograde": false,
+          "degree_in_sign": 29.133333333333333,
+          "speed_longitude": 0.11140353
+        }
+      },
+      "patterns": [],
+      "calculation_info": {
+        "zodiac_type": "tropical",
+        "house_system": "placidus",
+        "birth_datetime": "2025-11-15T18:44:35.847Z"
+      }
+    },
+    "last_viewed": null,
+    "id": "f3737312-09f7-4b0c-b89f-4ecd29988d1b",
+    "created_at": "2025-11-15T18:44:35.884593",
+    "updated_at": "2025-11-15T18:44:35.884597"
+  },
+  {
+    "user_id": "ec88bad0-7ab7-416f-a32c-f9fdd57af310",
+    "client_id": "403901bd-bac1-41b7-a488-72742cbffaa4",
+    "birth_data_id": "225568e9-0232-4a35-9f3f-ceb9f91d5b0f",
+    "chart_name": "Birth Chart - Eugene, Oregon",
+    "chart_type": "natal",
+    "astro_system": "western",
+    "house_system": "placidus",
+    "ayanamsa": null,
+    "zodiac_type": "tropical",
+    "calculation_params": null,
+    "chart_data": {
+      "houses": [
+        {
+          "cusp": 176.59051753707058,
+          "sign": "Virgo",
+          "degree": 26,
+          "minute": 35,
+          "number": 1
+        },
+        {
+          "cusp": 206.59051753707058,
+          "sign": "Libra",
+          "degree": 26,
+          "minute": 35,
+          "number": 2
+        },
+        {
+          "cusp": 236.59051753707058,
+          "sign": "Scorpio",
+          "degree": 26,
+          "minute": 35,
+          "number": 3
+        },
+        {
+          "cusp": 266.5905175370706,
+          "sign": "Sagittarius",
+          "degree": 26,
+          "minute": 35,
+          "number": 4
+        },
+        {
+          "cusp": 296.5905175370706,
+          "sign": "Capricorn",
+          "degree": 26,
+          "minute": 35,
+          "number": 5
+        },
+        {
+          "cusp": 326.5905175370706,
+          "sign": "Aquarius",
+          "degree": 26,
+          "minute": 35,
+          "number": 6
+        },
+        {
+          "cusp": 356.5905175370706,
+          "sign": "Pisces",
+          "degree": 26,
+          "minute": 35,
+          "number": 7
+        },
+        {
+          "cusp": 26.590517537070582,
+          "sign": "Aries",
+          "degree": 26,
+          "minute": 35,
+          "number": 8
+        },
+        {
+          "cusp": 56.59051753707058,
+          "sign": "Taurus",
+          "degree": 26,
+          "minute": 35,
+          "number": 9
+        },
+        {
+          "cusp": 86.59051753707058,
+          "sign": "Gemini",
+          "degree": 26,
+          "minute": 35,
+          "number": 10
+        },
+        {
+          "cusp": 116.59051753707058,
+          "sign": "Cancer",
+          "degree": 26,
+          "minute": 35,
+          "number": 11
+        },
+        {
+          "cusp": 146.59051753707058,
+          "sign": "Leo",
+          "degree": 26,
+          "minute": 35,
+          "number": 12
+        }
+      ],
+      "aspects": [
+        {
+          "orb": 2.842170943040401e-14,
+          "angle": 180,
+          "planet1": "sun",
+          "planet2": "earth",
+          "applying": true,
+          "aspect_type": "opposition"
+        },
+        {
+          "orb": 6.634712338221618,
+          "angle": 0,
+          "planet1": "sun",
+          "planet2": "moon",
+          "applying": false,
+          "aspect_type": "conjunction"
+        },
+        {
+          "orb": 0.8460204214874523,
+          "angle": 150,
+          "planet1": "sun",
+          "planet2": "chiron",
+          "applying": false,
+          "aspect_type": "quincunx"
+        },
+        {
+          "orb": 5.810807974962728,
+          "angle": 90,
+          "planet1": "sun",
+          "planet2": "lilith_mean",
+          "applying": true,
+          "aspect_type": "square"
+        },
+        {
+          "orb": 6.63471233822159,
+          "angle": 180,
+          "planet1": "earth",
+          "planet2": "moon",
+          "applying": true,
+          "aspect_type": "opposition"
+        },
+        {
+          "orb": 6.235373324005479,
+          "angle": 120,
+          "planet1": "earth",
+          "planet2": "saturn",
+          "applying": true,
+          "aspect_type": "trine"
+        },
+        {
+          "orb": 2.6731035132768284,
+          "angle": 150,
+          "planet1": "earth",
+          "planet2": "uranus",
+          "applying": true,
+          "aspect_type": "quincunx"
+        },
+        {
+          "orb": 0.8460204214874238,
+          "angle": 30,
+          "planet1": "earth",
+          "planet2": "chiron",
+          "applying": true,
+          "aspect_type": "semisextile"
+        },
+        {
+          "orb": 5.8108079749626995,
+          "angle": 90,
+          "planet1": "earth",
+          "planet2": "lilith_mean",
+          "applying": true,
+          "aspect_type": "square"
+        },
+        {
+          "orb": 2.4908006009640644,
+          "angle": 0,
+          "planet1": "moon",
+          "planet2": "mars",
+          "applying": true,
+          "aspect_type": "conjunction"
+        },
+        {
+          "orb": 6.206276629277738,
+          "angle": 0,
+          "planet1": "moon",
+          "planet2": "pluto",
+          "applying": true,
+          "aspect_type": "conjunction"
+        },
+        {
+          "orb": 0.8239043632588903,
+          "angle": 90,
+          "planet1": "moon",
+          "planet2": "lilith_mean",
+          "applying": true,
+          "aspect_type": "square"
+        },
+        {
+          "orb": 1.5548809420994445,
+          "angle": 90,
+          "planet1": "mercury",
+          "planet2": "saturn",
+          "applying": false,
+          "aspect_type": "square"
+        },
+        {
+          "orb": 1.3722262862193588,
+          "angle": 180,
+          "planet1": "venus",
+          "planet2": "jupiter",
+          "applying": true,
+          "aspect_type": "opposition"
+        },
+        {
+          "orb": 0.9106136998715897,
+          "angle": 45,
+          "planet1": "venus",
+          "planet2": "uranus",
+          "applying": true,
+          "aspect_type": "semisquare"
+        },
+        {
+          "orb": 3.038002981836371,
+          "angle": 90,
+          "planet1": "venus",
+          "planet2": "neptune",
+          "applying": true,
+          "aspect_type": "square"
+        },
+        {
+          "orb": 0.9164693919178148,
+          "angle": 135,
+          "planet1": "venus",
+          "planet2": "chiron",
+          "applying": false,
+          "aspect_type": "sesquiquadrate"
+        },
+        {
+          "orb": 4.5989738923832135,
+          "angle": 60,
+          "planet1": "mars",
+          "planet2": "neptune",
+          "applying": true,
+          "aspect_type": "sextile"
+        },
+        {
+          "orb": 3.715476028313674,
+          "angle": 0,
+          "planet1": "mars",
+          "planet2": "pluto",
+          "applying": true,
+          "aspect_type": "conjunction"
+        },
+        {
+          "orb": 3.3147049642229547,
+          "angle": 90,
+          "planet1": "mars",
+          "planet2": "lilith_mean",
+          "applying": true,
+          "aspect_type": "square"
+        },
+        {
+          "orb": 5.629910576369923,
+          "angle": 120,
+          "planet1": "jupiter",
+          "planet2": "saturn",
+          "applying": true,
+          "aspect_type": "trine"
+        },
+        {
+          "orb": 0.46161258634776914,
+          "angle": 135,
+          "planet1": "jupiter",
+          "planet2": "uranus",
+          "applying": true,
+          "aspect_type": "sesquiquadrate"
+        },
+        {
+          "orb": 4.41022926805573,
+          "angle": 90,
+          "planet1": "jupiter",
+          "planet2": "neptune",
+          "applying": true,
+          "aspect_type": "square"
+        },
+        {
+          "orb": 7.081393745492889,
+          "angle": 90,
+          "planet1": "saturn",
+          "planet2": "chiron",
+          "applying": false,
+          "aspect_type": "square"
+        },
+        {
+          "orb": 1.8270830917894045,
+          "angle": 180,
+          "planet1": "uranus",
+          "planet2": "chiron",
+          "applying": false,
+          "aspect_type": "opposition"
+        },
+        {
+          "orb": 3.137704461685871,
+          "angle": 60,
+          "planet1": "uranus",
+          "planet2": "lilith_mean",
+          "applying": false,
+          "aspect_type": "sextile"
+        },
+        {
+          "orb": 0.8834978640695397,
+          "angle": 60,
+          "planet1": "neptune",
+          "planet2": "pluto",
+          "applying": true,
+          "aspect_type": "sextile"
+        },
+        {
+          "orb": 7.0301809925366285,
+          "angle": 90,
+          "planet1": "pluto",
+          "planet2": "lilith_mean",
+          "applying": false,
+          "aspect_type": "square"
+        },
+        {
+          "orb": 4.964787553475276,
+          "angle": 120,
+          "planet1": "chiron",
+          "planet2": "lilith_mean",
+          "applying": false,
+          "aspect_type": "trine"
+        }
+      ],
+      "planets": {
+        "sun": {
+          "house": 12,
+          "distance": 1.0052932642873336,
+          "latitude": -6.62185013251585e-05,
+          "longitude": 173.33790590613236,
+          "sign_name": "Virgo",
+          "retrograde": false,
+          "degree_in_sign": 23.333333333333332,
+          "speed_longitude": 0.9758173266905601
+        },
+        "mars": {
+          "house": 1,
+          "distance": 2.624254382623467,
+          "latitude": 0.7635692021727043,
+          "longitude": 182.46341884531805,
+          "sign_name": "Libra",
+          "retrograde": false,
+          "degree_in_sign": 2.45,
+          "speed_longitude": 0.6488825543110011
+        },
+        "moon": {
+          "house": 1,
+          "distance": 0.002430587686749699,
+          "latitude": -4.81578119333338,
+          "longitude": 179.97261824435398,
+          "sign_name": "Virgo",
+          "retrograde": false,
+          "degree_in_sign": 29.966666666666665,
+          "speed_longitude": 14.630763399065756
+        },
+        "earth": {
+          "house": 6,
+          "distance": 0,
+          "latitude": 0,
+          "longitude": 353.3379059061324,
+          "sign_name": "Pisces",
+          "retrograde": false,
+          "degree_in_sign": 23.333333333333332,
+          "speed_longitude": -0.9758173266905601
+        },
+        "pluto": {
+          "house": 1,
+          "distance": 31.802771926414824,
+          "latitude": 16.198260266077284,
+          "longitude": 186.17889487363172,
+          "sign_name": "Libra",
+          "retrograde": false,
+          "degree_in_sign": 6.166666666666667,
+          "speed_longitude": 0.0378078497021761
+        },
+        "venus": {
+          "house": 12,
+          "distance": 1.6585628214934105,
+          "latitude": 1.3314803971647828,
+          "longitude": 160.10039571953763,
+          "sign_name": "Virgo",
+          "retrograde": false,
+          "degree_in_sign": 10.1,
+          "speed_longitude": 1.2400566999451144
+        },
+        "chiron": {
+          "house": 7,
+          "distance": 13.7,
+          "latitude": 0,
+          "longitude": 24.183926327619815,
+          "sign_name": "Aries",
+          "retrograde": false,
+          "degree_in_sign": 24.183333333333334,
+          "speed_longitude": 0.01945
+        },
+        "saturn": {
+          "house": 10,
+          "distance": 9.379783448676713,
+          "latitude": -0.5041073307166686,
+          "longitude": 107.10253258212693,
+          "sign_name": "Cancer",
+          "retrograde": false,
+          "degree_in_sign": 17.1,
+          "speed_longitude": 0.07558111870777395
+        },
+        "uranus": {
+          "house": 1,
+          "distance": 19.287753165778543,
+          "latitude": 0.535163654010231,
+          "longitude": 206.01100941940922,
+          "sign_name": "Libra",
+          "retrograde": false,
+          "degree_in_sign": 26,
+          "speed_longitude": 0.05555541020078181
+        },
+        "jupiter": {
+          "house": 6,
+          "distance": 3.995542642640153,
+          "latitude": -1.458342563741998,
+          "longitude": 341.472622005757,
+          "sign_name": "Pisces",
+          "retrograde": true,
+          "degree_in_sign": 11.466666666666667,
+          "speed_longitude": -0.12628890187414754
+        },
+        "mercury": {
+          "house": 1,
+          "distance": 1.1995812239394488,
+          "latitude": -1.0345339128159214,
+          "longitude": 195.54765164002748,
+          "sign_name": "Libra",
+          "retrograde": false,
+          "degree_in_sign": 15.533333333333333,
+          "speed_longitude": 1.3893678048613367
+        },
+        "neptune": {
+          "house": 3,
+          "distance": 30.57143242195486,
+          "latitude": 1.5598292066384183,
+          "longitude": 247.06239273770126,
+          "sign_name": "Sagittarius",
+          "retrograde": false,
+          "degree_in_sign": 7.05,
+          "speed_longitude": 0.015566103429591749
+        },
+        "lilith_mean": {
+          "house": 4,
+          "distance": 0,
+          "latitude": 0,
+          "longitude": 269.1487138810951,
+          "sign_name": "Sagittarius",
+          "retrograde": false,
+          "degree_in_sign": 29.133333333333333,
+          "speed_longitude": 0.11140353
+        }
+      },
+      "patterns": [],
+      "houses_metadata": {
+        "mc": 86.59051753707058,
+        "armc": 0,
+        "cusps": [
+          176.59051753707058,
+          206.59051753707058,
+          236.59051753707058,
+          266.5905175370706,
+          296.5905175370706,
+          326.5905175370706,
+          356.5905175370706,
+          26.590517537070582,
+          56.59051753707058,
+          86.59051753707058,
+          116.59051753707058,
+          146.59051753707058
+        ],
+        "vertex": 0,
+        "ascendant": 176.59051753707058,
+        "co_ascendant_koch": 0,
+        "equatorial_ascendant": 0
+      },
+      "calculation_info": {
+        "zodiac_type": "tropical",
+        "house_system": "placidus",
+        "birth_datetime": "2025-11-15T20:21:12.103Z"
+      }
+    },
+    "last_viewed": null,
+    "id": "11e7a05a-e6e2-49b6-85ac-6e7bdc27ceb6",
+    "created_at": "2025-11-15T20:21:12.122562",
+    "updated_at": "2025-11-15T20:21:12.122565"
+  },
+  {
+    "user_id": "ec88bad0-7ab7-416f-a32c-f9fdd57af310",
+    "client_id": "3e4cba47-f115-4ae2-ae32-7c7febdfbfc4",
+    "birth_data_id": "e4d25ec6-d70d-4dd7-8d07-a2ecbc6393df",
+    "chart_name": "Birth Chart - Eugene, Oregon",
+    "chart_type": "natal",
+    "astro_system": "western",
+    "house_system": "placidus",
+    "ayanamsa": null,
+    "zodiac_type": "tropical",
+    "calculation_params": null,
+    "chart_data": {
+      "houses": [
+        {
+          "cusp": 176.59051753707058,
+          "sign": "Virgo",
+          "degree": 26,
+          "minute": 35,
+          "number": 1
+        },
+        {
+          "cusp": 206.59051753707058,
+          "sign": "Libra",
+          "degree": 26,
+          "minute": 35,
+          "number": 2
+        },
+        {
+          "cusp": 236.59051753707058,
+          "sign": "Scorpio",
+          "degree": 26,
+          "minute": 35,
+          "number": 3
+        },
+        {
+          "cusp": 266.5905175370706,
+          "sign": "Sagittarius",
+          "degree": 26,
+          "minute": 35,
+          "number": 4
+        },
+        {
+          "cusp": 296.5905175370706,
+          "sign": "Capricorn",
+          "degree": 26,
+          "minute": 35,
+          "number": 5
+        },
+        {
+          "cusp": 326.5905175370706,
+          "sign": "Aquarius",
+          "degree": 26,
+          "minute": 35,
+          "number": 6
+        },
+        {
+          "cusp": 356.5905175370706,
+          "sign": "Pisces",
+          "degree": 26,
+          "minute": 35,
+          "number": 7
+        },
+        {
+          "cusp": 26.590517537070582,
+          "sign": "Aries",
+          "degree": 26,
+          "minute": 35,
+          "number": 8
+        },
+        {
+          "cusp": 56.59051753707058,
+          "sign": "Taurus",
+          "degree": 26,
+          "minute": 35,
+          "number": 9
+        },
+        {
+          "cusp": 86.59051753707058,
+          "sign": "Gemini",
+          "degree": 26,
+          "minute": 35,
+          "number": 10
+        },
+        {
+          "cusp": 116.59051753707058,
+          "sign": "Cancer",
+          "degree": 26,
+          "minute": 35,
+          "number": 11
+        },
+        {
+          "cusp": 146.59051753707058,
+          "sign": "Leo",
+          "degree": 26,
+          "minute": 35,
+          "number": 12
+        }
+      ],
+      "aspects": [
+        {
+          "orb": 2.842170943040401e-14,
+          "angle": 180,
+          "planet1": "sun",
+          "planet2": "earth",
+          "applying": true,
+          "aspect_type": "opposition"
+        },
+        {
+          "orb": 6.634712338221618,
+          "angle": 0,
+          "planet1": "sun",
+          "planet2": "moon",
+          "applying": false,
+          "aspect_type": "conjunction"
+        },
+        {
+          "orb": 0.8460204214874523,
+          "angle": 150,
+          "planet1": "sun",
+          "planet2": "chiron",
+          "applying": false,
+          "aspect_type": "quincunx"
+        },
+        {
+          "orb": 5.810807974962728,
+          "angle": 90,
+          "planet1": "sun",
+          "planet2": "lilith_mean",
+          "applying": true,
+          "aspect_type": "square"
+        },
+        {
+          "orb": 6.63471233822159,
+          "angle": 180,
+          "planet1": "earth",
+          "planet2": "moon",
+          "applying": true,
+          "aspect_type": "opposition"
+        },
+        {
+          "orb": 6.235373324005479,
+          "angle": 120,
+          "planet1": "earth",
+          "planet2": "saturn",
+          "applying": true,
+          "aspect_type": "trine"
+        },
+        {
+          "orb": 2.6731035132768284,
+          "angle": 150,
+          "planet1": "earth",
+          "planet2": "uranus",
+          "applying": true,
+          "aspect_type": "quincunx"
+        },
+        {
+          "orb": 0.8460204214874238,
+          "angle": 30,
+          "planet1": "earth",
+          "planet2": "chiron",
+          "applying": true,
+          "aspect_type": "semisextile"
+        },
+        {
+          "orb": 5.8108079749626995,
+          "angle": 90,
+          "planet1": "earth",
+          "planet2": "lilith_mean",
+          "applying": true,
+          "aspect_type": "square"
+        },
+        {
+          "orb": 2.4908006009640644,
+          "angle": 0,
+          "planet1": "moon",
+          "planet2": "mars",
+          "applying": true,
+          "aspect_type": "conjunction"
+        },
+        {
+          "orb": 6.206276629277738,
+          "angle": 0,
+          "planet1": "moon",
+          "planet2": "pluto",
+          "applying": true,
+          "aspect_type": "conjunction"
+        },
+        {
+          "orb": 0.8239043632588903,
+          "angle": 90,
+          "planet1": "moon",
+          "planet2": "lilith_mean",
+          "applying": true,
+          "aspect_type": "square"
+        },
+        {
+          "orb": 1.5548809420994445,
+          "angle": 90,
+          "planet1": "mercury",
+          "planet2": "saturn",
+          "applying": false,
+          "aspect_type": "square"
+        },
+        {
+          "orb": 1.3722262862193588,
+          "angle": 180,
+          "planet1": "venus",
+          "planet2": "jupiter",
+          "applying": true,
+          "aspect_type": "opposition"
+        },
+        {
+          "orb": 0.9106136998715897,
+          "angle": 45,
+          "planet1": "venus",
+          "planet2": "uranus",
+          "applying": true,
+          "aspect_type": "semisquare"
+        },
+        {
+          "orb": 3.038002981836371,
+          "angle": 90,
+          "planet1": "venus",
+          "planet2": "neptune",
+          "applying": true,
+          "aspect_type": "square"
+        },
+        {
+          "orb": 0.9164693919178148,
+          "angle": 135,
+          "planet1": "venus",
+          "planet2": "chiron",
+          "applying": false,
+          "aspect_type": "sesquiquadrate"
+        },
+        {
+          "orb": 4.5989738923832135,
+          "angle": 60,
+          "planet1": "mars",
+          "planet2": "neptune",
+          "applying": true,
+          "aspect_type": "sextile"
+        },
+        {
+          "orb": 3.715476028313674,
+          "angle": 0,
+          "planet1": "mars",
+          "planet2": "pluto",
+          "applying": true,
+          "aspect_type": "conjunction"
+        },
+        {
+          "orb": 3.3147049642229547,
+          "angle": 90,
+          "planet1": "mars",
+          "planet2": "lilith_mean",
+          "applying": true,
+          "aspect_type": "square"
+        },
+        {
+          "orb": 5.629910576369923,
+          "angle": 120,
+          "planet1": "jupiter",
+          "planet2": "saturn",
+          "applying": true,
+          "aspect_type": "trine"
+        },
+        {
+          "orb": 0.46161258634776914,
+          "angle": 135,
+          "planet1": "jupiter",
+          "planet2": "uranus",
+          "applying": true,
+          "aspect_type": "sesquiquadrate"
+        },
+        {
+          "orb": 4.41022926805573,
+          "angle": 90,
+          "planet1": "jupiter",
+          "planet2": "neptune",
+          "applying": true,
+          "aspect_type": "square"
+        },
+        {
+          "orb": 7.081393745492889,
+          "angle": 90,
+          "planet1": "saturn",
+          "planet2": "chiron",
+          "applying": false,
+          "aspect_type": "square"
+        },
+        {
+          "orb": 1.8270830917894045,
+          "angle": 180,
+          "planet1": "uranus",
+          "planet2": "chiron",
+          "applying": false,
+          "aspect_type": "opposition"
+        },
+        {
+          "orb": 3.137704461685871,
+          "angle": 60,
+          "planet1": "uranus",
+          "planet2": "lilith_mean",
+          "applying": false,
+          "aspect_type": "sextile"
+        },
+        {
+          "orb": 0.8834978640695397,
+          "angle": 60,
+          "planet1": "neptune",
+          "planet2": "pluto",
+          "applying": true,
+          "aspect_type": "sextile"
+        },
+        {
+          "orb": 7.0301809925366285,
+          "angle": 90,
+          "planet1": "pluto",
+          "planet2": "lilith_mean",
+          "applying": false,
+          "aspect_type": "square"
+        },
+        {
+          "orb": 4.964787553475276,
+          "angle": 120,
+          "planet1": "chiron",
+          "planet2": "lilith_mean",
+          "applying": false,
+          "aspect_type": "trine"
+        }
+      ],
+      "planets": {
+        "sun": {
+          "house": 12,
+          "distance": 1.0052932642873336,
+          "latitude": -6.62185013251585e-05,
+          "longitude": 173.33790590613236,
+          "sign_name": "Virgo",
+          "retrograde": false,
+          "degree_in_sign": 23.333333333333332,
+          "speed_longitude": 0.9758173266905601
+        },
+        "mars": {
+          "house": 1,
+          "distance": 2.624254382623467,
+          "latitude": 0.7635692021727043,
+          "longitude": 182.46341884531805,
+          "sign_name": "Libra",
+          "retrograde": false,
+          "degree_in_sign": 2.45,
+          "speed_longitude": 0.6488825543110011
+        },
+        "moon": {
+          "house": 1,
+          "distance": 0.002430587686749699,
+          "latitude": -4.81578119333338,
+          "longitude": 179.97261824435398,
+          "sign_name": "Virgo",
+          "retrograde": false,
+          "degree_in_sign": 29.966666666666665,
+          "speed_longitude": 14.630763399065756
+        },
+        "earth": {
+          "house": 6,
+          "distance": 0,
+          "latitude": 0,
+          "longitude": 353.3379059061324,
+          "sign_name": "Pisces",
+          "retrograde": false,
+          "degree_in_sign": 23.333333333333332,
+          "speed_longitude": -0.9758173266905601
+        },
+        "pluto": {
+          "house": 1,
+          "distance": 31.802771926414824,
+          "latitude": 16.198260266077284,
+          "longitude": 186.17889487363172,
+          "sign_name": "Libra",
+          "retrograde": false,
+          "degree_in_sign": 6.166666666666667,
+          "speed_longitude": 0.0378078497021761
+        },
+        "venus": {
+          "house": 12,
+          "distance": 1.6585628214934105,
+          "latitude": 1.3314803971647828,
+          "longitude": 160.10039571953763,
+          "sign_name": "Virgo",
+          "retrograde": false,
+          "degree_in_sign": 10.1,
+          "speed_longitude": 1.2400566999451144
+        },
+        "chiron": {
+          "house": 7,
+          "distance": 13.7,
+          "latitude": 0,
+          "longitude": 24.183926327619815,
+          "sign_name": "Aries",
+          "retrograde": false,
+          "degree_in_sign": 24.183333333333334,
+          "speed_longitude": 0.01945
+        },
+        "saturn": {
+          "house": 10,
+          "distance": 9.379783448676713,
+          "latitude": -0.5041073307166686,
+          "longitude": 107.10253258212693,
+          "sign_name": "Cancer",
+          "retrograde": false,
+          "degree_in_sign": 17.1,
+          "speed_longitude": 0.07558111870777395
+        },
+        "uranus": {
+          "house": 1,
+          "distance": 19.287753165778543,
+          "latitude": 0.535163654010231,
+          "longitude": 206.01100941940922,
+          "sign_name": "Libra",
+          "retrograde": false,
+          "degree_in_sign": 26,
+          "speed_longitude": 0.05555541020078181
+        },
+        "jupiter": {
+          "house": 6,
+          "distance": 3.995542642640153,
+          "latitude": -1.458342563741998,
+          "longitude": 341.472622005757,
+          "sign_name": "Pisces",
+          "retrograde": true,
+          "degree_in_sign": 11.466666666666667,
+          "speed_longitude": -0.12628890187414754
+        },
+        "mercury": {
+          "house": 1,
+          "distance": 1.1995812239394488,
+          "latitude": -1.0345339128159214,
+          "longitude": 195.54765164002748,
+          "sign_name": "Libra",
+          "retrograde": false,
+          "degree_in_sign": 15.533333333333333,
+          "speed_longitude": 1.3893678048613367
+        },
+        "neptune": {
+          "house": 3,
+          "distance": 30.57143242195486,
+          "latitude": 1.5598292066384183,
+          "longitude": 247.06239273770126,
+          "sign_name": "Sagittarius",
+          "retrograde": false,
+          "degree_in_sign": 7.05,
+          "speed_longitude": 0.015566103429591749
+        },
+        "lilith_mean": {
+          "house": 4,
+          "distance": 0,
+          "latitude": 0,
+          "longitude": 269.1487138810951,
+          "sign_name": "Sagittarius",
+          "retrograde": false,
+          "degree_in_sign": 29.133333333333333,
+          "speed_longitude": 0.11140353
+        }
+      },
+      "patterns": [],
+      "houses_metadata": {
+        "mc": 86.59051753707058,
+        "armc": 0,
+        "cusps": [
+          176.59051753707058,
+          206.59051753707058,
+          236.59051753707058,
+          266.5905175370706,
+          296.5905175370706,
+          326.5905175370706,
+          356.5905175370706,
+          26.590517537070582,
+          56.59051753707058,
+          86.59051753707058,
+          116.59051753707058,
+          146.59051753707058
+        ],
+        "vertex": 0,
+        "ascendant": 176.59051753707058,
+        "co_ascendant_koch": 0,
+        "equatorial_ascendant": 0
+      },
+      "calculation_info": {
+        "zodiac_type": "tropical",
+        "house_system": "placidus",
+        "birth_datetime": "2025-11-15T21:18:02.854Z"
+      }
+    },
+    "last_viewed": "2025-11-15T21:21:21.359529",
+    "id": "eeb0f54e-741d-4f03-87bc-c7ba43500bed",
+    "created_at": "2025-11-15T21:18:02.900400",
+    "updated_at": "2025-11-15T21:21:21.361094"
+  }
+]

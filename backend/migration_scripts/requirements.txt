@@ -1,0 +1,9 @@
+# PostgreSQL to SQLite Migration Scripts Dependencies
+
+# PostgreSQL adapter
+psycopg2-binary==2.9.9
+
+# SQLite is built into Python, no additional package needed
+
+# For potential future enhancements
+python-dotenv==1.0.0

@@ -1,0 +1,117 @@
+"""
+SessionNote model for consultation session notes with clients
+
+Stores notes from consultation sessions.
+"""
+from sqlalchemy import Column, String, ForeignKey, Index
+from sqlalchemy.orm import relationship
+
+from app.models_sqlite.base import BaseModel
+
+
+class SessionNote(BaseModel):
+    """
+    Session note model
+
+    Stores consultation session notes for clients.
+    Links to client for organization and access.
+
+    Fields:
+        id: UUID primary key (inherited)
+        client_id: Foreign key to Client
+        note_date: ISO 8601 date of session
+        note_content: Session notes text
+        created_at: Creation timestamp (inherited)
+        updated_at: Update timestamp (inherited)
+
+    Relationships:
+        client: Parent client
+
+    Example:
+        note = SessionNote(
+            client_id=client.id,
+            note_date="2025-01-15",
+            note_content="Client discussed career concerns. Solar return shows..."
+        )
+    """
+    __tablename__ = 'session_notes'
+
+    # Foreign key to client
+    client_id = Column(
+        String,
+        ForeignKey('clients.id', ondelete='CASCADE'),
+        nullable=False,
+        index=True,
+        comment="Foreign key to clients table"
+    )
+
+    # Session information
+    note_date = Column(
+        String,
+        nullable=False,
+        index=True,
+        comment="ISO 8601 date of session (YYYY-MM-DD)"
+    )
+
+    note_content = Column(
+        String,
+        nullable=True,
+        comment="Session notes text content"
+    )
+
+    # Relationships
+    client = relationship(
+        'Client',
+        back_populates='session_notes'
+    )
+
+    # Table indexes
+    __table_args__ = (
+        Index('idx_session_notes_client_id', 'client_id'),
+        Index('idx_session_notes_note_date', 'note_date'),
+    )
+
+    def __repr__(self):
+        """String representation"""
+        return (
+            f"<SessionNote("
+            f"client={self.client_id[:8]}..., "
+            f"date={self.note_date}"
+            f")>"
+        )
+
+    @property
+    def preview_text(self) -> str:
+        """
+        Get preview text (first 100 characters)
+
+        Returns:
+            Truncated note content for previews
+        """
+        if not self.note_content:
+            return ""
+        if len(self.note_content) <= 100:
+            return self.note_content
+        return self.note_content[:97] + "..."
+
+    @property
+    def has_content(self) -> bool:
+        """
+        Check if note has content
+
+        Returns:
+            True if note_content is not empty
+        """
+        return bool(self.note_content and self.note_content.strip())
+
+    def to_dict(self):
+        """
+        Convert to dictionary with computed fields
+
+        Returns:
+            Dictionary representation with preview and flags
+        """
+        result = super().to_dict()
+        result['preview_text'] = self.preview_text
+        result['has_content'] = self.has_content
+        return result

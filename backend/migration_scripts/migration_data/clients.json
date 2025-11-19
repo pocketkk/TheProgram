@@ -1,0 +1,79 @@
+[
+  {
+    "user_id": "ec88bad0-7ab7-416f-a32c-f9fdd57af310",
+    "first_name": null,
+    "last_name": null,
+    "email": "chart@example.com",
+    "phone": null,
+    "notes": null,
+    "id": "c26f02b1-f253-4774-a7ba-9a281a9795c9",
+    "created_at": "2025-11-15T15:46:56.930196",
+    "updated_at": "2025-11-15T15:46:56.930201"
+  },
+  {
+    "user_id": "ec88bad0-7ab7-416f-a32c-f9fdd57af310",
+    "first_name": "Me",
+    "last_name": null,
+    "email": null,
+    "phone": null,
+    "notes": "Personal chart",
+    "id": "95186b7b-5b93-434f-b6cf-666c82744761",
+    "created_at": "2025-11-15T16:53:01.545581",
+    "updated_at": "2025-11-15T16:53:01.545587"
+  },
+  {
+    "user_id": "ec88bad0-7ab7-416f-a32c-f9fdd57af310",
+    "first_name": "Me",
+    "last_name": null,
+    "email": null,
+    "phone": null,
+    "notes": "Personal chart",
+    "id": "9c34cde9-d2d5-4ce0-9902-f667eb3ba05b",
+    "created_at": "2025-11-15T16:55:46.258414",
+    "updated_at": "2025-11-15T16:55:46.258422"
+  },
+  {
+    "user_id": "ec88bad0-7ab7-416f-a32c-f9fdd57af310",
+    "first_name": "Me",
+    "last_name": null,
+    "email": null,
+    "phone": null,
+    "notes": "Personal chart",
+    "id": "5e635c13-b87e-4040-9be1-47d261e6e9b7",
+    "created_at": "2025-11-15T18:44:35.782887",
+    "updated_at": "2025-11-15T18:44:35.782892"
+  },
+  {
+    "user_id": "ec88bad0-7ab7-416f-a32c-f9fdd57af310",
+    "first_name": "Me",
+    "last_name": null,
+    "email": null,
+    "phone": null,
+    "notes": "Personal chart",
+    "id": "bc63188b-07ba-4d0e-a71b-2e47575713fa",
+    "created_at": "2025-11-15T20:11:17.833034",
+    "updated_at": "2025-11-15T20:11:17.833038"
+  },
+  {
+    "user_id": "ec88bad0-7ab7-416f-a32c-f9fdd57af310",
+    "first_name": "Me",
+    "last_name": null,
+    "email": null,
+    "phone": null,
+    "notes": "Personal chart",
+    "id": "403901bd-bac1-41b7-a488-72742cbffaa4",
+    "created_at": "2025-11-15T20:21:12.054213",
+    "updated_at": "2025-11-15T20:21:12.054218"
+  },
+  {
+    "user_id": "ec88bad0-7ab7-416f-a32c-f9fdd57af310",
+    "first_name": "Me",
+    "last_name": null,
+    "email": null,
+    "phone": null,
+    "notes": "Personal chart",
+    "id": "3e4cba47-f115-4ae2-ae32-7c7febdfbfc4",
+    "created_at": "2025-11-15T21:18:02.782661",
+    "updated_at": "2025-11-15T21:18:02.782667"
+  }
+]
