@@ -73,6 +73,7 @@ export interface TokenVerifyResponse {
 export interface AuthStatus {
   password_set: boolean
   require_password: boolean
+  has_api_key: boolean
   message?: string
 }
 
@@ -126,4 +127,32 @@ export interface PasswordSettingsState {
   changePassword: (oldPassword: string, newPassword: string) => Promise<void>
   disablePassword: (currentPassword: string) => Promise<void>
   clearMessages: () => void
+}
+
+// ============================================================================
+// API Key Management Types
+// ============================================================================
+
+/**
+ * Request to set or update Anthropic API key
+ */
+export interface ApiKeySetRequest {
+  api_key: string
+}
+
+/**
+ * Response for API key status
+ */
+export interface ApiKeyStatusResponse {
+  has_api_key: boolean
+  message?: string
+}
+
+/**
+ * Response for API key validation
+ */
+export interface ApiKeyValidateResponse {
+  valid: boolean
+  message: string
+  model_access?: string[]
 }

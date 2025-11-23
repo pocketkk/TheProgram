@@ -10,6 +10,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const electron_1 = require("electron");
 const path_1 = __importDefault(require("path"));
 const python_manager_1 = require("./python-manager");
+// CRITICAL: Disable sandbox BEFORE any other Electron initialization
+// This must be done at module load time, not in ready handler
+// Prevents SUID sandbox errors in AppImage/packaged environments
+if (electron_1.app.isPackaged) {
+    console.log('[Electron] Running as packaged app - disabling sandbox');
+    electron_1.app.commandLine.appendSwitch('no-sandbox');
+}
 // Global references
 let mainWindow = null;
 const pythonBackend = new python_manager_1.PythonBackendManager(8000);

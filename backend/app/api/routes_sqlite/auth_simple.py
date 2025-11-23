@@ -26,6 +26,9 @@ from app.schemas_sqlite.auth import (
     DisablePasswordRequest,
     AuthStatus,
     MessageResponse,
+    ApiKeySetRequest,
+    ApiKeyStatusResponse,
+    ApiKeyValidateResponse,
 )
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
@@ -63,6 +66,7 @@ async def get_auth_status(db: Session = Depends(get_db)):
     return AuthStatus(
         password_set=password_set,
         require_password=require_password,
+        has_api_key=config.has_api_key,
         message=message,
     )
 
@@ -341,3 +345,203 @@ async def logout():
         message="Logged out successfully. Clear token from client storage.",
         success=True,
     )
+
+
+# =============================================================================
+# API Key Management Endpoints
+# =============================================================================
+
+
+@router.get("/api-key/status", response_model=ApiKeyStatusResponse)
+async def get_api_key_status(db: Session = Depends(get_db)):
+    """
+    Get API key configuration status
+
+    Returns whether an Anthropic API key is configured.
+    Used by frontend to show/hide AI features.
+
+    Returns:
+        ApiKeyStatusResponse with has_api_key flag and message
+    """
+    config = db.query(AppConfig).filter_by(id=1).first()
+
+    if not config:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Application not initialized",
+        )
+
+    has_api_key = config.has_api_key
+    message = (
+        "Anthropic API key is configured. AI interpretations are available."
+        if has_api_key
+        else "No API key configured. Set your Anthropic API key to enable AI interpretations."
+    )
+
+    return ApiKeyStatusResponse(
+        has_api_key=has_api_key,
+        message=message,
+    )
+
+
+@router.post("/api-key", response_model=MessageResponse)
+async def set_api_key(
+    request: ApiKeySetRequest,
+    db: Session = Depends(get_db),
+):
+    """
+    Set or update Anthropic API key
+
+    Stores the API key in the database for AI interpretation features.
+    The key is validated for format but not tested against Anthropic API.
+    Use /api-key/validate to test the key.
+
+    Args:
+        request: ApiKeySetRequest with api_key field
+
+    Returns:
+        Success message
+
+    Raises:
+        400: If API key format is invalid
+        500: If database error occurs
+    """
+    config = db.query(AppConfig).filter_by(id=1).first()
+
+    if not config:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Application not initialized",
+        )
+
+    # Store API key
+    config.anthropic_api_key = request.api_key
+
+    try:
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to save API key: {str(e)}",
+        )
+
+    return MessageResponse(
+        message="Anthropic API key saved successfully. AI interpretations are now available.",
+        success=True,
+    )
+
+
+@router.delete("/api-key", response_model=MessageResponse)
+async def clear_api_key(db: Session = Depends(get_db)):
+    """
+    Clear Anthropic API key
+
+    Removes the stored API key from the database.
+    AI interpretation features will be disabled.
+
+    Returns:
+        Success message
+
+    Raises:
+        400: If no API key is set
+        500: If database error occurs
+    """
+    config = db.query(AppConfig).filter_by(id=1).first()
+
+    if not config:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Application not initialized",
+        )
+
+    if not config.has_api_key:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No API key is currently set",
+        )
+
+    # Clear API key
+    config.anthropic_api_key = None
+
+    try:
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to clear API key: {str(e)}",
+        )
+
+    return MessageResponse(
+        message="API key cleared successfully. AI interpretations are now disabled.",
+        success=True,
+    )
+
+
+@router.post("/api-key/validate", response_model=ApiKeyValidateResponse)
+async def validate_api_key(db: Session = Depends(get_db)):
+    """
+    Validate Anthropic API key
+
+    Tests the stored API key by making a minimal request to Anthropic API.
+    Returns validation status and accessible models if valid.
+
+    Returns:
+        ApiKeyValidateResponse with validation status
+
+    Raises:
+        400: If no API key is configured
+    """
+    config = db.query(AppConfig).filter_by(id=1).first()
+
+    if not config:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Application not initialized",
+        )
+
+    if not config.has_api_key:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No API key configured. Please set an API key first.",
+        )
+
+    # Test API key with Anthropic
+    try:
+        from anthropic import Anthropic
+
+        client = Anthropic(api_key=config.anthropic_api_key)
+
+        # Make a minimal test request
+        response = client.messages.create(
+            model="claude-haiku-4-5-20250929",
+            max_tokens=10,
+            messages=[{"role": "user", "content": "test"}],
+        )
+
+        # If we get here, the API key is valid
+        return ApiKeyValidateResponse(
+            valid=True,
+            message="API key is valid and working correctly.",
+            model_access=["claude-haiku-4-5-20250929", "claude-sonnet-4-5-20250929"],
+        )
+
+    except Exception as e:
+        error_msg = str(e)
+
+        # Parse common error messages
+        if "authentication" in error_msg.lower() or "api key" in error_msg.lower():
+            message = "Invalid API key. Please check your key and try again."
+        elif "rate limit" in error_msg.lower():
+            message = "API key is valid but rate limited. Try again later."
+        elif "insufficient" in error_msg.lower():
+            message = "API key is valid but has insufficient credits."
+        else:
+            message = f"API key validation failed: {error_msg}"
+
+        return ApiKeyValidateResponse(
+            valid=False,
+            message=message,
+            model_access=None,
+        )

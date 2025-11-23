@@ -38,6 +38,8 @@ class PythonBackendManager {
             const args = this.isDev
                 ? ['-m', 'uvicorn', 'app.main:app', '--host', '0.0.0.0', '--port', String(this.port)]
                 : []; // Bundled executable doesn't need args
+            // Generate a random secret key if not present
+            const secretKey = process.env.SECRET_KEY || require('crypto').randomBytes(32).toString('hex');
             // Set up environment variables
             const env = {
                 ...process.env,
@@ -46,6 +48,9 @@ class PythonBackendManager {
                 PORT: String(this.port),
                 APP_ENV: this.isDev ? 'development' : 'production',
                 LOG_LEVEL: this.isDev ? 'debug' : 'info',
+                SECRET_KEY: secretKey, // Required by backend
+                // Explicitly set SQLite path to user data directory to avoid read-only errors in AppImage
+                SQLITE_DB_PATH: path_1.default.join(electron_1.app.getPath('userData'), 'data', 'theprogram.db'),
             };
             console.log(`[Python] Executable: ${pythonPath}`);
             console.log(`[Python] Working dir: ${workingDir}`);

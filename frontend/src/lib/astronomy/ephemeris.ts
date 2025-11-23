@@ -108,7 +108,8 @@ export function calculateGeocentricPosition(
   // Special case: Sun position is negative of Earth's heliocentric position
   if (planetName === 'sun') {
     const earthHelio = Astronomy.HelioVector('Earth' as Astronomy.Body, date)
-    const ecliptic = Astronomy.Ecliptic({ x: -earthHelio.x, y: -earthHelio.y, z: -earthHelio.z, t: earthHelio.t })
+    const sunVector = new Astronomy.Vector(-earthHelio.x, -earthHelio.y, -earthHelio.z, earthHelio.t)
+    const ecliptic = Astronomy.Ecliptic(sunVector)
 
     let longitude = ecliptic.elon
     if (longitude < 0) longitude += 360

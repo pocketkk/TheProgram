@@ -31,7 +31,8 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 401) {
       localStorage.removeItem('token')
       localStorage.removeItem('user')
-      window.location.href = '/login'
+      // Reload to trigger auth flow (works in both web and Electron)
+      window.location.reload()
     }
     return Promise.reject(error)
   }

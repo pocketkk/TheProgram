@@ -18,14 +18,13 @@ import {
 import type {
   ExportConfig,
   ExportResult,
-  ExportType,
-  ExportFormat,
   ExportFullRequest,
   ExportClientsRequest,
   ExportChartsRequest,
   ExportTableRequest,
   ExportResponse,
 } from '@/types/export'
+import { ExportType, ExportFormat } from '@/types/export'
 
 interface UseExportState {
   isExporting: boolean
