@@ -7,6 +7,14 @@ import { app, BrowserWindow, ipcMain } from 'electron';
 import path from 'path';
 import { PythonBackendManager } from './python-manager';
 
+// CRITICAL: Disable sandbox BEFORE any other Electron initialization
+// This must be done at module load time, not in ready handler
+// Prevents SUID sandbox errors in AppImage/packaged environments
+if (app.isPackaged) {
+  console.log('[Electron] Running as packaged app - disabling sandbox');
+  app.commandLine.appendSwitch('no-sandbox');
+}
+
 // Global references
 let mainWindow: BrowserWindow | null = null;
 const pythonBackend = new PythonBackendManager(8000);

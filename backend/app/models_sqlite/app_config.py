@@ -59,6 +59,13 @@ class AppConfig(SingletonModel):
         comment="Database schema version for migrations"
     )
 
+    # AI/API Configuration
+    anthropic_api_key = Column(
+        String,
+        nullable=True,
+        comment="Anthropic API key for AI interpretations (encrypted)"
+    )
+
     def __repr__(self):
         """String representation"""
         has_password = "with password" if self.password_hash else "no password"
@@ -69,15 +76,22 @@ class AppConfig(SingletonModel):
         """Check if password is set"""
         return self.password_hash is not None
 
+    @property
+    def has_api_key(self) -> bool:
+        """Check if Anthropic API key is set"""
+        return self.anthropic_api_key is not None and len(self.anthropic_api_key.strip()) > 0
+
     def to_dict(self):
         """
-        Convert to dictionary (excludes password_hash for security)
+        Convert to dictionary (excludes sensitive fields for security)
 
         Returns:
-            Dictionary with all fields except password_hash
+            Dictionary with all fields except password_hash and API key
         """
         result = super().to_dict()
-        # Remove password hash for security
+        # Remove sensitive fields for security
         result.pop('password_hash', None)
+        result.pop('anthropic_api_key', None)
         result['has_password'] = self.has_password
+        result['has_api_key'] = self.has_api_key
         return result

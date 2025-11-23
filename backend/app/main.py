@@ -5,10 +5,12 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import logging
+from sqlalchemy import text
 
 from app.core.config import settings
 from app.api import api_router
-from app.core.database import check_db_connection
+# Use SQLite database for desktop app
+from app.core.database_sqlite import engine as db_engine
 
 # Configure logging
 logging.basicConfig(
@@ -56,7 +58,12 @@ async def root():
 async def health_check():
     """Health check endpoint for monitoring"""
     # Check database connection
-    db_status = "connected" if check_db_connection() else "disconnected"
+    try:
+        with db_engine.connect() as conn:
+            conn.execute("SELECT 1")
+        db_status = "connected"
+    except:
+        db_status = "disconnected"
 
     # Check Swiss Ephemeris
     eph_status = "loaded"
@@ -121,14 +128,57 @@ async def startup_event():
     """Initialize services on startup"""
     logger.info(f"Starting {settings.APP_NAME} in {settings.APP_ENV} mode")
 
-    # Initialize database connection
+    # Initialize database connection and ensure tables exist
     try:
-        if check_db_connection():
-            logger.info("Database connection established")
+        # Test database connection
+        with db_engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+        logger.info("Database connection established")
+
+        # Auto-initialize database tables if they don't exist
+        from app.core.database_sqlite import engine, Base
+        from app.models_sqlite.app_config import AppConfig
+        from app.core.database_sqlite import SessionLocal
+        from sqlalchemy import inspect
+
+        # Check if tables exist
+        inspector = inspect(engine)
+        existing_tables = inspector.get_table_names()
+
+        if not existing_tables or 'app_config' not in existing_tables:
+            logger.info("Database tables not found - initializing database...")
+
+            # Import all models so they're registered with Base
+            import app.models_sqlite  # This imports all models
+
+            # Create all tables
+            Base.metadata.create_all(bind=engine)
+            logger.info(f"Created {len(Base.metadata.tables)} database tables")
+
+            # Create initial AppConfig if it doesn't exist
+            db = SessionLocal()
+            try:
+                config = db.query(AppConfig).filter_by(id=1).first()
+                if not config:
+                    config = AppConfig(
+                        id=1,
+                        password_hash=None,  # No password initially
+                        app_version='1.0.0',
+                        database_version=1
+                    )
+                    db.add(config)
+                    db.commit()
+                    logger.info("Created initial application configuration")
+                else:
+                    logger.info("Application configuration already exists")
+            finally:
+                db.close()
+
+            logger.info("Database initialization complete")
         else:
-            logger.warning("Database connection failed - some features may not work")
+            logger.info(f"Database ready ({len(existing_tables)} tables found)")
     except Exception as e:
-        logger.error(f"Database initialization error: {e}")
+        logger.error(f"Database initialization error: {e}", exc_info=True)
 
     # Initialize Swiss Ephemeris
     try:
@@ -158,10 +208,12 @@ async def shutdown_event():
 
 if __name__ == "__main__":
     import uvicorn
+    import uvicorn
+    # Pass the app object directly to avoid import issues in frozen app
     uvicorn.run(
-        "app.main:app",
+        app,
         host=settings.HOST,
         port=settings.PORT,
-        reload=settings.DEBUG,
+        reload=False, # Reload not supported with app instance
         log_level="info"
     )

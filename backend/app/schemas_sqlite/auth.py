@@ -89,6 +89,10 @@ class AuthStatus(BaseModel):
         ...,
         description="Whether password is required for access"
     )
+    has_api_key: bool = Field(
+        default=False,
+        description="Whether Anthropic API key is configured"
+    )
     message: str | None = Field(
         default=None,
         description="Optional status message"
@@ -99,3 +103,42 @@ class MessageResponse(BaseModel):
     """Generic message response"""
     message: str = Field(..., description="Response message")
     success: bool = Field(default=True, description="Whether operation succeeded")
+
+
+class ApiKeySetRequest(BaseModel):
+    """Request to set or update Anthropic API key"""
+    api_key: str = Field(
+        ...,
+        min_length=10,
+        description="Anthropic API key (starts with sk-ant-)"
+    )
+
+    @field_validator("api_key")
+    @classmethod
+    def validate_api_key_format(cls, v: str) -> str:
+        """Ensure API key is not just whitespace and has valid prefix"""
+        if not v or not v.strip():
+            raise ValueError("API key cannot be empty or whitespace")
+
+        # Basic format validation
+        v = v.strip()
+        if not v.startswith("sk-ant-"):
+            raise ValueError("Invalid API key format. Must start with 'sk-ant-'")
+
+        return v
+
+
+class ApiKeyStatusResponse(BaseModel):
+    """Response for API key status"""
+    has_api_key: bool = Field(..., description="Whether API key is configured")
+    message: str | None = Field(default=None, description="Optional status message")
+
+
+class ApiKeyValidateResponse(BaseModel):
+    """Response for API key validation"""
+    valid: bool = Field(..., description="Whether API key is valid")
+    message: str = Field(..., description="Validation result message")
+    model_access: list[str] | None = Field(
+        default=None,
+        description="List of accessible models if valid"
+    )

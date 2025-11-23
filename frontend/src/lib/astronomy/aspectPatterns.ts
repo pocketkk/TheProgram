@@ -3,8 +3,6 @@
  * Detects special geometric patterns formed by planetary aspects
  */
 
-import { calculateAspect, Aspect } from './planetaryData'
-
 export interface PlanetPosition {
   name: string
   angle: number

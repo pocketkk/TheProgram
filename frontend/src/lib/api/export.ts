@@ -11,8 +11,8 @@ import type {
   ExportTableRequest,
   ExportResponse,
   AvailableTablesResponse,
-  ExportFormat,
 } from '@/types/export'
+import { ExportFormat } from '@/types/export'
 
 /**
  * Export full database

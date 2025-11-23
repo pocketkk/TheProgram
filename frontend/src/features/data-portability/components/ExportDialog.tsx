@@ -31,10 +31,9 @@ import { ExportPreview } from './ExportPreview'
 import { useExport, useExportPreview } from '../hooks/useExport'
 import type {
   ExportConfig,
-  ExportType,
-  ExportFormat,
   ExportPreview as ExportPreviewData,
 } from '@/types/export'
+import { ExportType, ExportFormat } from '@/types/export'
 import { cn } from '@/lib/utils'
 
 interface ExportDialogProps {

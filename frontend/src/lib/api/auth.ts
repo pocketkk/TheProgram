@@ -15,6 +15,9 @@ import type {
   DisablePasswordRequest,
   AuthStatus,
   MessageResponse,
+  ApiKeySetRequest,
+  ApiKeyStatusResponse,
+  ApiKeyValidateResponse,
 } from '@/types/auth'
 
 /**
@@ -137,6 +140,68 @@ export const authApi = {
    */
   logout: async (): Promise<MessageResponse> => {
     const response = await apiClient.post<MessageResponse>('/auth/logout')
+    return response.data
+  },
+
+  // ==========================================================================
+  // API Key Management
+  // ==========================================================================
+
+  /**
+   * Get API key configuration status
+   *
+   * Returns whether an Anthropic API key is configured.
+   * Used to show/hide AI features in the UI.
+   *
+   * @returns ApiKeyStatusResponse with has_api_key flag and message
+   */
+  getApiKeyStatus: async (): Promise<ApiKeyStatusResponse> => {
+    const response = await apiClient.get<ApiKeyStatusResponse>('/auth/api-key/status')
+    return response.data
+  },
+
+  /**
+   * Set or update Anthropic API key
+   *
+   * Stores the API key for AI interpretation features.
+   * The key is validated for format but not tested against Anthropic API.
+   * Use validateApiKey() to test the key.
+   *
+   * @param apiKey - The Anthropic API key (must start with 'sk-ant-')
+   * @returns Success message
+   * @throws Error if API key format is invalid or operation fails
+   */
+  setApiKey: async (apiKey: string): Promise<MessageResponse> => {
+    const request: ApiKeySetRequest = { api_key: apiKey }
+    const response = await apiClient.post<MessageResponse>('/auth/api-key', request)
+    return response.data
+  },
+
+  /**
+   * Clear Anthropic API key
+   *
+   * Removes the stored API key from the database.
+   * AI interpretation features will be disabled after clearing.
+   *
+   * @returns Success message
+   * @throws Error if no API key is set or operation fails
+   */
+  clearApiKey: async (): Promise<MessageResponse> => {
+    const response = await apiClient.delete<MessageResponse>('/auth/api-key')
+    return response.data
+  },
+
+  /**
+   * Validate Anthropic API key
+   *
+   * Tests the stored API key by making a minimal request to Anthropic API.
+   * Returns validation status and accessible models if valid.
+   *
+   * @returns ApiKeyValidateResponse with validation status and model list
+   * @throws Error if no API key is configured
+   */
+  validateApiKey: async (): Promise<ApiKeyValidateResponse> => {
+    const response = await apiClient.post<ApiKeyValidateResponse>('/auth/api-key/validate')
     return response.data
   },
 }

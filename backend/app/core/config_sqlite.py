@@ -107,3 +107,22 @@ class SQLiteSettings(BaseSettings):
 
 # Global settings instance
 sqlite_settings = SQLiteSettings()
+
+# DEBUG: Print environment variables to debug AppImage issue
+import os
+import sys
+print(f"[DEBUG] SQLITE_DB_PATH env: {os.environ.get('SQLITE_DB_PATH')}")
+print(f"[DEBUG] USER_DATA_DIR env: {os.environ.get('USER_DATA_DIR')}")
+print(f"[DEBUG] Current sqlite_settings.SQLITE_DB_PATH: {sqlite_settings.SQLITE_DB_PATH}")
+
+# Fixup for Electron/AppImage environment
+# If we are running frozen (bundled) or have USER_DATA_DIR, and the path is still the default relative path
+if os.environ.get("USER_DATA_DIR"):
+    user_data_dir = os.environ.get("USER_DATA_DIR")
+    # Check if current path is relative or default
+    if sqlite_settings.SQLITE_DB_PATH.startswith("./") or sqlite_settings.SQLITE_DB_PATH == "data/theprogram.db":
+        print(f"[DEBUG] Overriding SQLITE_DB_PATH with USER_DATA_DIR path")
+        db_dir = os.path.join(user_data_dir, "data")
+        sqlite_settings.SQLITE_DB_PATH = os.path.join(db_dir, "theprogram.db")
+        print(f"[DEBUG] New SQLITE_DB_PATH: {sqlite_settings.SQLITE_DB_PATH}")
+

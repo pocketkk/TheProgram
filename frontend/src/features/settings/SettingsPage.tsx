@@ -12,10 +12,12 @@ import {
   Shield,
   Bell,
   Palette,
+  Sparkles,
 } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
 import { ExportButton } from '@/features/data-portability'
 import { ExportType } from '@/types/export'
+import { ApiKeySettings } from './components/ApiKeySettings'
 
 export function SettingsPage() {
   return (
@@ -34,11 +36,34 @@ export function SettingsPage() {
       </motion.div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        {/* Data Portability */}
+        {/* AI Configuration */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
+          className="lg:col-span-2"
+        >
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-3 mb-2">
+                <Sparkles className="h-5 w-5 text-cosmic-400" />
+                <CardTitle>AI Configuration</CardTitle>
+              </div>
+              <CardDescription>
+                Configure your Anthropic API key to enable AI-powered chart interpretations.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ApiKeySettings />
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Data Portability */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
         >
           <Card>
             <CardHeader>
@@ -77,7 +102,7 @@ export function SettingsPage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
+          transition={{ delay: 0.3 }}
         >
           <Card>
             <CardHeader>
@@ -102,7 +127,7 @@ export function SettingsPage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
+          transition={{ delay: 0.4 }}
         >
           <Card>
             <CardHeader>
@@ -127,7 +152,7 @@ export function SettingsPage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
+          transition={{ delay: 0.5 }}
         >
           <Card>
             <CardHeader>
@@ -153,7 +178,7 @@ export function SettingsPage() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5 }}
+        transition={{ delay: 0.6 }}
       >
         <Card className="border-cosmic-600">
           <CardContent className="p-6">

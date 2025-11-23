@@ -5,7 +5,7 @@ import { apiClient, getErrorMessage } from './client'
 
 export interface BirthDataResponse {
   id: string
-  client_id: string
+  client_id?: string  // Optional in single-user mode, required in multi-user mode
   birth_date: string
   birth_time: string | null
   time_unknown: boolean
@@ -23,7 +23,7 @@ export interface BirthDataResponse {
 }
 
 export interface BirthDataCreate {
-  client_id: string
+  client_id?: string  // Optional in single-user mode, required in multi-user mode
   birth_date: string
   birth_time?: string | null
   time_unknown?: boolean

@@ -150,3 +150,34 @@ class Settings(BaseSettings):
 
 # Create settings instance
 settings = Settings()
+
+# Adjust paths for frozen app (PyInstaller)
+import sys
+import os
+
+if getattr(sys, 'frozen', False):
+    # If the application is run as a bundle, the PyInstaller bootloader
+    # extends the sys module by a flag frozen=True and sets the app 
+    # path into variable _MEIPASS'.
+    bundle_dir = sys._MEIPASS
+    
+    # Update paths to point to the bundled data
+    settings.EPHEMERIS_PATH = os.path.join(bundle_dir, 'data', 'ephemeris')
+    settings.TIMEZONE_DATA_PATH = os.path.join(bundle_dir, 'data', 'timezones')
+    
+    # For writable data (database, logs), we should use the user data directory
+    # passed from Electron via env var or default to standard locations
+    if os.environ.get('USER_DATA_DIR'):
+        user_data_dir = os.environ.get('USER_DATA_DIR')
+        settings.DATA_DIR = os.path.join(user_data_dir, 'data')
+        settings.LOG_FILE = os.path.join(user_data_dir, 'logs', 'app.log')
+        
+        # Ensure directories exist
+        os.makedirs(settings.DATA_DIR, exist_ok=True)
+        os.makedirs(os.path.dirname(settings.LOG_FILE), exist_ok=True)
+        
+        # Update database URL if it's using SQLite
+        if not settings.DATABASE_URL or 'sqlite' in settings.DATABASE_URL:
+            db_path = os.path.join(settings.DATA_DIR, 'theprogram.db')
+            settings.DATABASE_URL = f"sqlite:///{db_path}"
+
