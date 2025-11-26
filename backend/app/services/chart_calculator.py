@@ -42,7 +42,8 @@ class NatalChartCalculator:
         zodiac: str = 'tropical',
         ayanamsa: str = 'lahiri',
         include_minor_aspects: bool = False,
-        custom_orbs: Optional[Dict[str, float]] = None
+        custom_orbs: Optional[Dict[str, float]] = None,
+        include_nakshatras: bool = False
     ) -> Dict:
         """
         Calculate complete natal chart
@@ -57,6 +58,7 @@ class NatalChartCalculator:
             ayanamsa: Ayanamsa system for sidereal (lahiri, raman, etc.)
             include_minor_aspects: Include minor aspects
             custom_orbs: Custom orb values for aspects
+            include_nakshatras: Include Vedic nakshatras for each planet (hybrid chart)
 
         Returns:
             Complete natal chart data as dictionary
@@ -115,6 +117,25 @@ class NatalChartCalculator:
         if zodiac == 'sidereal':
             chart_data['calculation_info']['ayanamsa_value'] = \
                 EphemerisCalculator.calculate_ayanamsa(jd, ayanamsa)
+
+        # Add nakshatras if requested (hybrid chart feature)
+        if include_nakshatras:
+            # Lazy import to avoid circular dependency
+            from app.services.vedic_calculator import VedicChartCalculator
+
+            # For tropical charts, we need to convert to sidereal first
+            if zodiac == 'tropical':
+                # Calculate sidereal positions for nakshatra calculation
+                sidereal_planets = EphemerisCalculator.calculate_all_planets(
+                    jd, zodiac='sidereal', ayanamsa=ayanamsa
+                )
+                chart_data['nakshatras'] = VedicChartCalculator._calculate_nakshatras(sidereal_planets)
+            else:
+                # Already sidereal, use the existing positions
+                chart_data['nakshatras'] = VedicChartCalculator._calculate_nakshatras(planets)
+
+            chart_data['calculation_info']['include_nakshatras'] = True
+            chart_data['calculation_info']['nakshatra_ayanamsa'] = ayanamsa
 
         return chart_data
 

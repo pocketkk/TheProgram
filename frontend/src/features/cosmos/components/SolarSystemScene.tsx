@@ -477,7 +477,6 @@ export const SolarSystemScene = ({
           enablePan={true}
           enableZoom={true}
           enableRotate={true}
-          enableKeys={false}
           minDistance={cameraMode === 'earth' ? 0.5 : 5}
           maxDistance={50}
           zoomSpeed={0.5}

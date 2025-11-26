@@ -37,7 +37,7 @@ export function useChartInteractions(): ChartInteractionHandlers {
     setHoveredElement,
     setSelectedElement,
     setActiveHouse,
-    clearInteractions,
+    clearInteractions: _clearInteractions,
   } = useChartStore()
 
   // Planet hover

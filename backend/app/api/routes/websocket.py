@@ -1,9 +1,10 @@
 """
-WebSocket endpoint for real-time communication
+WebSocket endpoint for real-time communication (single-user mode)
+
+No user authentication needed
 """
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from app.core.websocket import manager
-from app.api.dependencies import get_current_user_ws
 import logging
 import json
 
@@ -15,6 +16,8 @@ logger = logging.getLogger(__name__)
 async def websocket_endpoint(websocket: WebSocket):
     """
     WebSocket endpoint for real-time updates
+
+    No user authentication needed - single user mode
 
     Handles:
     - interpretation_progress: Real-time interpretation generation updates

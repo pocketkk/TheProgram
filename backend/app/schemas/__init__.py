@@ -11,12 +11,6 @@ from app.schemas.user import (
     UserPreferencesUpdate,
     UserPreferencesResponse,
 )
-from app.schemas.client import (
-    ClientCreate,
-    ClientUpdate,
-    ClientResponse,
-    ClientWithStats,
-)
 from app.schemas.birth_data import (
     BirthDataCreate,
     BirthDataUpdate,
@@ -56,11 +50,6 @@ __all__ = [
     "UserPreferencesCreate",
     "UserPreferencesUpdate",
     "UserPreferencesResponse",
-    # Client schemas
-    "ClientCreate",
-    "ClientUpdate",
-    "ClientResponse",
-    "ClientWithStats",
     # Birth data schemas
     "BirthDataCreate",
     "BirthDataUpdate",

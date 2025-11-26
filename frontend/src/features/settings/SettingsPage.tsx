@@ -3,20 +3,15 @@
  *
  * Application settings and data management page.
  */
-import React from 'react'
 import { motion } from 'framer-motion'
 import {
-  Settings as SettingsIcon,
-  Database,
-  Download,
   Shield,
   Bell,
   Palette,
   Sparkles,
+  Info,
 } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
-import { ExportButton } from '@/features/data-portability'
-import { ExportType } from '@/types/export'
 import { ApiKeySettings } from './components/ApiKeySettings'
 
 export function SettingsPage() {
@@ -55,45 +50,6 @@ export function SettingsPage() {
             </CardHeader>
             <CardContent>
               <ApiKeySettings />
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Data Portability */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-        >
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-3 mb-2">
-                <Database className="h-5 w-5 text-cosmic-400" />
-                <CardTitle>Data Portability</CardTitle>
-              </div>
-              <CardDescription>
-                Export your data for backup or migration to another system.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-gray-400">
-                You can export your entire database or specific data sets in JSON or CSV format.
-                All exports include your clients, charts, interpretations, and session notes.
-              </p>
-              <ExportButton
-                exportType={ExportType.FULL}
-                variant="primary"
-                label="Export All Data"
-                className="w-full"
-                onExportComplete={(filename) => {
-                  console.log('Export completed:', filename)
-                }}
-              />
-              <div className="pt-2 border-t border-cosmic-700">
-                <p className="text-xs text-gray-500">
-                  Exports are downloaded directly to your device. Your data never leaves your control.
-                </p>
-              </div>
             </CardContent>
           </Card>
         </motion.div>
@@ -184,15 +140,15 @@ export function SettingsPage() {
           <CardContent className="p-6">
             <div className="flex items-start gap-4">
               <div className="rounded-lg bg-gradient-to-br from-celestial-gold to-celestial-pink p-3">
-                <Download className="h-6 w-6 text-cosmic-950" />
+                <Info className="h-6 w-6 text-cosmic-950" />
               </div>
               <div className="flex-1">
                 <h3 className="font-heading font-semibold text-lg mb-1">
-                  Regular Backups Recommended
+                  About Your Data
                 </h3>
                 <p className="text-sm text-gray-400">
-                  We recommend exporting your data regularly to ensure you always have a backup.
-                  Exports are portable and can be imported into any compatible astrology software.
+                  All your birth chart data is stored locally on your device.
+                  Your personal information and astrological calculations remain private and under your control.
                 </p>
               </div>
             </div>

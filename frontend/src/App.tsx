@@ -9,18 +9,26 @@
  * 3. If password set but not authenticated → show LoginPage
  * 4. If authenticated → show main app with layout
  */
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { LoginPage } from './features/auth/LoginPage'
 import { PasswordSetupPage } from './features/auth/PasswordSetupPage'
-import { PasswordSettingsPage } from './features/auth/PasswordSettingsPage'
+import { SettingsPage } from './features/settings/SettingsPage'
 import { DashboardPage } from './features/dashboard/DashboardPage'
-import { ClientsPage } from './features/clients/ClientsPage'
 import { CosmicVisualizerPage } from './features/cosmos/CosmicVisualizerPage'
 import { BirthChartPage } from './features/birthchart'
-import { BackupDashboard } from './features/data-portability'
+import { FloatingCompanion } from './features/companion'
 import { AppLayout } from './components/layout/AppLayout'
 import { useAuthStore } from './store/authStore'
 import { Spinner } from './components/ui'
+// Phase 2 features
+import { JournalPage } from './features/journal'
+import { TimelinePage } from './features/timeline'
+import { CanvasPage } from './features/canvas'
+// Phase 3 features
+import { TransitDashboard } from './features/transits'
+import { TarotPage } from './features/tarot'
+import { IChingPage } from './features/iching'
+import { NumerologyPage } from './features/numerology'
 
 function App() {
   const { isAuthenticated, needsPasswordSetup, isLoading, checkAuthStatus } = useAuthStore()
@@ -36,6 +44,18 @@ function App() {
 
     initAuth()
   }, [checkAuthStatus])
+
+  // Handle navigation events from AI companion
+  const handleCompanionNavigate = useCallback((event: CustomEvent<{ page: string }>) => {
+    setCurrentPage(event.detail.page)
+  }, [])
+
+  useEffect(() => {
+    window.addEventListener('companion-navigate', handleCompanionNavigate as EventListener)
+    return () => {
+      window.removeEventListener('companion-navigate', handleCompanionNavigate as EventListener)
+    }
+  }, [handleCompanionNavigate])
 
   // Show loading spinner while checking auth
   if (!authChecked || isLoading) {
@@ -59,18 +79,25 @@ function App() {
     return <LoginPage />
   }
 
-  // Authenticated: show main app
+  // Authenticated: show main app with AI companion
   return (
-    <AppLayout currentPage={currentPage} onNavigate={setCurrentPage}>
-      {currentPage === 'dashboard' && <DashboardPage onNavigate={setCurrentPage} />}
-      {currentPage === 'clients' && <ClientsPage />}
-      {currentPage === 'charts' && <CosmicVisualizerPage />}
-      {currentPage === 'birthchart' && <BirthChartPage chartId={null} />}
-      {currentPage === 'reports' && <PlaceholderPage title="Reports" />}
-      {currentPage === 'backups' && <BackupDashboard />}
-      {currentPage === 'settings' && <PasswordSettingsPage />}
-      {currentPage === 'help' && <PlaceholderPage title="Help" />}
-    </AppLayout>
+    <>
+      <AppLayout currentPage={currentPage} onNavigate={setCurrentPage}>
+        {currentPage === 'dashboard' && <DashboardPage onNavigate={setCurrentPage} />}
+        {currentPage === 'charts' && <CosmicVisualizerPage />}
+        {currentPage === 'birthchart' && <BirthChartPage chartId={null} />}
+        {currentPage === 'journal' && <JournalPage />}
+        {currentPage === 'timeline' && <TimelinePage />}
+        {currentPage === 'canvas' && <CanvasPage />}
+        {currentPage === 'transits' && <TransitDashboard />}
+        {currentPage === 'tarot' && <TarotPage />}
+        {currentPage === 'iching' && <IChingPage />}
+        {currentPage === 'numerology' && <NumerologyPage />}
+        {currentPage === 'settings' && <SettingsPage />}
+        {currentPage === 'help' && <PlaceholderPage title="Help" />}
+      </AppLayout>
+      <FloatingCompanion />
+    </>
   )
 }
 

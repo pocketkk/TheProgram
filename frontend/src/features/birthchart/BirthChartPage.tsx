@@ -32,7 +32,7 @@ import { PLANETS } from '@/lib/astrology/types'
 import { pageVariants, tabContentVariants } from './animations'
 import { useResponsive, useIsMobile } from './utils/responsive'
 import { InterpretationsProvider } from './contexts/InterpretationsContext'
-import { getChart, createChart, type ChartResponse } from '@/lib/api/charts'
+import { getChart, calculateChart, type ChartResponse } from '@/lib/api/charts'
 import { generateChartInterpretations } from '@/lib/api/interpretations'
 import type { GenerateInterpretationRequest } from '@/types/interpretation'
 import { createBirthData } from '@/lib/api/birthData'
@@ -75,8 +75,8 @@ export function BirthChartPage({ chartId: chartIdProp }: BirthChartPageProps = {
 
   // State for loading saved charts
   const [savedChart, setSavedChart] = useState<ChartResponse | null>(null)
-  const [isLoadingChart, setIsLoadingChart] = useState(false)
-  const [chartLoadError, setChartLoadError] = useState<string | null>(null)
+  const [_isLoadingChart, setIsLoadingChart] = useState(false)
+  const [_chartLoadError, setChartLoadError] = useState<string | null>(null)
 
   // Load birth data from localStorage or use default
   const [birthData, setBirthData] = useState<BirthData>(() => {
@@ -116,6 +116,7 @@ export function BirthChartPage({ chartId: chartIdProp }: BirthChartPageProps = {
   const [isExporting, setIsExporting] = useState(false)
   const [isGeneratingInterpretations, setIsGeneratingInterpretations] = useState(false)
   const [generationError, setGenerationError] = useState<string | null>(null)
+  const [isRecalculating, setIsRecalculating] = useState(false)
   const chartWheelRef = useRef<HTMLDivElement>(null)
   const responsiveConfig = useResponsive()
   const isMobile = useIsMobile()
@@ -202,14 +203,24 @@ export function BirthChartPage({ chartId: chartIdProp }: BirthChartPageProps = {
   }
 
   // Get filter state from store
-  const { visibility, setAspectVisibility, setMaxOrb, zodiacSystem } = useChartStore()
+  const {
+    visibility,
+    setAspectVisibility,
+    setMaxOrb,
+    zodiacSystem,
+    ayanamsa,
+    houseSystem,
+    includeNakshatras,
+    includeWesternAspects,
+    includeMinorAspects
+  } = useChartStore()
 
   /**
    * Convert frontend chart format to database format
    * Frontend has planets as array [{name: 'Sun', ...}, {name: 'Moon', ...}]
    * Database expects object {sun: {...}, moon: {...}}
    */
-  const convertChartToDbFormat = (frontendChart: any): any => {
+  const _convertChartToDbFormat = (frontendChart: any): any => {
     // Map frontend planet names to database keys
     const planetNameToKey: Record<string, string> = {
       'Sun': 'sun',
@@ -523,17 +534,39 @@ export function BirthChartPage({ chartId: chartIdProp }: BirthChartPageProps = {
     }
   }, [chartType, birthData])
 
+  // Detect if current settings differ from saved chart settings
+  const settingsChanged = useMemo(() => {
+    if (!savedChart) return false
+
+    const savedParams = savedChart.calculation_params || {}
+    const currentAstroSystem = zodiacSystem === 'vedic' ? 'vedic' : 'western'
+    const currentZodiacType = zodiacSystem === 'vedic' ? 'sidereal' : 'tropical'
+
+    // Check core settings
+    if (savedChart.astro_system !== currentAstroSystem) return true
+    if (savedChart.house_system !== houseSystem) return true
+    if (savedChart.zodiac_type !== currentZodiacType) return true
+    if (zodiacSystem === 'vedic' && savedChart.ayanamsa !== ayanamsa) return true
+
+    // Check hybrid options
+    if (savedParams.include_nakshatras !== includeNakshatras) return true
+    if (savedParams.include_western_aspects !== includeWesternAspects) return true
+    if (savedParams.include_minor_aspects !== includeMinorAspects) return true
+
+    return false
+  }, [savedChart, zodiacSystem, houseSystem, ayanamsa, includeNakshatras, includeWesternAspects, includeMinorAspects])
+
   // Group aspects by planet in traditional order
   const aspectsByPlanet = useMemo(() => {
-    const planetOrder = PLANETS.map(p => p.name)
+    const planetOrder = PLANETS.map((p: { name: string }) => p.name)
 
     return planetOrder
       .map(planetName => {
-        const planet = chart.planets.find(p => p.name === planetName)
+        const planet = chart.planets.find((p: { name: string }) => p.name === planetName)
         if (!planet) return null
 
         const planetAspects = chart.aspects.filter(
-          aspect => aspect.planet1 === planetName || aspect.planet2 === planetName
+          (aspect: { planet1: string; planet2: string }) => aspect.planet1 === planetName || aspect.planet2 === planetName
         )
 
         return {
@@ -589,6 +622,39 @@ export function BirthChartPage({ chartId: chartIdProp }: BirthChartPageProps = {
       alert('Failed to export chart. Please try again.')
     } finally {
       setIsExporting(false)
+    }
+  }
+
+  // Handle recalculate chart with new settings
+  const handleRecalculateChart = async () => {
+    if (!savedChart) return
+
+    setIsRecalculating(true)
+    setGenerationError(null)
+
+    try {
+      // Recalculate with current settings
+      const newChart = await calculateChart({
+        birth_data_id: savedChart.birth_data_id,
+        chart_name: savedChart.chart_name || `Birth Chart`,
+        chart_type: 'natal',
+        astro_system: zodiacSystem === 'vedic' ? 'vedic' : 'western',
+        house_system: houseSystem,
+        zodiac_type: zodiacSystem === 'vedic' ? 'sidereal' : 'tropical',
+        ayanamsa: zodiacSystem === 'vedic' ? ayanamsa : undefined,
+        include_nakshatras: includeNakshatras,
+        include_western_aspects: includeWesternAspects,
+        include_minor_aspects: includeMinorAspects,
+      })
+
+      // Update saved chart with new calculation
+      setSavedChart(newChart)
+      console.log('[BirthChartPage] Chart recalculated with new settings')
+    } catch (error) {
+      console.error('Recalculation failed:', error)
+      setGenerationError(error instanceof Error ? error.message : 'Failed to recalculate chart')
+    } finally {
+      setIsRecalculating(false)
     }
   }
 
@@ -648,18 +714,20 @@ export function BirthChartPage({ chartId: chartIdProp }: BirthChartPageProps = {
           rodden_rating: 'A',
         })
 
-        // Convert chart to database format
-        const dbFormatChart = convertChartToDbFormat(chart)
-
-        // Create chart with current calculation
-        const newChart = await createChart({
+        // Calculate chart server-side with all settings from the store
+        // This uses Swiss Ephemeris and supports all Vedic features
+        const newChart = await calculateChart({
           birth_data_id: birthDataRecord.id,
           chart_name: `Birth Chart - ${locationName}`,
           chart_type: 'natal',
-          astro_system: 'western',
-          house_system: 'placidus',
-          zodiac_type: 'tropical',
-          chart_data: dbFormatChart,
+          astro_system: zodiacSystem === 'vedic' ? 'vedic' : 'western',
+          house_system: houseSystem,
+          zodiac_type: zodiacSystem === 'vedic' ? 'sidereal' : 'tropical',
+          ayanamsa: zodiacSystem === 'vedic' ? ayanamsa : undefined,
+          // Hybrid chart options
+          include_nakshatras: includeNakshatras,
+          include_western_aspects: includeWesternAspects,
+          include_minor_aspects: includeMinorAspects,
         })
 
         chartId = newChart.id
@@ -908,6 +976,45 @@ export function BirthChartPage({ chartId: chartIdProp }: BirthChartPageProps = {
               <ChartTypeSelector value={chartType} onChange={setChartType} />
             </div>
           </div>
+
+          {/* Settings Changed Banner */}
+          <AnimatePresence>
+            {settingsChanged && savedChart && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="overflow-hidden"
+              >
+                <div className="mt-2 px-4 py-2 bg-amber-900/30 border border-amber-600/50 rounded-lg flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-amber-200 text-sm">
+                    <Sparkles className="w-4 h-4" />
+                    <span>Chart settings have changed. Recalculate to see updated positions.</span>
+                  </div>
+                  <Button
+                    onClick={handleRecalculateChart}
+                    disabled={isRecalculating}
+                    size="sm"
+                    className="bg-amber-600 hover:bg-amber-500 text-white"
+                  >
+                    {isRecalculating ? (
+                      <>
+                        <motion.div
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                          className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full mr-2"
+                        />
+                        Recalculating...
+                      </>
+                    ) : (
+                      'Recalculate Chart'
+                    )}
+                  </Button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
 
@@ -1033,7 +1140,7 @@ export function BirthChartPage({ chartId: chartIdProp }: BirthChartPageProps = {
                     exit="exit"
                     className="grid grid-cols-1 2xl:grid-cols-2 gap-2"
                   >
-                    {chart.planets.map((planet, index) => (
+                    {chart.planets.map((planet: any, index: number) => (
                       <PlanetInfo key={planet.name} planet={planet} index={index} />
                     ))}
                   </motion.div>
@@ -1048,7 +1155,7 @@ export function BirthChartPage({ chartId: chartIdProp }: BirthChartPageProps = {
                     exit="exit"
                     className="grid grid-cols-1 2xl:grid-cols-2 gap-2"
                   >
-                    {chart.houses.map((house, index) => (
+                    {chart.houses.map((house: any, index: number) => (
                       <HouseInfo
                         key={house.number}
                         house={house}

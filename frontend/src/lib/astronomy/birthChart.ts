@@ -3,7 +3,7 @@
  * Handles natal chart data structure, calculation, and storage
  */
 
-import { calculatePlanetPosition, PLANETS, SATELLITES, PlanetData, getZodiacSign, isRetrograde, ASPECTS, calculateAspect, dateToJulianDay } from './planetaryData'
+import { calculatePlanetPosition, PLANETS, SATELLITES, type PlanetData, getZodiacSign, isRetrograde, calculateAspect, dateToJulianDay } from './planetaryData'
 
 /**
  * Location data for birth chart
@@ -79,7 +79,7 @@ export interface BirthChart {
  */
 export function calculateNatalPositions(
   birthDate: Date,
-  location: BirthLocation
+  _location: BirthLocation
 ): Record<string, NatalPlanetPosition> {
   const julianDay = dateToJulianDay(birthDate)
   const positions: Record<string, NatalPlanetPosition> = {}
@@ -164,7 +164,7 @@ export function calculateHouseCusps(
   // For now, we'll use equal houses starting from a calculated ascendant
 
   // Calculate local sidereal time and ascendant (simplified)
-  const julianDay = dateToJulianDay(birthDate)
+  const _julianDay = dateToJulianDay(birthDate)
   const hours = birthDate.getHours() + birthDate.getMinutes() / 60
 
   // Simplified ascendant calculation (NOT astronomically accurate - placeholder)

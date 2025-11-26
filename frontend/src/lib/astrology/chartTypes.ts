@@ -255,7 +255,7 @@ class SolarReturnChartCalculator extends BaseChartCalculator {
 
     // Get natal sun position
     const natalChart = calculateBirthChart(params.natal)
-    const natalSunLongitude = natalChart.planets.find(p => p.name === 'Sun')?.longitude || 0
+    const _natalSunLongitude = natalChart.planets.find(p => p.name === 'Sun')?.longitude || 0
 
     // Find date when current year's Sun returns to natal position
     // This is an approximation - would need iterative calculation for precision

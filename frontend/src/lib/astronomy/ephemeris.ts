@@ -165,7 +165,7 @@ export function isPlanetRetrograde(planetName: string, julianDay: number): boole
     return false
   }
 
-  const date = jdToDate(julianDay)
+  const _date = jdToDate(julianDay)
 
   // Get current and future geocentric positions to calculate velocity
   const currentPos = calculateGeocentricPosition(planetName, julianDay)

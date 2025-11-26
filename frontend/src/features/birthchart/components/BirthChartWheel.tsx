@@ -10,7 +10,7 @@ import { HUMAN_DESIGN_GATES, getGateAtDegree } from '@/lib/astronomy/humanDesign
 import { useChartInteractions, useChartKeyboardNav } from '../hooks/useChartInteractions'
 import { useChartStore } from '../stores/chartStore'
 import { ChartTooltip } from './ChartTooltip'
-import { DegreeMarkersLayer } from './layers/DegreeMarkersLayer'
+import { DegreeMarkersLayer as _DegreeMarkersLayer } from './layers/DegreeMarkersLayer'
 import { PatternHighlight } from './patterns/PatternHighlight'
 import { clusterPlanets, type ClusteredPlanet } from '../utils/planetClustering'
 import {
@@ -39,7 +39,7 @@ export const BirthChartWheel = forwardRef<HTMLDivElement, BirthChartWheelProps>(
   const activeHouse = useChartStore(state => state.interaction.activeHouse)
   const {
     onPlanetHover,
-    onPlanetClick,
+    onPlanetClick: _onPlanetClick,
     onHouseClick,
     isSelected,
     isHighlighted,
@@ -97,7 +97,7 @@ export const BirthChartWheel = forwardRef<HTMLDivElement, BirthChartWheelProps>(
   const outerRadius = size / 2 - 20
   const innerRadius = outerRadius * 0.75
   const planetRadius = outerRadius * 0.65
-  const houseRadius = outerRadius * 0.6
+  const _houseRadius = outerRadius * 0.6
 
   // Define major and minor aspect types
   const majorAspects: AspectType[] = ['Conjunction', 'Sextile', 'Square', 'Trine', 'Opposition']
@@ -125,6 +125,268 @@ export const BirthChartWheel = forwardRef<HTMLDivElement, BirthChartWheelProps>(
     return clusterPlanets(chart.planets)
   }, [chart.planets])
 
+  // Memoized degree ruler elements (360 tick marks + 36 labels)
+  // Only recalculates when size or orientation changes
+  const degreeRulerElements = useMemo(() => {
+    const degreeRingRadius = outerRadius + 1
+    const tickMarks: JSX.Element[] = []
+    const degreeLabels: JSX.Element[] = []
+
+    // Helper for this memoized block
+    const toCartesian = (angle: number, radius: number) => {
+      let rotatedAngle: number
+      if (visibility.orientation === 'natural') {
+        rotatedAngle = angle + 180
+      } else {
+        rotatedAngle = angle - chart.ascendant + 180
+      }
+      const adjustedAngle = (360 - rotatedAngle) * (Math.PI / 180)
+      return {
+        x: center + radius * Math.cos(adjustedAngle),
+        y: center - radius * Math.sin(adjustedAngle),
+      }
+    }
+
+    // Add tick marks every degree
+    for (let degree = 0; degree < 360; degree += 1) {
+      const zodiacIndex = Math.floor(degree / 30)
+      const color = getElementColor(ZODIAC_SIGNS[zodiacIndex].element)
+
+      let tickLength = 4
+      let tickOpacity = 0.3
+      let strokeWidth = 1
+
+      if (degree % 30 === 0) {
+        tickLength = 15
+        tickOpacity = 0.8
+        strokeWidth = 2
+      } else if (degree % 10 === 0) {
+        tickLength = 10
+        tickOpacity = 0.6
+        strokeWidth = 1.5
+      } else if (degree % 5 === 0) {
+        tickLength = 7
+        tickOpacity = 0.45
+      }
+
+      const outerPoint = toCartesian(degree, degreeRingRadius)
+      const innerPoint = toCartesian(degree, degreeRingRadius - tickLength)
+
+      tickMarks.push(
+        <line
+          key={`tick-${degree}`}
+          x1={outerPoint.x}
+          y1={outerPoint.y}
+          x2={innerPoint.x}
+          y2={innerPoint.y}
+          stroke={color}
+          strokeWidth={strokeWidth}
+          strokeOpacity={tickOpacity}
+        />
+      )
+    }
+
+    // Add degree labels every 10 degrees
+    for (let degree = 0; degree < 360; degree += 10) {
+      const zodiacIndex = Math.floor(degree / 30)
+      const color = getElementColor(ZODIAC_SIGNS[zodiacIndex].element)
+      const isMajor = degree % 30 === 0
+      const fontSize = isMajor ? 12 : 9
+      const fontWeight = isMajor ? 'bold' : '600'
+      const labelPos = toCartesian(degree, degreeRingRadius + 15)
+
+      degreeLabels.push(
+        <text
+          key={`degree-label-${degree}`}
+          x={labelPos.x}
+          y={labelPos.y}
+          fontSize={fontSize}
+          fill={color}
+          textAnchor="middle"
+          dominantBaseline="middle"
+          fontWeight={fontWeight}
+        >
+          {degree}°
+        </text>
+      )
+    }
+
+    return { tickMarks, degreeLabels, degreeRingRadius }
+  }, [size, visibility.orientation, chart.ascendant])
+
+  // Memoized HD gates ruler elements (static elements that don't depend on chart data)
+  // Only recalculates when size or orientation changes
+  const hdGatesStaticElements = useMemo(() => {
+    const gatesRingRadius = outerRadius * 0.97
+    const tickMarks: JSX.Element[] = []
+    const gateLabels: JSX.Element[] = []
+
+    // Helper for this memoized block
+    const toCartesian = (angle: number, radius: number) => {
+      let rotatedAngle: number
+      if (visibility.orientation === 'natural') {
+        rotatedAngle = angle + 180
+      } else {
+        rotatedAngle = angle - chart.ascendant + 180
+      }
+      const adjustedAngle = (360 - rotatedAngle) * (Math.PI / 180)
+      return {
+        x: center + radius * Math.cos(adjustedAngle),
+        y: center - radius * Math.sin(adjustedAngle),
+      }
+    }
+
+    HUMAN_DESIGN_GATES.forEach((gate, index) => {
+      const centerDegree = (gate.startDegree + gate.endDegree) / 2
+      const angle = centerDegree
+      const zodiacIndex = Math.floor(centerDegree / 30)
+      const color = getElementColor(ZODIAC_SIGNS[zodiacIndex].element)
+
+      // Major tick mark for gate center
+      const tickLength = 12
+      const outerPoint = toCartesian(angle, gatesRingRadius)
+      const innerPoint = toCartesian(angle, gatesRingRadius - tickLength)
+
+      tickMarks.push(
+        <line
+          key={`gate-tick-${index}`}
+          x1={outerPoint.x}
+          y1={outerPoint.y}
+          x2={innerPoint.x}
+          y2={innerPoint.y}
+          stroke={color}
+          strokeWidth={1.5}
+          strokeOpacity={0.7}
+        />
+      )
+
+      // Add 5 minor tick marks for the 6 lines within each gate
+      for (let line = 1; line < 6; line++) {
+        const lineDegree = gate.startDegree + (line * 0.9375)
+        const lineTickLength = 6
+        const lineOuterPoint = toCartesian(lineDegree, gatesRingRadius)
+        const lineInnerPoint = toCartesian(lineDegree, gatesRingRadius - lineTickLength)
+
+        tickMarks.push(
+          <line
+            key={`gate-line-tick-${index}-${line}`}
+            x1={lineOuterPoint.x}
+            y1={lineOuterPoint.y}
+            x2={lineInnerPoint.x}
+            y2={lineInnerPoint.y}
+            stroke={color}
+            strokeWidth={1}
+            strokeOpacity={0.3}
+          />
+        )
+      }
+
+      // Gate number label
+      const labelPos = toCartesian(angle, gatesRingRadius - 20)
+      gateLabels.push(
+        <text
+          key={`gate-label-${index}`}
+          x={labelPos.x}
+          y={labelPos.y}
+          fontSize={8}
+          fill="white"
+          textAnchor="middle"
+          dominantBaseline="middle"
+          fontWeight="bold"
+          stroke={color}
+          strokeWidth={0.3}
+        >
+          {gate.number}
+        </text>
+      )
+    })
+
+    return { tickMarks, gateLabels, gatesRingRadius }
+  }, [size, visibility.orientation, chart.ascendant])
+
+  // Memoized planet indicators on HD ring (depends on chart data)
+  // Uses Set-based lookup for O(1) aspect checking
+  const hdPlanetIndicators = useMemo(() => {
+    const gatesRingRadius = outerRadius * 0.97
+    const indicators: JSX.Element[] = []
+
+    // Helper for this memoized block
+    const toCartesian = (angle: number, radius: number) => {
+      let rotatedAngle: number
+      if (visibility.orientation === 'natural') {
+        rotatedAngle = angle + 180
+      } else {
+        rotatedAngle = angle - chart.ascendant + 180
+      }
+      const adjustedAngle = (360 - rotatedAngle) * (Math.PI / 180)
+      return {
+        x: center + radius * Math.cos(adjustedAngle),
+        y: center - radius * Math.sin(adjustedAngle),
+      }
+    }
+
+    // Build a Set for O(1) lookup of planets with aspects
+    const planetsWithAspects = new Set<string>()
+    for (const aspect of chart.aspects) {
+      if (['Conjunction', 'Trine', 'Square', 'Opposition', 'Sextile'].includes(aspect.type)) {
+        planetsWithAspects.add(aspect.planet1)
+        planetsWithAspects.add(aspect.planet2)
+      }
+    }
+
+    for (const planet of chart.planets) {
+      const planetConfig = PLANETS.find(p => p.name === planet.name)
+      const angle = planet.longitude
+      const indicatorLength = 15
+      const hasAspect = planetsWithAspects.has(planet.name)
+
+      const outerPoint = toCartesian(angle, gatesRingRadius + 2)
+      const innerPoint = toCartesian(angle, gatesRingRadius - indicatorLength)
+
+      indicators.push(
+        <line
+          key={`planet-indicator-${planet.name}`}
+          x1={outerPoint.x}
+          y1={outerPoint.y}
+          x2={innerPoint.x}
+          y2={innerPoint.y}
+          stroke={planetConfig?.color || '#fff'}
+          strokeWidth={hasAspect ? 3.5 : 2.5}
+          strokeOpacity={hasAspect ? 1 : 0.9}
+        />
+      )
+
+      indicators.push(
+        <circle
+          key={`planet-indicator-dot-${planet.name}`}
+          cx={outerPoint.x}
+          cy={outerPoint.y}
+          r={hasAspect ? 4 : 3}
+          fill={planetConfig?.color || '#fff'}
+          stroke={hasAspect ? planetConfig?.color : '#000'}
+          strokeWidth={hasAspect ? 1.5 : 0.5}
+        />
+      )
+
+      if (hasAspect) {
+        indicators.push(
+          <circle
+            key={`planet-aspect-ring-${planet.name}`}
+            cx={outerPoint.x}
+            cy={outerPoint.y}
+            r={7}
+            fill="none"
+            stroke={planetConfig?.color || '#fff'}
+            strokeWidth={1.5}
+            strokeOpacity={0.6}
+          />
+        )
+      }
+    }
+
+    return indicators
+  }, [chart.planets, chart.aspects, size, visibility.orientation, chart.ascendant])
+
   /**
    * Convert longitude to SVG coordinates
    * Supports both natural (Aries at 9 o'clock) and natal (Ascendant at 9 o'clock) orientations
@@ -150,7 +412,7 @@ export const BirthChartWheel = forwardRef<HTMLDivElement, BirthChartWheelProps>(
   /**
    * Create arc path for zodiac signs
    */
-  const createArcPath = (startAngle: number, endAngle: number, radius: number) => {
+  const _createArcPath = (startAngle: number, endAngle: number, radius: number) => {
     const start = polarToCartesian(startAngle, radius)
     const end = polarToCartesian(endAngle, radius)
     const largeArc = endAngle - startAngle > 180 ? 1 : 0
@@ -331,7 +593,7 @@ export const BirthChartWheel = forwardRef<HTMLDivElement, BirthChartWheelProps>(
           const midAngle = startAngle + 15
           const color = getElementColor(sign.element)
 
-          const labelPos = polarToCartesian(midAngle, outerRadius - 30)
+          const _labelPos = polarToCartesian(midAngle, outerRadius - 30)
 
           return (
             <motion.g
@@ -371,264 +633,38 @@ export const BirthChartWheel = forwardRef<HTMLDivElement, BirthChartWheelProps>(
           )
         })}
 
-        {/* Degree ruler ring - measuring tape style */}
-        {(() => {
-          const degreeRingRadius = outerRadius + 1
-          const tickMarks = []
-          const degreeLabels = []
+        {/* Degree ruler ring - measuring tape style (memoized) */}
+        <g>
+          {/* Border ring */}
+          <circle
+            cx={center}
+            cy={center}
+            r={degreeRulerElements.degreeRingRadius}
+            fill="none"
+            stroke="#888"
+            strokeWidth={1.5}
+            strokeOpacity={0.4}
+          />
+          {degreeRulerElements.tickMarks}
+          {degreeRulerElements.degreeLabels}
+        </g>
 
-          // Add tick marks every degree (pointing inward)
-          for (let degree = 0; degree < 360; degree += 1) {
-            const angle = degree
-
-            // Find which zodiac sign this degree is in
-            const zodiacIndex = Math.floor(degree / 30)
-            const color = getElementColor(ZODIAC_SIGNS[zodiacIndex].element)
-
-            // Visual hierarchy: zodiac boundaries (30°) > major (10°) > medium (5°) > minor (1°)
-            let tickLength = 4  // Minor tick
-            let tickOpacity = 0.3
-            let strokeWidth = 1
-
-            if (degree % 30 === 0) {
-              tickLength = 15 // Zodiac boundary - longest
-              tickOpacity = 0.8
-              strokeWidth = 2
-            } else if (degree % 10 === 0) {
-              tickLength = 10 // Major tick
-              tickOpacity = 0.6
-              strokeWidth = 1.5
-            } else if (degree % 5 === 0) {
-              tickLength = 7 // Medium tick
-              tickOpacity = 0.45
-              strokeWidth = 1
-            }
-
-            // Ticks point inward
-            const outerPoint = polarToCartesian(angle, degreeRingRadius)
-            const innerPoint = polarToCartesian(angle, degreeRingRadius - tickLength)
-
-            tickMarks.push(
-              <line
-                key={`tick-${degree}`}
-                x1={outerPoint.x}
-                y1={outerPoint.y}
-                x2={innerPoint.x}
-                y2={innerPoint.y}
-                stroke={color}
-                strokeWidth={strokeWidth}
-                strokeOpacity={tickOpacity}
-              />
-            )
-          }
-
-          // Add degree labels every 10 degrees (outside the ring)
-          for (let degree = 0; degree < 360; degree += 10) {
-            const angle = degree
-            const zodiacIndex = Math.floor(degree / 30)
-            const color = getElementColor(ZODIAC_SIGNS[zodiacIndex].element)
-
-            // Major zodiac boundaries are larger
-            const isMajor = degree % 30 === 0
-            const fontSize = isMajor ? 12 : 9
-            const fontWeight = isMajor ? 'bold' : '600'
-
-            const labelPos = polarToCartesian(angle, degreeRingRadius + 15)
-
-            degreeLabels.push(
-              <text
-                key={`degree-label-${degree}`}
-                x={labelPos.x}
-                y={labelPos.y}
-                fontSize={fontSize}
-                fill={color}
-                textAnchor="middle"
-                dominantBaseline="middle"
-                fontWeight={fontWeight}
-              >
-                {degree}°
-              </text>
-            )
-          }
-
-          return (
-            <g>
-              {/* Border ring */}
-              <circle
-                cx={center}
-                cy={center}
-                r={degreeRingRadius}
-                fill="none"
-                stroke="#888"
-                strokeWidth={1.5}
-                strokeOpacity={0.4}
-              />
-              {tickMarks}
-              {degreeLabels}
-            </g>
-          )
-        })()}
-
-        {/* Human Design gates ruler ring */}
-        {(() => {
-          const gatesRingRadius = outerRadius * 0.97
-          const tickMarks = []
-          const gateLabels = []
-
-          HUMAN_DESIGN_GATES.forEach((gate, index) => {
-            // Calculate center position of gate
-            const centerDegree = (gate.startDegree + gate.endDegree) / 2
-            const angle = centerDegree
-
-            // Find which zodiac sign this gate is in
-            const zodiacIndex = Math.floor(centerDegree / 30)
-            const color = getElementColor(ZODIAC_SIGNS[zodiacIndex].element)
-
-            // Major tick mark for gate center (extending inward)
-            const tickLength = 12
-            const outerPoint = polarToCartesian(angle, gatesRingRadius)
-            const innerPoint = polarToCartesian(angle, gatesRingRadius - tickLength)
-
-            tickMarks.push(
-              <line
-                key={`gate-tick-${index}`}
-                x1={outerPoint.x}
-                y1={outerPoint.y}
-                x2={innerPoint.x}
-                y2={innerPoint.y}
-                stroke={color}
-                strokeWidth={1.5}
-                strokeOpacity={0.7}
-              />
-            )
-
-            // Add 5 minor tick marks for the 6 lines within each gate
-            for (let line = 1; line < 6; line++) {
-              const lineDegree = gate.startDegree + (line * 0.9375)
-              const lineAngle = lineDegree
-              const lineTickLength = 6
-              const lineOuterPoint = polarToCartesian(lineAngle, gatesRingRadius)
-              const lineInnerPoint = polarToCartesian(lineAngle, gatesRingRadius - lineTickLength)
-
-              tickMarks.push(
-                <line
-                  key={`gate-line-tick-${index}-${line}`}
-                  x1={lineOuterPoint.x}
-                  y1={lineOuterPoint.y}
-                  x2={lineInnerPoint.x}
-                  y2={lineInnerPoint.y}
-                  stroke={color}
-                  strokeWidth={1}
-                  strokeOpacity={0.3}
-                />
-              )
-            }
-
-            // Gate number label
-            const labelPos = polarToCartesian(angle, gatesRingRadius - 20)
-            gateLabels.push(
-              <text
-                key={`gate-label-${index}`}
-                x={labelPos.x}
-                y={labelPos.y}
-                fontSize={8}
-                fill="white"
-                textAnchor="middle"
-                dominantBaseline="middle"
-                fontWeight="bold"
-                stroke={color}
-                strokeWidth={0.3}
-              >
-                {gate.number}
-              </text>
-            )
-
-            // Gate names removed - too small to be useful
-          })
-
-          // Planet indicators on HD ring
-          const planetIndicators: JSX.Element[] = []
-
-          // Check which planets have major aspects
-          const planetsWithAspects = new Set<string>()
-          chart.aspects.forEach((aspect) => {
-            if (['Conjunction', 'Trine', 'Square', 'Opposition', 'Sextile'].includes(aspect.type)) {
-              planetsWithAspects.add(aspect.planet1)
-              planetsWithAspects.add(aspect.planet2)
-            }
-          })
-
-          chart.planets.forEach((planet) => {
-            const planetConfig = PLANETS.find(p => p.name === planet.name)
-            const angle = planet.longitude
-            const indicatorLength = 15
-            const hasAspect = planetsWithAspects.has(planet.name)
-
-            // Tick pointing inward from the ring
-            const outerPoint = polarToCartesian(angle, gatesRingRadius + 2)
-            const innerPoint = polarToCartesian(angle, gatesRingRadius - indicatorLength)
-
-            planetIndicators.push(
-              <line
-                key={`planet-indicator-${planet.name}`}
-                x1={outerPoint.x}
-                y1={outerPoint.y}
-                x2={innerPoint.x}
-                y2={innerPoint.y}
-                stroke={planetConfig?.color || '#fff'}
-                strokeWidth={hasAspect ? 3.5 : 2.5}
-                strokeOpacity={hasAspect ? 1 : 0.9}
-              />
-            )
-
-            // Small circle at the outer point
-            planetIndicators.push(
-              <circle
-                key={`planet-indicator-dot-${planet.name}`}
-                cx={outerPoint.x}
-                cy={outerPoint.y}
-                r={hasAspect ? 4 : 3}
-                fill={planetConfig?.color || '#fff'}
-                stroke={hasAspect ? planetConfig?.color : '#000'}
-                strokeWidth={hasAspect ? 1.5 : 0.5}
-              />
-            )
-
-            // Add outer ring for planets with aspects
-            if (hasAspect) {
-              planetIndicators.push(
-                <circle
-                  key={`planet-aspect-ring-${planet.name}`}
-                  cx={outerPoint.x}
-                  cy={outerPoint.y}
-                  r={7}
-                  fill="none"
-                  stroke={planetConfig?.color || '#fff'}
-                  strokeWidth={1.5}
-                  strokeOpacity={0.6}
-                />
-              )
-            }
-          })
-
-          return (
-            <g>
-              {/* Border ring */}
-              <circle
-                cx={center}
-                cy={center}
-                r={gatesRingRadius}
-                fill="none"
-                stroke="#666"
-                strokeWidth={1}
-                strokeOpacity={0.3}
-              />
-              {tickMarks}
-              {gateLabels}
-              {planetIndicators}
-            </g>
-          )
-        })()}
+        {/* Human Design gates ruler ring (memoized) */}
+        <g>
+          {/* Border ring */}
+          <circle
+            cx={center}
+            cy={center}
+            r={hdGatesStaticElements.gatesRingRadius}
+            fill="none"
+            stroke="#666"
+            strokeWidth={1}
+            strokeOpacity={0.3}
+          />
+          {hdGatesStaticElements.tickMarks}
+          {hdGatesStaticElements.gateLabels}
+          {hdPlanetIndicators}
+        </g>
 
         {/* Degree markers - removed to avoid interference with planet labels */}
 

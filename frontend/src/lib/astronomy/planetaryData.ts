@@ -5,7 +5,6 @@
 
 import {
   calculateHeliocentricPosition,
-  calculateGeocentricPosition as getGeocentricPos,
   isPlanetRetrograde,
   getAllRetrogradeStatus as getRetrogradeStatuses,
   calculateAllGeocentricPositions as calcAllGeocentricPos,

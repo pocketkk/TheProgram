@@ -14,7 +14,7 @@ import {
   Globe,
   Maximize2,
   Settings,
-  TrendingUp,
+  TrendingUp as _TrendingUp,
   TrendingDown,
   Circle,
   Star,
@@ -31,16 +31,16 @@ import {
   ChevronLeft,
   ChevronRight,
   Download,
-  Share2,
-  Check,
+  Share2 as _Share2,
+  Check as _Check,
   Ruler,
   type LucideIcon,
 } from 'lucide-react'
 import { Button } from '@/components/ui'
 import { SolarSystemScene } from './components/SolarSystemScene'
-import { celestialBodies, getPlanets } from './data'
+import { celestialBodies, getPlanets as _getPlanets } from './data'
 import { UNIT_CONVERSIONS } from './constants'
-import { dateToJulianDay, ZODIAC_SIGNS } from '@/lib/astronomy/planetaryData'
+import { dateToJulianDay, ZODIAC_SIGNS as _ZODIAC_SIGNS } from '@/lib/astronomy/planetaryData'
 import { getPlanetInfo, formatZodiacPosition, getElementDescription } from '@/lib/astronomy/planetInfo'
 import { getDignityIcon, getDignityLabel } from '@/lib/astronomy/planetaryDignities'
 import { BirthChartForm } from './components/BirthChartForm'
@@ -223,7 +223,7 @@ const CollapsibleSection: React.FC<{
   isCollapsed: boolean
   onToggle: () => void
   children: React.ReactNode
-}> = ({ id, title, isCollapsed, onToggle, children }) => {
+}> = ({ id: _id, title, isCollapsed, onToggle, children }) => {
   return (
     <div className="mb-4">
       <button
@@ -374,7 +374,7 @@ export const CosmicVisualizerPage = () => {
   /**
    * Toggle body selection state
    */
-  const toggleBodySelection = (bodyId: string) => {
+  const _toggleBodySelection = (bodyId: string) => {
     setBodyStates(prev => ({
       ...prev,
       [bodyId]: {
@@ -497,7 +497,7 @@ export const CosmicVisualizerPage = () => {
   const [showNatalOverlay, setShowNatalOverlay] = useState(false)
   const [showTransitAspects, setShowTransitAspects] = useState(false)
   const [showKeyboardHelp, setShowKeyboardHelp] = useState(false)
-  const [shareSuccess, setShareSuccess] = useState(false)
+  const [_shareSuccess, _setShareSuccess] = useState(false)
   const [showDateTimePicker, setShowDateTimePicker] = useState(false)
 
   const intervalIdRef = useRef<number | null>(null)
@@ -724,7 +724,7 @@ export const CosmicVisualizerPage = () => {
   }
 
 
-  const handleDateBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+  const _handleDateBlur = (e: React.FocusEvent<HTMLInputElement>) => {
     const dateValue = e.target.value
     if (!dateValue) return
 
@@ -753,7 +753,7 @@ export const CosmicVisualizerPage = () => {
     }
   }
 
-  const handleTimeBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+  const _handleTimeBlur = (e: React.FocusEvent<HTMLInputElement>) => {
     const timeValue = e.target.value
     if (!timeValue) return
 
@@ -1492,7 +1492,7 @@ export const CosmicVisualizerPage = () => {
                     </p>
                   ) : (
                     filteredBodies.map((planet, index) => {
-                    const isOuter = ['jupiter', 'saturn', 'uranus', 'neptune', 'pluto'].includes(planet)
+                    const _isOuter = ['jupiter', 'saturn', 'uranus', 'neptune', 'pluto'].includes(planet)
                     const isFirstOuter = planet === 'jupiter'
                     const isEven = index % 2 === 0
 

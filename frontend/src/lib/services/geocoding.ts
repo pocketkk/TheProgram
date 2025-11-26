@@ -133,7 +133,8 @@ function guessTimezoneFromLongitude(longitude: number): string {
     '12': 'Pacific/Auckland',
   }
 
-  return timezoneMap[offset.toString()] || 'UTC'
+  const offsetKey = offset.toString()
+  return (timezoneMap as Record<string, string>)[offsetKey] || 'UTC'
 }
 
 /**

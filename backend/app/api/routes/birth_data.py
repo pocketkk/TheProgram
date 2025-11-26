@@ -1,15 +1,16 @@
 """
-Birth data management endpoints
+Birth data management endpoints (single-user mode)
+
+No user authentication - all birth data belongs to "the user"
 """
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from uuid import UUID
 
-from app.core.database import get_db
-from app.api.dependencies import get_current_user
-from app.models import User, BirthData
-from app.schemas import (
+from app.core.database_sqlite import get_db
+from app.models_sqlite import BirthData
+from app.schemas_sqlite import (
     BirthDataCreate,
     BirthDataUpdate,
     BirthDataResponse,
@@ -23,49 +24,32 @@ router = APIRouter()
 @router.post("/", response_model=BirthDataResponse, status_code=status.HTTP_201_CREATED)
 async def create_birth_data(
     birth_data_in: BirthDataCreate,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    db: Session = Depends(get_db)
 ):
     """
     Create new birth data
 
-    Creates a new birth data record for a client.
+    Creates a new birth data record (single-user mode).
 
     Args:
         birth_data_in: Birth data creation data
         db: Database session
-        current_user: Current authenticated user
 
     Returns:
         Created birth data
 
     Raises:
-        HTTPException 404: If client not found
-        HTTPException 403: If client doesn't belong to user
+        HTTPException 400: If coordinates are invalid
     """
-    # Verify client exists and belongs to user
-    client = db.query(Client).filter(Client.id == birth_data_in.client_id).first()
-
-    if not client:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Client not found"
-        )
-
-    if client.user_id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to add birth data to this client"
-        )
-
-    # Create birth data
+    # Create birth data (no client_id in single-user mode)
+    # Coordinates are validated by database CHECK constraints
+    # Convert date/time objects to ISO format strings for SQLite
     birth_data = BirthData(
-        client_id=birth_data_in.client_id,
-        birth_date=birth_data_in.birth_date,
-        birth_time=birth_data_in.birth_time,
+        birth_date=str(birth_data_in.birth_date),
+        birth_time=str(birth_data_in.birth_time) if birth_data_in.birth_time else None,
         time_unknown=birth_data_in.time_unknown,
-        latitude=birth_data_in.latitude,
-        longitude=birth_data_in.longitude,
+        latitude=float(birth_data_in.latitude),
+        longitude=float(birth_data_in.longitude),
         timezone=birth_data_in.timezone,
         utc_offset=birth_data_in.utc_offset,
         city=birth_data_in.city,
@@ -75,13 +59,6 @@ async def create_birth_data(
         gender=birth_data_in.gender
     )
 
-    # Validate coordinates
-    if not birth_data.validate_coordinates():
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid coordinates: latitude must be -90 to +90, longitude must be -180 to +180"
-        )
-
     db.add(birth_data)
     db.commit()
     db.refresh(birth_data)
@@ -89,75 +66,48 @@ async def create_birth_data(
     return birth_data
 
 
-@router.get("/client/{client_id}", response_model=List[BirthDataResponse])
-async def list_birth_data_for_client(
-    client_id: UUID,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+@router.get("/", response_model=List[BirthDataResponse])
+async def list_birth_data(
+    db: Session = Depends(get_db)
 ):
     """
-    List all birth data for a client
+    List all birth data (single-user mode)
 
-    Returns all birth data records for a specific client.
+    Returns all birth data records.
 
     Args:
-        client_id: Client ID
         db: Database session
-        current_user: Current authenticated user
 
     Returns:
         List of birth data records
-
-    Raises:
-        HTTPException 404: If client not found
-        HTTPException 403: If client doesn't belong to user
     """
-    # Verify client exists and belongs to user
-    client = db.query(Client).filter(Client.id == client_id).first()
-
-    if not client:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Client not found"
-        )
-
-    if client.user_id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to access this client's birth data"
-        )
-
-    birth_data_list = db.query(BirthData).filter(
-        BirthData.client_id == client_id
-    ).all()
-
+    birth_data_list = db.query(BirthData).all()
     return birth_data_list
 
 
 @router.get("/{birth_data_id}", response_model=BirthDataWithLocation)
 async def get_birth_data(
     birth_data_id: UUID,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    db: Session = Depends(get_db)
 ):
     """
     Get birth data by ID
 
     Returns a specific birth data record with location information.
+    No user ownership check needed.
 
     Args:
         birth_data_id: Birth data ID
         db: Database session
-        current_user: Current authenticated user
 
     Returns:
         Birth data with location information
 
     Raises:
         HTTPException 404: If birth data not found
-        HTTPException 403: If birth data doesn't belong to user's client
     """
-    birth_data = db.query(BirthData).filter(BirthData.id == birth_data_id).first()
+    # Convert UUID to string for SQLite query (IDs stored as TEXT)
+    birth_data = db.query(BirthData).filter(BirthData.id == str(birth_data_id)).first()
 
     if not birth_data:
         raise HTTPException(
@@ -165,18 +115,9 @@ async def get_birth_data(
             detail="Birth data not found"
         )
 
-    # Check ownership through client
-    client = db.query(Client).filter(Client.id == birth_data.client_id).first()
-    if not client or client.user_id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to access this birth data"
-        )
-
-    # Create response with additional fields
+    # Create response with additional fields (no client_id in single-user mode)
     birth_data_dict = {
         "id": birth_data.id,
-        "client_id": birth_data.client_id,
         "birth_date": birth_data.birth_date,
         "birth_time": birth_data.birth_time,
         "time_unknown": birth_data.time_unknown,
@@ -192,8 +133,8 @@ async def get_birth_data(
         "created_at": birth_data.created_at,
         "updated_at": birth_data.updated_at,
         "location_string": birth_data.location_string,
-        "is_time_known": birth_data.is_time_known,
-        "data_quality": birth_data.data_quality
+        "has_time": birth_data.has_time,
+        "data_quality": birth_data.rodden_rating or "Unknown"
     }
 
     return birth_data_dict
@@ -203,42 +144,32 @@ async def get_birth_data(
 async def update_birth_data(
     birth_data_id: UUID,
     birth_data_update: BirthDataUpdate,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    db: Session = Depends(get_db)
 ):
     """
     Update birth data
 
-    Updates a birth data record.
+    Updates a birth data record. No user ownership check needed.
 
     Args:
         birth_data_id: Birth data ID
         birth_data_update: Birth data update data
         db: Database session
-        current_user: Current authenticated user
 
     Returns:
         Updated birth data
 
     Raises:
         HTTPException 404: If birth data not found
-        HTTPException 403: If birth data doesn't belong to user's client
         HTTPException 400: If coordinates are invalid
     """
-    birth_data = db.query(BirthData).filter(BirthData.id == birth_data_id).first()
+    # Convert UUID to string for SQLite query (IDs stored as TEXT)
+    birth_data = db.query(BirthData).filter(BirthData.id == str(birth_data_id)).first()
 
     if not birth_data:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Birth data not found"
-        )
-
-    # Check ownership through client
-    client = db.query(Client).filter(Client.id == birth_data.client_id).first()
-    if not client or client.user_id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to update this birth data"
         )
 
     # Update fields
@@ -278,12 +209,7 @@ async def update_birth_data(
     if birth_data_update.gender is not None:
         birth_data.gender = birth_data_update.gender
 
-    # Validate coordinates
-    if not birth_data.validate_coordinates():
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid coordinates: latitude must be -90 to +90, longitude must be -180 to +180"
-        )
+    # Coordinates are validated by database CHECK constraints
 
     db.commit()
     db.refresh(birth_data)
@@ -294,40 +220,31 @@ async def update_birth_data(
 @router.delete("/{birth_data_id}", response_model=Message)
 async def delete_birth_data(
     birth_data_id: UUID,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    db: Session = Depends(get_db)
 ):
     """
     Delete birth data
 
     Permanently deletes a birth data record and all associated charts.
+    No user ownership check needed.
 
     Args:
         birth_data_id: Birth data ID
         db: Database session
-        current_user: Current authenticated user
 
     Returns:
         Success message
 
     Raises:
         HTTPException 404: If birth data not found
-        HTTPException 403: If birth data doesn't belong to user's client
     """
-    birth_data = db.query(BirthData).filter(BirthData.id == birth_data_id).first()
+    # Convert UUID to string for SQLite query (IDs stored as TEXT)
+    birth_data = db.query(BirthData).filter(BirthData.id == str(birth_data_id)).first()
 
     if not birth_data:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Birth data not found"
-        )
-
-    # Check ownership through client
-    client = db.query(Client).filter(Client.id == birth_data.client_id).first()
-    if not client or client.user_id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to delete this birth data"
         )
 
     db.delete(birth_data)

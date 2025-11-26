@@ -1,5 +1,19 @@
 import { motion } from 'framer-motion'
-import { LayoutDashboard, Users, Calculator, Settings, HelpCircle, FileText, Star, Database, type LucideIcon } from 'lucide-react'
+import {
+  LayoutDashboard,
+  Calculator,
+  Settings,
+  HelpCircle,
+  Star,
+  BookOpen,
+  CalendarDays,
+  Layout,
+  Activity,
+  Sparkles,
+  Hexagon,
+  Hash,
+  type LucideIcon
+} from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface SidebarProps {
@@ -11,17 +25,26 @@ type NavigationItem = {
   name: string
   icon: LucideIcon
   page: string
+  section?: 'main' | 'exploration' | 'system'
 }
 
 const navigation: NavigationItem[] = [
-  { name: 'Dashboard', icon: LayoutDashboard, page: 'dashboard' },
-  { name: 'Clients', icon: Users, page: 'clients' },
-  { name: 'Charts', icon: Calculator, page: 'charts' },
-  { name: 'Birth Chart', icon: Star, page: 'birthchart' },
-  { name: 'Reports', icon: FileText, page: 'reports' },
-  { name: 'Backups', icon: Database, page: 'backups' },
-  { name: 'Settings', icon: Settings, page: 'settings' },
-  { name: 'Help', icon: HelpCircle, page: 'help' },
+  // Main section
+  { name: 'Dashboard', icon: LayoutDashboard, page: 'dashboard', section: 'main' },
+  { name: 'Birth Chart', icon: Star, page: 'birthchart', section: 'main' },
+  { name: 'Cosmic Visualizer', icon: Calculator, page: 'charts', section: 'main' },
+  // Exploration section (Phase 2)
+  { name: 'Journal', icon: BookOpen, page: 'journal', section: 'exploration' },
+  { name: 'Timeline', icon: CalendarDays, page: 'timeline', section: 'exploration' },
+  { name: 'Canvas', icon: Layout, page: 'canvas', section: 'exploration' },
+  // Analysis section (Phase 3)
+  { name: 'Transits', icon: Activity, page: 'transits', section: 'exploration' },
+  { name: 'Tarot', icon: Sparkles, page: 'tarot', section: 'exploration' },
+  { name: 'I-Ching', icon: Hexagon, page: 'iching', section: 'exploration' },
+  { name: 'Numerology', icon: Hash, page: 'numerology', section: 'exploration' },
+  // System section
+  { name: 'Settings', icon: Settings, page: 'settings', section: 'system' },
+  { name: 'Help', icon: HelpCircle, page: 'help', section: 'system' },
 ]
 
 export const Sidebar = ({ currentPage, onNavigate }: SidebarProps) => {

@@ -123,6 +123,10 @@ export interface ChartCalculationRequest {
   include_fixed_stars?: boolean
   include_arabic_parts?: boolean
   custom_orbs?: Record<string, number> | null
+  // Hybrid chart options
+  include_nakshatras?: boolean  // Include Vedic nakshatras in Western charts
+  include_western_aspects?: boolean  // Include Western-style aspects in Vedic charts
+  include_minor_aspects?: boolean  // Include minor aspects in calculations
 }
 
 export interface ChartCalculationResponse extends ChartResponse {

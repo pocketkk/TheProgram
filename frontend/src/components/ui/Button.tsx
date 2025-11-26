@@ -57,13 +57,24 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     const motionProps = noAnimation ? {} : { whileHover: { scale: 1.02 }, whileTap: { scale: 0.98 } }
 
     if (asChild) {
+      // Extract only standard HTML button props for Slot (motion props are incompatible)
+      const { onClick, onMouseEnter, onMouseLeave, onFocus, onBlur, id, 'aria-label': ariaLabel, 'aria-disabled': ariaDisabled, tabIndex, title } = props as any
       return (
         <Slot
           className={cn(buttonVariants({ variant, size, className }))}
           ref={ref}
-          {...props}
+          onClick={onClick}
+          onMouseEnter={onMouseEnter}
+          onMouseLeave={onMouseLeave}
+          onFocus={onFocus}
+          onBlur={onBlur}
+          id={id}
+          aria-label={ariaLabel}
+          aria-disabled={ariaDisabled || disabled}
+          tabIndex={tabIndex}
+          title={title}
         >
-          {content}
+          {content as React.ReactNode}
         </Slot>
       )
     }

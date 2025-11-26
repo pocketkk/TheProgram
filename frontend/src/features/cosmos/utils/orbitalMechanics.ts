@@ -17,7 +17,7 @@
 
 import { JULIAN_CONSTANTS, MATH_CONSTANTS } from '../constants'
 import {
-  calculateMeanAnomaly,
+  calculateMeanAnomaly as _calculateMeanAnomaly,
   daysSinceJ2000,
   degreesToRadians,
   radiansToDegrees,

@@ -22,7 +22,7 @@ interface SunProps {
 
 export const Sun = ({
   position = [0, 0, 0],
-  scale = 1,
+  scale: _scale = 1,
   showFootprints = true,
   showPlanetToFootprintLines = true,
   showLabel = true,
@@ -39,7 +39,7 @@ export const Sun = ({
   const corona3Ref = useRef<THREE.Mesh>(null)
   const flareRef = useRef<THREE.Mesh>(null)
   const glowRef = useRef<THREE.Mesh>(null)
-  const { camera } = useThree()
+  const { camera: _camera } = useThree()
 
   // Trail tracking system (like planets have)
   const [trailPositions, setTrailPositions] = useState<THREE.Vector3[]>([])

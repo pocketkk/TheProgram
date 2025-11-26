@@ -1,9 +1,69 @@
 /**
  * Aspect Pattern Detection
  * Identifies special geometric configurations in birth charts
+ *
+ * Performance optimizations:
+ * - Uses Set-based lookup for O(1) aspect checking instead of O(n) .some()
+ * - Pre-builds aspect index on first pattern detection call
  */
 
-import type { Aspect, PlanetPosition, BirthChart } from './types'
+import type { PlanetPosition, BirthChart, Aspect } from './types'
+
+/**
+ * Create a normalized key for planet pair lookup (alphabetically sorted)
+ */
+function aspectKey(p1: string, p2: string): string {
+  return p1 < p2 ? `${p1}|${p2}` : `${p2}|${p1}`
+}
+
+/**
+ * Build aspect lookup Sets for O(1) pattern checking
+ */
+function buildAspectIndex(aspects: Aspect[]): {
+  trines: Set<string>
+  squares: Set<string>
+  oppositions: Set<string>
+  sextiles: Set<string>
+  quincunxes: Set<string>
+} {
+  const index = {
+    trines: new Set<string>(),
+    squares: new Set<string>(),
+    oppositions: new Set<string>(),
+    sextiles: new Set<string>(),
+    quincunxes: new Set<string>(),
+  }
+
+  for (const aspect of aspects) {
+    const key = aspectKey(aspect.planet1, aspect.planet2)
+    switch (aspect.type) {
+      case 'Trine':
+        index.trines.add(key)
+        break
+      case 'Square':
+        index.squares.add(key)
+        break
+      case 'Opposition':
+        index.oppositions.add(key)
+        break
+      case 'Sextile':
+        index.sextiles.add(key)
+        break
+      case 'Quincunx':
+        index.quincunxes.add(key)
+        break
+    }
+  }
+
+  return index
+}
+
+/**
+ * Check if aspect exists using O(1) Set lookup
+ */
+function hasAspect(aspectSet: Set<string>, p1: string, p2: string): boolean {
+  return aspectSet.has(aspectKey(p1, p2))
+}
 
 export type PatternType =
   | 'GrandTrine'
@@ -27,28 +87,34 @@ export interface AspectPattern {
 
 /**
  * Detect all aspect patterns in a chart
+ * Uses optimized O(1) aspect lookups for pattern detection
  */
 export function detectPatterns(chart: BirthChart): AspectPattern[] {
   const patterns: AspectPattern[] = []
 
-  patterns.push(...detectGrandTrines(chart))
-  patterns.push(...detectGrandCrosses(chart))
-  patterns.push(...detectTSquares(chart))
-  patterns.push(...detectYods(chart))
-  patterns.push(...detectKites(chart))
-  patterns.push(...detectMysticRectangles(chart))
+  // Build aspect index once for all pattern detection (O(n) instead of O(n²))
+  const aspectIndex = buildAspectIndex(chart.aspects)
+
+  patterns.push(...detectGrandTrines(chart, aspectIndex))
+  patterns.push(...detectGrandCrosses(chart, aspectIndex))
+  patterns.push(...detectTSquares(chart, aspectIndex))
+  patterns.push(...detectYods(chart, aspectIndex))
+  patterns.push(...detectKites(chart, aspectIndex))
+  patterns.push(...detectMysticRectangles(chart, aspectIndex))
   patterns.push(...detectStelliums(chart))
 
   return patterns.sort((a, b) => b.strength - a.strength)
 }
 
+type AspectIndex = ReturnType<typeof buildAspectIndex>
+
 /**
  * Grand Trine: Three planets 120° apart forming a triangle
+ * Optimized with O(1) aspect lookups
  */
-function detectGrandTrines(chart: BirthChart): AspectPattern[] {
+function detectGrandTrines(chart: BirthChart, aspectIndex: AspectIndex): AspectPattern[] {
   const patterns: AspectPattern[] = []
   const planets = chart.planets
-  const trines = chart.aspects.filter(a => a.type === 'Trine')
 
   // Check all combinations of 3 planets
   for (let i = 0; i < planets.length; i++) {
@@ -58,18 +124,12 @@ function detectGrandTrines(chart: BirthChart): AspectPattern[] {
         const p2 = planets[j].name
         const p3 = planets[k].name
 
-        // Check if all three are trine to each other
-        const has12 = trines.some(
-          t => (t.planet1 === p1 && t.planet2 === p2) || (t.planet1 === p2 && t.planet2 === p1)
-        )
-        const has23 = trines.some(
-          t => (t.planet1 === p2 && t.planet2 === p3) || (t.planet1 === p3 && t.planet2 === p2)
-        )
-        const has31 = trines.some(
-          t => (t.planet1 === p3 && t.planet2 === p1) || (t.planet1 === p1 && t.planet2 === p3)
-        )
-
-        if (has12 && has23 && has31) {
+        // Check if all three are trine to each other (O(1) lookups)
+        if (
+          hasAspect(aspectIndex.trines, p1, p2) &&
+          hasAspect(aspectIndex.trines, p2, p3) &&
+          hasAspect(aspectIndex.trines, p3, p1)
+        ) {
           // Determine element
           const element = planets[i].element
 
@@ -91,12 +151,11 @@ function detectGrandTrines(chart: BirthChart): AspectPattern[] {
 
 /**
  * Grand Cross: Four planets 90° apart forming a cross
+ * Optimized with O(1) aspect lookups
  */
-function detectGrandCrosses(chart: BirthChart): AspectPattern[] {
+function detectGrandCrosses(chart: BirthChart, aspectIndex: AspectIndex): AspectPattern[] {
   const patterns: AspectPattern[] = []
   const planets = chart.planets
-  const squares = chart.aspects.filter(a => a.type === 'Square')
-  const oppositions = chart.aspects.filter(a => a.type === 'Opposition')
 
   // Check all combinations of 4 planets
   for (let i = 0; i < planets.length; i++) {
@@ -108,30 +167,18 @@ function detectGrandCrosses(chart: BirthChart): AspectPattern[] {
           const p3 = planets[k].name
           const p4 = planets[l].name
 
-          // Check if they form a cross pattern
-          const hasOpposition12_34 =
-            oppositions.some(
-              o => (o.planet1 === p1 && o.planet2 === p3) || (o.planet1 === p3 && o.planet2 === p1)
-            ) &&
-            oppositions.some(
-              o => (o.planet1 === p2 && o.planet2 === p4) || (o.planet1 === p4 && o.planet2 === p2)
-            )
+          // Check if they form a cross pattern (O(1) lookups)
+          const hasOppositions =
+            hasAspect(aspectIndex.oppositions, p1, p3) &&
+            hasAspect(aspectIndex.oppositions, p2, p4)
 
           const hasSquares =
-            squares.some(
-              s => (s.planet1 === p1 && s.planet2 === p2) || (s.planet1 === p2 && s.planet2 === p1)
-            ) &&
-            squares.some(
-              s => (s.planet1 === p2 && s.planet2 === p3) || (s.planet1 === p3 && s.planet2 === p2)
-            ) &&
-            squares.some(
-              s => (s.planet1 === p3 && s.planet2 === p4) || (s.planet1 === p4 && s.planet2 === p3)
-            ) &&
-            squares.some(
-              s => (s.planet1 === p4 && s.planet2 === p1) || (s.planet1 === p1 && s.planet2 === p4)
-            )
+            hasAspect(aspectIndex.squares, p1, p2) &&
+            hasAspect(aspectIndex.squares, p2, p3) &&
+            hasAspect(aspectIndex.squares, p3, p4) &&
+            hasAspect(aspectIndex.squares, p4, p1)
 
-          if (hasOpposition12_34 && hasSquares) {
+          if (hasOppositions && hasSquares) {
             const modality = planets[i].modality
 
             patterns.push({
@@ -153,30 +200,28 @@ function detectGrandCrosses(chart: BirthChart): AspectPattern[] {
 
 /**
  * T-Square: Three planets forming opposition with both square to third
+ * Optimized with O(1) aspect lookups
  */
-function detectTSquares(chart: BirthChart): AspectPattern[] {
+function detectTSquares(chart: BirthChart, aspectIndex: AspectIndex): AspectPattern[] {
   const patterns: AspectPattern[] = []
   const planets = chart.planets
-  const squares = chart.aspects.filter(a => a.type === 'Square')
-  const oppositions = chart.aspects.filter(a => a.type === 'Opposition')
 
-  for (const opp of oppositions) {
-    const p1 = opp.planet1
-    const p2 = opp.planet2
+  // Get planets involved in oppositions for iteration
+  const oppositionPairs: [string, string][] = []
+  for (const aspect of chart.aspects) {
+    if (aspect.type === 'Opposition') {
+      oppositionPairs.push([aspect.planet1, aspect.planet2])
+    }
+  }
 
+  for (const [p1, p2] of oppositionPairs) {
     // Find planets square to both
     for (const planet of planets) {
       const p3 = planet.name
       if (p3 === p1 || p3 === p2) continue
 
-      const squareToP1 = squares.some(
-        s => (s.planet1 === p1 && s.planet2 === p3) || (s.planet1 === p3 && s.planet2 === p1)
-      )
-      const squareToP2 = squares.some(
-        s => (s.planet1 === p2 && s.planet2 === p3) || (s.planet1 === p3 && s.planet2 === p2)
-      )
-
-      if (squareToP1 && squareToP2) {
+      // O(1) lookups
+      if (hasAspect(aspectIndex.squares, p1, p3) && hasAspect(aspectIndex.squares, p2, p3)) {
         patterns.push({
           type: 'TSquare',
           planets: [p1, p2, p3],
@@ -194,29 +239,27 @@ function detectTSquares(chart: BirthChart): AspectPattern[] {
 
 /**
  * Yod (Finger of God): Two planets sextile with both quincunx to third
+ * Optimized with O(1) aspect lookups
  */
-function detectYods(chart: BirthChart): AspectPattern[] {
+function detectYods(chart: BirthChart, aspectIndex: AspectIndex): AspectPattern[] {
   const patterns: AspectPattern[] = []
   const planets = chart.planets
-  const sextiles = chart.aspects.filter(a => a.type === 'Sextile')
-  const quincunxes = chart.aspects.filter(a => a.type === 'Quincunx')
 
-  for (const sext of sextiles) {
-    const p1 = sext.planet1
-    const p2 = sext.planet2
+  // Get planets involved in sextiles for iteration
+  const sextilePairs: [string, string][] = []
+  for (const aspect of chart.aspects) {
+    if (aspect.type === 'Sextile') {
+      sextilePairs.push([aspect.planet1, aspect.planet2])
+    }
+  }
 
+  for (const [p1, p2] of sextilePairs) {
     for (const planet of planets) {
       const p3 = planet.name
       if (p3 === p1 || p3 === p2) continue
 
-      const quincunxToP1 = quincunxes.some(
-        q => (q.planet1 === p1 && q.planet2 === p3) || (q.planet1 === p3 && q.planet2 === p1)
-      )
-      const quincunxToP2 = quincunxes.some(
-        q => (q.planet1 === p2 && q.planet2 === p3) || (q.planet1 === p3 && q.planet2 === p2)
-      )
-
-      if (quincunxToP1 && quincunxToP2) {
+      // O(1) lookups
+      if (hasAspect(aspectIndex.quincunxes, p1, p3) && hasAspect(aspectIndex.quincunxes, p2, p3)) {
         patterns.push({
           type: 'Yod',
           planets: [p1, p2, p3],
@@ -234,10 +277,11 @@ function detectYods(chart: BirthChart): AspectPattern[] {
 
 /**
  * Kite: Grand Trine with fourth planet opposite one point and sextile to others
+ * Optimized with O(1) aspect lookups
  */
-function detectKites(chart: BirthChart): AspectPattern[] {
+function detectKites(chart: BirthChart, aspectIndex: AspectIndex): AspectPattern[] {
   const patterns: AspectPattern[] = []
-  const grandTrines = detectGrandTrines(chart)
+  const grandTrines = detectGrandTrines(chart, aspectIndex)
 
   for (const trine of grandTrines) {
     const [p1, p2, p3] = trine.planets
@@ -248,21 +292,12 @@ function detectKites(chart: BirthChart): AspectPattern[] {
       const p4 = planet.name
       if (trine.planets.includes(p4)) continue
 
-      const oppositions = chart.aspects.filter(a => a.type === 'Opposition')
-      const sextiles = chart.aspects.filter(a => a.type === 'Sextile')
-
-      // Check if p4 is opposite p1 and sextile to p2 and p3
-      const oppToP1 = oppositions.some(
-        o => (o.planet1 === p1 && o.planet2 === p4) || (o.planet1 === p4 && o.planet2 === p1)
-      )
-      const sextToP2 = sextiles.some(
-        s => (s.planet1 === p2 && s.planet2 === p4) || (s.planet1 === p4 && s.planet2 === p2)
-      )
-      const sextToP3 = sextiles.some(
-        s => (s.planet1 === p3 && s.planet2 === p4) || (s.planet1 === p4 && s.planet2 === p3)
-      )
-
-      if (oppToP1 && sextToP2 && sextToP3) {
+      // Check if p4 is opposite p1 and sextile to p2 and p3 (O(1) lookups)
+      if (
+        hasAspect(aspectIndex.oppositions, p1, p4) &&
+        hasAspect(aspectIndex.sextiles, p2, p4) &&
+        hasAspect(aspectIndex.sextiles, p3, p4)
+      ) {
         patterns.push({
           type: 'Kite',
           planets: [p1, p2, p3, p4],
@@ -281,38 +316,28 @@ function detectKites(chart: BirthChart): AspectPattern[] {
 
 /**
  * Mystic Rectangle: Two oppositions with all sextile/trine to each other
+ * Optimized with O(1) aspect lookups
  */
-function detectMysticRectangles(chart: BirthChart): AspectPattern[] {
+function detectMysticRectangles(chart: BirthChart, aspectIndex: AspectIndex): AspectPattern[] {
   const patterns: AspectPattern[] = []
-  const planets = chart.planets
-  const oppositions = chart.aspects.filter(a => a.type === 'Opposition')
-  const sextiles = chart.aspects.filter(a => a.type === 'Sextile')
-  const trines = chart.aspects.filter(a => a.type === 'Trine')
 
-  for (let i = 0; i < oppositions.length; i++) {
-    for (let j = i + 1; j < oppositions.length; j++) {
-      const opp1 = oppositions[i]
-      const opp2 = oppositions[j]
+  // Get opposition pairs for iteration
+  const oppositionPairs: [string, string][] = []
+  for (const aspect of chart.aspects) {
+    if (aspect.type === 'Opposition') {
+      oppositionPairs.push([aspect.planet1, aspect.planet2])
+    }
+  }
 
-      const p1 = opp1.planet1
-      const p2 = opp1.planet2
-      const p3 = opp2.planet1
-      const p4 = opp2.planet2
+  for (let i = 0; i < oppositionPairs.length; i++) {
+    for (let j = i + 1; j < oppositionPairs.length; j++) {
+      const [p1, p2] = oppositionPairs[i]
+      const [p3, p4] = oppositionPairs[j]
 
-      // Check if sextiles and trines connect them properly
+      // Check if sextiles connect them properly (O(1) lookups)
       const hasSextiles =
-        (sextiles.some(
-          s => (s.planet1 === p1 && s.planet2 === p3) || (s.planet1 === p3 && s.planet2 === p1)
-        ) &&
-          sextiles.some(
-            s => (s.planet1 === p2 && s.planet2 === p4) || (s.planet1 === p4 && s.planet2 === p2)
-          )) ||
-        (sextiles.some(
-          s => (s.planet1 === p1 && s.planet2 === p4) || (s.planet1 === p4 && s.planet2 === p1)
-        ) &&
-          sextiles.some(
-            s => (s.planet1 === p2 && s.planet2 === p3) || (s.planet1 === p3 && s.planet2 === p2)
-          ))
+        (hasAspect(aspectIndex.sextiles, p1, p3) && hasAspect(aspectIndex.sextiles, p2, p4)) ||
+        (hasAspect(aspectIndex.sextiles, p1, p4) && hasAspect(aspectIndex.sextiles, p2, p3))
 
       if (hasSextiles) {
         patterns.push({

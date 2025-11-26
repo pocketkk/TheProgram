@@ -3,7 +3,9 @@
  * Defines the visual layer architecture for the birth chart
  */
 
-import type { BirthChart, PlanetPosition, House, Aspect } from '@/lib/astrology/types'
+import type { BirthChart } from '@/lib/astrology/types'
+// Types for layer architecture - PlanetPosition, House, Aspect imported when needed
+export type { PlanetPosition, House, Aspect } from '@/lib/astrology/types'
 
 export type LayerType =
   | 'zodiac'

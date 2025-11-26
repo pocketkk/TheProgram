@@ -65,7 +65,11 @@ class VedicChartCalculator:
         longitude: float,
         timezone_offset_minutes: int = 0,
         ayanamsa: str = 'lahiri',
-        include_divisional: Optional[List[int]] = None
+        house_system: str = 'whole_sign',
+        include_divisional: Optional[List[int]] = None,
+        include_western_aspects: bool = False,
+        include_minor_aspects: bool = False,
+        custom_orbs: Optional[Dict[str, float]] = None
     ) -> Dict:
         """
         Calculate complete Vedic natal chart
@@ -76,7 +80,11 @@ class VedicChartCalculator:
             longitude: Birth location longitude
             timezone_offset_minutes: Timezone offset from UTC in minutes
             ayanamsa: Ayanamsa system (lahiri, raman, krishnamurti, etc.)
+            house_system: House system (whole_sign, placidus, equal, etc.)
             include_divisional: List of divisional charts to calculate (e.g., [1, 9, 10])
+            include_western_aspects: Include Western-style aspects (hybrid chart feature)
+            include_minor_aspects: Include minor aspects (if include_western_aspects is True)
+            custom_orbs: Custom orb values for aspects
 
         Returns:
             Complete Vedic chart data including D-1, nakshatras, and requested divisionals
@@ -87,15 +95,17 @@ class VedicChartCalculator:
             timezone_offset_minutes
         )
 
-        # Calculate sidereal positions
-        planets = EphemerisCalculator.calculate_all_planets(jd, zodiac='sidereal')
+        # Calculate sidereal positions using selected ayanamsa
+        planets = EphemerisCalculator.calculate_all_planets(
+            jd, zodiac='sidereal', ayanamsa=ayanamsa
+        )
 
         # Calculate ayanamsa value
         ayanamsa_value = EphemerisCalculator.calculate_ayanamsa(jd, ayanamsa)
 
-        # Calculate houses (using whole sign houses for Vedic)
+        # Calculate houses using selected house system
         houses = EphemerisCalculator.calculate_houses(
-            jd, latitude, longitude, 'whole_sign'
+            jd, latitude, longitude, house_system
         )
 
         # Convert angles to sidereal
@@ -140,12 +150,41 @@ class VedicChartCalculator:
                 'julian_day': jd,
                 'ayanamsa': ayanamsa,
                 'ayanamsa_value': ayanamsa_value,
+                'house_system': house_system,
                 'birth_datetime': birth_datetime.isoformat(),
                 'latitude': latitude,
                 'longitude': longitude,
                 'timezone_offset_minutes': timezone_offset_minutes,
             }
         }
+
+        # Add Western-style aspects if requested (hybrid chart feature)
+        if include_western_aspects:
+            # Lazy import to avoid circular dependency
+            from app.services.chart_calculator import NatalChartCalculator
+
+            aspect_set = {**NatalChartCalculator.MAJOR_ASPECTS}
+            if include_minor_aspects:
+                aspect_set.update(NatalChartCalculator.MINOR_ASPECTS)
+
+            # Override with custom orbs if provided
+            if custom_orbs:
+                for aspect_name, orb_value in custom_orbs.items():
+                    if aspect_name in aspect_set:
+                        aspect_set[aspect_name]['orb'] = orb_value
+
+            # Calculate aspects using sidereal positions
+            aspects = NatalChartCalculator._calculate_all_aspects(
+                planets, houses, aspect_set
+            )
+
+            # Detect aspect patterns
+            patterns = NatalChartCalculator._detect_aspect_patterns(aspects, planets)
+
+            chart_data['aspects'] = aspects
+            chart_data['patterns'] = patterns
+            chart_data['calculation_info']['include_western_aspects'] = True
+            chart_data['calculation_info']['include_minor_aspects'] = include_minor_aspects
 
         return chart_data
 

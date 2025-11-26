@@ -51,11 +51,11 @@ export async function createBirthData(data: BirthDataCreate): Promise<BirthDataR
 }
 
 /**
- * Get birth data by ID
+ * List all birth data (single-user mode)
  */
-export async function getBirthData(birthDataId: string): Promise<BirthDataResponse> {
+export async function listBirthData(): Promise<BirthDataResponse[]> {
   try {
-    const response = await apiClient.get<BirthDataResponse>(`/api/birth-data/${birthDataId}`)
+    const response = await apiClient.get<BirthDataResponse[]>('/birth-data')
     return response.data
   } catch (error) {
     throw new Error(getErrorMessage(error))
@@ -63,11 +63,24 @@ export async function getBirthData(birthDataId: string): Promise<BirthDataRespon
 }
 
 /**
- * List birth data for a client
+ * Get birth data by ID
+ */
+export async function getBirthData(birthDataId: string): Promise<BirthDataResponse> {
+  try {
+    const response = await apiClient.get<BirthDataResponse>(`/birth-data/${birthDataId}`)
+    return response.data
+  } catch (error) {
+    throw new Error(getErrorMessage(error))
+  }
+}
+
+/**
+ * List birth data for a client (legacy - for multi-user mode)
+ * @deprecated Use listBirthData() for single-user mode
  */
 export async function listBirthDataForClient(clientId: string): Promise<BirthDataResponse[]> {
   try {
-    const response = await apiClient.get<BirthDataResponse[]>(`/api/birth-data/client/${clientId}`)
+    const response = await apiClient.get<BirthDataResponse[]>(`/birth-data/client/${clientId}`)
     return response.data
   } catch (error) {
     throw new Error(getErrorMessage(error))
@@ -94,7 +107,7 @@ export interface BirthDataUpdate {
  */
 export async function updateBirthData(birthDataId: string, data: BirthDataUpdate): Promise<BirthDataResponse> {
   try {
-    const response = await apiClient.put<BirthDataResponse>(`/api/birth-data/${birthDataId}`, data)
+    const response = await apiClient.put<BirthDataResponse>(`/birth-data/${birthDataId}`, data)
     return response.data
   } catch (error) {
     throw new Error(getErrorMessage(error))
@@ -106,7 +119,7 @@ export async function updateBirthData(birthDataId: string, data: BirthDataUpdate
  */
 export async function deleteBirthData(birthDataId: string): Promise<void> {
   try {
-    await apiClient.delete(`/api/birth-data/${birthDataId}`)
+    await apiClient.delete(`/birth-data/${birthDataId}`)
   } catch (error) {
     throw new Error(getErrorMessage(error))
   }

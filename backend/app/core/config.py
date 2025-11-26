@@ -46,7 +46,7 @@ class Settings(BaseSettings):
     PASSWORD_REQUIRE_SPECIAL: bool = False
 
     # CORS Settings
-    _CORS_ORIGINS: str = "http://localhost:3000,http://localhost:5173"
+    _CORS_ORIGINS: str = "http://localhost:3000,http://localhost:3001,http://localhost:5173"
     CORS_ALLOW_CREDENTIALS: bool = True
 
     @property
