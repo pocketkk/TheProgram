@@ -10,6 +10,29 @@ import type { AspectPattern } from '@/lib/astrology/patterns'
 export type ChartType = 'natal' | 'transit' | 'progressed' | 'synastry' | 'composite'
 export type ZodiacSystem = 'western' | 'vedic' | 'human-design'
 
+// Ayanamsa systems for Vedic astrology
+export type AyanamsaSystem =
+  | 'lahiri'
+  | 'raman'
+  | 'krishnamurti'
+  | 'yukteshwar'
+  | 'jn_bhasin'
+  | 'fagan_bradley'
+  | 'true_chitrapaksha'
+  | 'true_revati'
+  | 'true_pushya'
+
+// House systems
+export type HouseSystem =
+  | 'placidus'
+  | 'koch'
+  | 'whole_sign'
+  | 'equal'
+  | 'campanus'
+  | 'regiomontanus'
+  | 'porphyry'
+  | 'morinus'
+
 export interface ChartSelection {
   type: 'planet' | 'house' | 'aspect' | null
   id: string | null
@@ -57,6 +80,13 @@ interface ChartStore {
   activeChartId: string | null
   chartType: ChartType
   zodiacSystem: ZodiacSystem
+  ayanamsa: AyanamsaSystem
+  houseSystem: HouseSystem
+
+  // Hybrid chart options
+  includeNakshatras: boolean  // Include Vedic nakshatras in Western charts
+  includeWesternAspects: boolean  // Include Western-style aspects in Vedic charts
+  includeMinorAspects: boolean  // Include minor aspects in calculations
 
   // Visibility
   visibility: ChartVisibility
@@ -70,6 +100,11 @@ interface ChartStore {
   setActiveChart: (id: string) => void
   getActiveChart: () => BirthChart | null
   setZodiacSystem: (system: ZodiacSystem) => void
+  setAyanamsa: (ayanamsa: AyanamsaSystem) => void
+  setHouseSystem: (houseSystem: HouseSystem) => void
+  setIncludeNakshatras: (include: boolean) => void
+  setIncludeWesternAspects: (include: boolean) => void
+  setIncludeMinorAspects: (include: boolean) => void
 
   // Visibility Controls
   toggleLayer: (layer: keyof Omit<ChartVisibility, 'aspectTypes' | 'additionalPoints' | 'maxOrb'>) => void
@@ -100,6 +135,11 @@ export const useChartStore = create<ChartStore>((set, get) => ({
   activeChartId: null,
   chartType: 'natal',
   zodiacSystem: 'western',
+  ayanamsa: 'lahiri',
+  houseSystem: 'placidus',
+  includeNakshatras: false,
+  includeWesternAspects: false,
+  includeMinorAspects: true,
 
   visibility: {
     zodiac: true,
@@ -168,6 +208,26 @@ export const useChartStore = create<ChartStore>((set, get) => ({
 
   setZodiacSystem: system => {
     set({ zodiacSystem: system })
+  },
+
+  setAyanamsa: ayanamsa => {
+    set({ ayanamsa })
+  },
+
+  setHouseSystem: houseSystem => {
+    set({ houseSystem })
+  },
+
+  setIncludeNakshatras: include => {
+    set({ includeNakshatras: include })
+  },
+
+  setIncludeWesternAspects: include => {
+    set({ includeWesternAspects: include })
+  },
+
+  setIncludeMinorAspects: include => {
+    set({ includeMinorAspects: include })
   },
 
   // Visibility Controls

@@ -36,7 +36,7 @@ export const AspectLines = ({
   referenceFrame = 'heliocentric',
   planetPositions: providedPlanetPositions
 }: AspectLinesProps) => {
-  const { aspectConnections, patterns, planetPositionMap, sunPosition } = useMemo(() => {
+  const { aspectConnections, patterns, planetPositionMap, sunPosition: _sunPosition } = useMemo(() => {
     if (!showAspects && !showPatterns) return { aspectConnections: [], patterns: [], planetPositionMap: new Map(), sunPosition: null }
 
     const connections: AspectConnection[] = []
@@ -54,7 +54,7 @@ export const AspectLines = ({
           sunPos = p.position
           positionMap.set(p.name, p.position)
         } else {
-          const planetData = PLANETS[p.name]
+          const _planetData = PLANETS[p.name]
           // Calculate angle from position for aspect calculations
           const angle = calculateAngleFromCoordinates(p.position.x, p.position.z)
           positionMap.set(p.name, p.position)
@@ -135,12 +135,11 @@ export const AspectLines = ({
         planetPositions.forEach(planet => {
           connections.push({
             from: planet.position,
-            to: sunPos,
+            to: sunPos as THREE.Vector3,
             aspect: {
               name: 'Radial',
               angle: 0,
-              symbol: '—',
-              type: 'major',
+              type: 'major' as const,
               orb: 0,
               color: '#FFD700' // Gold color for sun radial lines
             },

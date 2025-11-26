@@ -82,7 +82,20 @@ export function useChartInterpretations({
   }
 
   const getInterpretationFor = (elementType: ElementType, elementKey: string): ChartInterpretation | undefined => {
-    const key = `${elementType}:${elementKey.toLowerCase()}`
+    // Map frontend planet names to database keys
+    let dbKey = elementKey.toLowerCase()
+
+    // Handle special planet name mappings
+    if (elementType === 'planet') {
+      const planetNameMap: Record<string, string> = {
+        'lilith': 'lilith_mean',
+        'north node': 'true_node',
+        'south node': 'south_node',
+      }
+      dbKey = planetNameMap[dbKey] || dbKey
+    }
+
+    const key = `${elementType}:${dbKey}`
     return interpretations.get(key)
   }
 

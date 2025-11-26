@@ -8,7 +8,6 @@ import logging
 from sqlalchemy import text
 
 from app.core.config import settings
-from app.api import api_router
 # Use SQLite database for desktop app
 from app.core.database_sqlite import engine as db_engine
 
@@ -90,15 +89,8 @@ async def health_check():
 
 
 # Include API routers
-# app.include_router(api_router, prefix=settings.API_V1_STR)  # Disabled - using SQLite only
-
-# Include SQLite-based routes (simple auth system)
-from app.api.routes_sqlite import sqlite_router
-app.include_router(sqlite_router, prefix=settings.API_V1_STR)
-
-# Include WebSocket routes (no prefix - WebSockets use different protocol)
-# from app.api.routes import websocket  # Disabled for single-user mode
-# app.include_router(websocket.router)  # Disabled for single-user mode
+from app.api.routes import router as api_routes
+app.include_router(api_routes, prefix=settings.API_V1_STR)
 
 
 # Exception handlers

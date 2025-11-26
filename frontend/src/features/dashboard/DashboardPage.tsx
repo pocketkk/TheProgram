@@ -1,5 +1,6 @@
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Calculator, TrendingUp, Clock, Plus, Sparkles, Database, type LucideIcon } from 'lucide-react'
+import { Calculator, TrendingUp, Clock, Plus, Sparkles, type LucideIcon } from 'lucide-react'
 import {
   Card,
   CardContent,
@@ -10,11 +11,34 @@ import {
   Button,
   Badge,
 } from '@/components/ui'
+import { listCharts, type ChartResponse } from '@/lib/api/charts'
+import { listBirthData } from '@/lib/api/birthData'
 
 export const DashboardPage = ({ onNavigate }: { onNavigate: (page: string) => void }) => {
-  // Calculate stats - hardcoded for single user app
-  const totalCharts = 0
-  const totalBirthData = 0
+  const [totalCharts, setTotalCharts] = useState(0)
+  const [totalBirthData, setTotalBirthData] = useState(0)
+  const [recentChartsData, setRecentChartsData] = useState<ChartResponse[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  // Fetch real data from API
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [charts, birthData] = await Promise.all([
+          listCharts({ limit: 10 }),
+          listBirthData()
+        ])
+        setTotalCharts(charts.length)
+        setTotalBirthData(birthData.length)
+        setRecentChartsData(charts.slice(0, 4))
+      } catch (error) {
+        console.error('Failed to fetch dashboard data:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchData()
+  }, [])
 
   type DashboardStat = {
     name: string
@@ -48,12 +72,21 @@ export const DashboardPage = ({ onNavigate }: { onNavigate: (page: string) => vo
     },
   ]
 
-  const recentCharts = [
-    { name: 'My Natal Chart', type: 'Natal', date: '2 hours ago' },
-    { name: 'Transit Chart', type: 'Transit', date: '5 hours ago' },
-    { name: 'Synastry Reading', type: 'Synastry', date: 'Yesterday' },
-    { name: 'Solar Return', type: 'Natal', date: '2 days ago' },
-  ]
+  // Format time ago helper
+  const formatTimeAgo = (dateString: string) => {
+    const date = new Date(dateString)
+    const now = new Date()
+    const diffMs = now.getTime() - date.getTime()
+    const diffMins = Math.floor(diffMs / 60000)
+    const diffHours = Math.floor(diffMs / 3600000)
+    const diffDays = Math.floor(diffMs / 86400000)
+
+    if (diffMins < 60) return `${diffMins} min ago`
+    if (diffHours < 24) return `${diffHours} hours ago`
+    if (diffDays === 1) return 'Yesterday'
+    if (diffDays < 7) return `${diffDays} days ago`
+    return date.toLocaleDateString()
+  }
 
   return (
     <div className="space-y-6">
@@ -132,28 +165,34 @@ export const DashboardPage = ({ onNavigate }: { onNavigate: (page: string) => vo
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {recentCharts.map((chart, index) => (
-                  <motion.div
-                    key={index}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.5 + index * 0.05 }}
-                    className="flex items-center justify-between p-3 rounded-lg glass hover:bg-cosmic-800 transition-colors cursor-pointer"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-full bg-gradient-to-br from-cosmic-600 to-cosmic-500 flex items-center justify-center text-white font-semibold">
-                        {chart.name.charAt(0)}
+                {recentChartsData.length === 0 ? (
+                  <p className="text-sm text-gray-400 text-center py-4">
+                    {isLoading ? 'Loading...' : 'No charts yet. Create your first chart!'}
+                  </p>
+                ) : (
+                  recentChartsData.map((chart, index) => (
+                    <motion.div
+                      key={chart.id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.5 + index * 0.05 }}
+                      className="flex items-center justify-between p-3 rounded-lg glass hover:bg-cosmic-800 transition-colors cursor-pointer"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-cosmic-600 to-cosmic-500 flex items-center justify-center text-white font-semibold">
+                          {(chart.chart_name || chart.chart_type).charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-white">
+                            {chart.chart_name || `${chart.chart_type} Chart`}
+                          </p>
+                          <p className="text-xs text-gray-500">{chart.chart_type} - {chart.astro_system}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-sm font-medium text-white">
-                          {chart.name}
-                        </p>
-                        <p className="text-xs text-gray-500">{chart.type} Chart</p>
-                      </div>
-                    </div>
-                    <span className="text-xs text-gray-400">{chart.date}</span>
-                  </motion.div>
-                ))}
+                      <span className="text-xs text-gray-400">{formatTimeAgo(chart.created_at)}</span>
+                    </motion.div>
+                  ))
+                )}
               </div>
             </CardContent>
           </Card>
@@ -174,7 +213,7 @@ export const DashboardPage = ({ onNavigate }: { onNavigate: (page: string) => vo
               <Button
                 variant="primary"
                 className="w-full justify-start"
-                onClick={() => onNavigate('charts')}
+                onClick={() => onNavigate('birthchart')}
               >
                 <Calculator className="h-5 w-5" />
                 Calculate New Chart
@@ -182,18 +221,10 @@ export const DashboardPage = ({ onNavigate }: { onNavigate: (page: string) => vo
               <Button
                 variant="outline"
                 className="w-full justify-start"
-                onClick={() => onNavigate('backups')}
-              >
-                <Database className="h-5 w-5" />
-                Backup & Restore
-              </Button>
-              <Button
-                variant="outline"
-                className="w-full justify-start"
                 onClick={() => onNavigate('settings')}
               >
                 <Sparkles className="h-5 w-5" />
-                Calculation Preferences
+                Settings & Preferences
               </Button>
             </CardContent>
           </Card>

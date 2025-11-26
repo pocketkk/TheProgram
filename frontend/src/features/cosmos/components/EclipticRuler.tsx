@@ -8,7 +8,7 @@ interface EclipticRulerProps {
   earthPosition: THREE.Vector3
 }
 
-export const EclipticRuler = ({ earthPosition }: EclipticRulerProps) => {
+export const EclipticRuler = ({ earthPosition: _earthPosition }: EclipticRulerProps) => {
   const { camera } = useThree()
   const [cameraAngle, setCameraAngle] = useState(0)
 

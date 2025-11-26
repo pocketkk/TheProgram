@@ -5,7 +5,6 @@
  */
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { waitFor } from '@testing-library/react'
-import { createClient } from '@/lib/api/clients'
 import { setMockPasswordState } from '@/tests/mocks/handlers'
 import { apiClient } from '@/lib/api/client'
 
@@ -13,22 +12,15 @@ import { apiClient } from '@/lib/api/client'
 vi.unmock('@/lib/api/client')
 
 describe('Chart Creation Integration Tests', () => {
-  let testClientId: string
-
-  beforeEach(async () => {
+  beforeEach(() => {
     // Set up authenticated state
     setMockPasswordState(true, 'test1234')
     localStorage.setItem('session_token', 'mock-jwt-token-abc123')
-
-    // Create a test client for charts
-    const client = await createClient({ first_name: 'Chart Test User' })
-    testClientId = client.id
   })
 
   describe('Create Birth Data', () => {
     it('should create birth data for client', async () => {
       const birthData = {
-        client_id: testClientId,
         date: '1990-01-15',
         time: '14:30:00',
         latitude: 40.7128,
@@ -40,7 +32,6 @@ describe('Chart Creation Integration Tests', () => {
       const response = await apiClient.post('/api/birth-data', birthData)
 
       expect(response.data).toMatchObject({
-        client_id: testClientId,
         date: '1990-01-15',
         time: '14:30:00',
         latitude: 40.7128,
@@ -51,7 +42,6 @@ describe('Chart Creation Integration Tests', () => {
 
     it('should handle different timezones', async () => {
       const birthData = {
-        client_id: testClientId,
         date: '1985-06-20',
         time: '08:00:00',
         latitude: 51.5074,
@@ -71,7 +61,6 @@ describe('Chart Creation Integration Tests', () => {
     it('should calculate natal chart from birth data', async () => {
       // Create birth data
       const birthDataResponse = await apiClient.post('/api/birth-data', {
-        client_id: testClientId,
         date: '1990-01-15',
         time: '14:30:00',
         latitude: 40.7128,
@@ -84,7 +73,6 @@ describe('Chart Creation Integration Tests', () => {
 
       // Calculate chart
       const chartData = {
-        client_id: testClientId,
         birth_data_id: birthDataId,
         chart_type: 'natal',
       }
@@ -92,7 +80,6 @@ describe('Chart Creation Integration Tests', () => {
       const chartResponse = await apiClient.post('/api/charts', chartData)
 
       expect(chartResponse.data).toMatchObject({
-        client_id: testClientId,
         birth_data_id: birthDataId,
         chart_type: 'natal',
         calculation_status: 'completed',
@@ -104,7 +91,6 @@ describe('Chart Creation Integration Tests', () => {
 
     it('should include planetary positions in chart', async () => {
       const birthDataResponse = await apiClient.post('/api/birth-data', {
-        client_id: testClientId,
         date: '1990-01-15',
         time: '14:30:00',
         latitude: 40.7128,
@@ -113,7 +99,6 @@ describe('Chart Creation Integration Tests', () => {
       })
 
       const chartResponse = await apiClient.post('/api/charts', {
-        client_id: testClientId,
         birth_data_id: birthDataResponse.data.id,
         chart_type: 'natal',
       })
@@ -132,7 +117,6 @@ describe('Chart Creation Integration Tests', () => {
 
     it('should include house cusps in chart', async () => {
       const birthDataResponse = await apiClient.post('/api/birth-data', {
-        client_id: testClientId,
         date: '1990-01-15',
         time: '14:30:00',
         latitude: 40.7128,
@@ -141,7 +125,6 @@ describe('Chart Creation Integration Tests', () => {
       })
 
       const chartResponse = await apiClient.post('/api/charts', {
-        client_id: testClientId,
         birth_data_id: birthDataResponse.data.id,
         chart_type: 'natal',
       })
@@ -154,7 +137,6 @@ describe('Chart Creation Integration Tests', () => {
 
     it('should include ascendant information', async () => {
       const birthDataResponse = await apiClient.post('/api/birth-data', {
-        client_id: testClientId,
         date: '1990-01-15',
         time: '14:30:00',
         latitude: 40.7128,
@@ -163,7 +145,6 @@ describe('Chart Creation Integration Tests', () => {
       })
 
       const chartResponse = await apiClient.post('/api/charts', {
-        client_id: testClientId,
         birth_data_id: birthDataResponse.data.id,
         chart_type: 'natal',
       })
@@ -179,7 +160,6 @@ describe('Chart Creation Integration Tests', () => {
   describe('Chart Types', () => {
     it('should support natal chart type', async () => {
       const birthDataResponse = await apiClient.post('/api/birth-data', {
-        client_id: testClientId,
         date: '1990-01-15',
         time: '14:30:00',
         latitude: 40.7128,
@@ -188,7 +168,6 @@ describe('Chart Creation Integration Tests', () => {
       })
 
       const chartResponse = await apiClient.post('/api/charts', {
-        client_id: testClientId,
         birth_data_id: birthDataResponse.data.id,
         chart_type: 'natal',
       })
@@ -201,7 +180,6 @@ describe('Chart Creation Integration Tests', () => {
     it('should complete full birth data and chart creation flow', async () => {
       // Step 1: Create birth data
       const birthData = {
-        client_id: testClientId,
         date: '1995-03-21',
         time: '12:00:00',
         latitude: 34.0522,
@@ -218,7 +196,6 @@ describe('Chart Creation Integration Tests', () => {
 
       // Step 2: Calculate chart
       const chartData = {
-        client_id: testClientId,
         birth_data_id: birthDataId,
         chart_type: 'natal',
       }
@@ -230,7 +207,6 @@ describe('Chart Creation Integration Tests', () => {
       // Step 3: Verify chart data integrity
       const chart = chartResponse.data
 
-      expect(chart.client_id).toBe(testClientId)
       expect(chart.birth_data_id).toBe(birthDataId)
       expect(chart.calculation_status).toBe('completed')
       expect(chart.planets).toBeDefined()
@@ -244,7 +220,6 @@ describe('Chart Creation Integration Tests', () => {
       // In a real implementation, this would validate coordinates
       // For now, the mock accepts any values
       const birthData = {
-        client_id: testClientId,
         date: '1990-01-15',
         time: '14:30:00',
         latitude: 999, // Invalid
@@ -259,7 +234,6 @@ describe('Chart Creation Integration Tests', () => {
     it('should handle invalid date formats', async () => {
       // The mock currently doesn't validate, but real API would
       const birthData = {
-        client_id: testClientId,
         date: '1990-01-15', // Valid ISO date
         time: '14:30:00',
         latitude: 40.7128,
@@ -275,7 +249,6 @@ describe('Chart Creation Integration Tests', () => {
   describe('Data Persistence', () => {
     it('should maintain chart data after creation', async () => {
       const birthDataResponse = await apiClient.post('/api/birth-data', {
-        client_id: testClientId,
         date: '1990-01-15',
         time: '14:30:00',
         latitude: 40.7128,
@@ -284,7 +257,6 @@ describe('Chart Creation Integration Tests', () => {
       })
 
       const chartResponse = await apiClient.post('/api/charts', {
-        client_id: testClientId,
         birth_data_id: birthDataResponse.data.id,
         chart_type: 'natal',
       })

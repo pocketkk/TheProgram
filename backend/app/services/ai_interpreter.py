@@ -69,7 +69,7 @@ Provide a 2-3 sentence interpretation focusing on:
 2. How it manifests in the person's life
 3. Key themes or qualities
 
-Be specific, insightful, and use professional astrological language. Keep it personal and actionable."""
+IMPORTANT: Output only plain text, NO markdown formatting (no asterisks, no hashes, no bullets). Be specific, insightful, and use professional astrological language. Keep it personal and actionable."""
 
         try:
             message = self.client.messages.create(
@@ -97,7 +97,7 @@ Be specific, insightful, and use professional astrological language. Keep it per
         Generate interpretation for a house
 
         Args:
-            house_data: House information (number, sign, cusp, planets)
+            house_data: House information (number, sign, cusp, planets, relevant_aspects)
             chart_context: Additional chart context
 
         Returns:
@@ -107,8 +107,10 @@ Be specific, insightful, and use professional astrological language. Keep it per
         sign = house_data.get("sign", "")
         cusp = house_data.get("cusp", "")
         planets = house_data.get("planets", [])
+        relevant_aspects = house_data.get("relevant_aspects", [])
 
         planets_str = ", ".join(planets) if planets else "no planets"
+        aspects_str = "\n".join(f"  - {aspect}" for aspect in relevant_aspects) if relevant_aspects else "  (no major aspects)"
 
         prompt = f"""You are an expert astrologer. Generate a concise interpretation for the following house:
 
@@ -116,13 +118,16 @@ House: {house_number}
 Sign on Cusp: {sign}
 Cusp Position: {cusp}°
 Planets in House: {planets_str}
+Major Aspects involving these planets:
+{aspects_str}
 
 Provide a 2-3 sentence interpretation focusing on:
 1. The life area this house governs
 2. How the sign influences this area
-3. Key themes or focus areas
+3. How the planets and aspects modify the expression
+4. Key themes or focus areas
 
-Be specific and insightful. Keep it personal and actionable."""
+IMPORTANT: Output only plain text, NO markdown formatting (no asterisks, no hashes, no bullets). Be specific and insightful. Consider the aspects when discussing planetary influences. Keep it personal and actionable."""
 
         try:
             message = self.client.messages.create(
@@ -270,7 +275,7 @@ Provide a 2-3 sentence interpretation focusing on:
 2. How it manifests in the person's life
 3. Key themes or qualities
 
-Be specific, insightful, and use professional astrological language. Keep it personal and actionable."""
+IMPORTANT: Output only plain text, NO markdown formatting (no asterisks, no hashes, no bullets). Be specific, insightful, and use professional astrological language. Keep it personal and actionable."""
 
         try:
             message = await self.async_client.messages.create(
@@ -297,8 +302,10 @@ Be specific, insightful, and use professional astrological language. Keep it per
         sign = house_data.get("sign", "")
         cusp = house_data.get("cusp", "")
         planets = house_data.get("planets", [])
+        relevant_aspects = house_data.get("relevant_aspects", [])
 
         planets_str = ", ".join(planets) if planets else "no planets"
+        aspects_str = "\n".join(f"  - {aspect}" for aspect in relevant_aspects) if relevant_aspects else "  (no major aspects)"
 
         prompt = f"""You are an expert astrologer. Generate a concise interpretation for the following house:
 
@@ -306,13 +313,16 @@ House: {house_number}
 Sign on Cusp: {sign}
 Cusp Position: {cusp}°
 Planets in House: {planets_str}
+Major Aspects involving these planets:
+{aspects_str}
 
 Provide a 2-3 sentence interpretation focusing on:
 1. The life area this house governs
 2. How the sign influences this area
-3. Key themes or focus areas
+3. How the planets and aspects modify the expression
+4. Key themes or focus areas
 
-Be specific and insightful. Keep it personal and actionable."""
+IMPORTANT: Output only plain text, NO markdown formatting (no asterisks, no hashes, no bullets). Be specific and insightful. Consider the aspects when discussing planetary influences. Keep it personal and actionable."""
 
         try:
             message = await self.async_client.messages.create(
@@ -394,9 +404,40 @@ Be specific and insightful. Keep it personal and actionable."""
             tasks = []
             house_numbers = []
 
+            # Enrich house data with planets that are in each house
             for house in chart_data["houses"]:
-                tasks.append(self.generate_house_interpretation_async(house, chart_data))
-                house_numbers.append(house.get('number', 0))
+                house_number = house.get('number', 0)
+
+                # Find all planets in this house
+                planets_in_house = []
+                for planet_name, planet_data in chart_data.get("planets", {}).items():
+                    if planet_data.get("house") == house_number:
+                        planets_in_house.append(planet_name.capitalize())
+
+                # Find aspects involving planets in this house
+                relevant_aspects = []
+                if "aspects" in chart_data:
+                    for aspect in chart_data["aspects"]:
+                        planet1 = aspect.get("planet1", "")
+                        planet2 = aspect.get("planet2", "")
+                        # Include aspect if either planet is in this house
+                        for planet_name, planet_data in chart_data.get("planets", {}).items():
+                            if planet_data.get("house") == house_number:
+                                if planet1.lower() == planet_name.lower() or planet2.lower() == planet_name.lower():
+                                    aspect_type = aspect.get("aspect_type", "")
+                                    aspect_str = f"{planet1.capitalize()} {aspect_type} {planet2.capitalize()}"
+                                    if aspect_str not in relevant_aspects:
+                                        relevant_aspects.append(aspect_str)
+
+                # Create enriched house data
+                enriched_house = {
+                    **house,
+                    "planets": planets_in_house,
+                    "relevant_aspects": relevant_aspects
+                }
+
+                tasks.append(self.generate_house_interpretation_async(enriched_house, chart_data))
+                house_numbers.append(house_number)
 
             # Process 10 houses at a time
             for i in range(0, len(tasks), 10):
@@ -512,3 +553,423 @@ Be specific and insightful. Keep it personal and actionable."""
                     logger.error(f"Error generating pattern interpretation: {e}")
 
         return results
+
+    # ==================== Transit Interpretation Methods ====================
+
+    def generate_transit_interpretation(
+        self,
+        transit_data: Dict[str, Any],
+        natal_context: Optional[Dict[str, Any]] = None
+    ) -> str:
+        """
+        Generate AI interpretation for a transit aspect
+
+        Args:
+            transit_data: Transit information (transit_planet, natal_planet, aspect, etc.)
+            natal_context: Additional natal chart context
+
+        Returns:
+            AI-generated interpretation text
+        """
+        transit_planet = transit_data.get("transit_planet", "")
+        natal_planet = transit_data.get("natal_planet", "")
+        aspect = transit_data.get("aspect", "")
+        orb = transit_data.get("orb", 0)
+        is_applying = transit_data.get("is_applying", False)
+        significance = transit_data.get("significance", "moderate")
+        transit_sign = transit_data.get("transit_sign", "")
+        natal_sign = transit_data.get("natal_sign", "")
+        is_retrograde = transit_data.get("transit_retrograde", False)
+        duration = transit_data.get("estimated_duration", "")
+
+        prompt = f"""You are an expert astrologer specializing in transit analysis. Generate an insightful interpretation for this current transit:
+
+Transit: {transit_planet}{' (Retrograde)' if is_retrograde else ''} {aspect} natal {natal_planet}
+Transit Planet Position: {transit_planet} in {transit_sign}
+Natal Planet Position: {natal_planet} in {natal_sign}
+Orb: {orb:.2f}°
+Status: {'Applying (building in intensity)' if is_applying else 'Separating (waning in influence)'}
+Significance Level: {significance}
+Estimated Duration: {duration}
+
+Provide a 3-4 sentence interpretation focusing on:
+1. What energies this transit activates in the person's life
+2. What opportunities or challenges may arise
+3. How to best work with this energy
+4. Any timing considerations
+
+IMPORTANT: Output only plain text, NO markdown formatting. Be practical, insightful, and encouraging. Focus on actionable guidance."""
+
+        try:
+            message = self.client.messages.create(
+                model=self.model,
+                max_tokens=400,
+                temperature=0.7,
+                messages=[{
+                    "role": "user",
+                    "content": prompt
+                }]
+            )
+            return message.content[0].text.strip()
+        except Exception as e:
+            logger.error(f"Error generating transit interpretation: {e}")
+            raise
+
+    async def generate_transit_interpretation_async(
+        self,
+        transit_data: Dict[str, Any],
+        natal_context: Optional[Dict[str, Any]] = None
+    ) -> str:
+        """Async version of generate_transit_interpretation"""
+        transit_planet = transit_data.get("transit_planet", "")
+        natal_planet = transit_data.get("natal_planet", "")
+        aspect = transit_data.get("aspect", "")
+        orb = transit_data.get("orb", 0)
+        is_applying = transit_data.get("is_applying", False)
+        significance = transit_data.get("significance", "moderate")
+        transit_sign = transit_data.get("transit_sign", "")
+        natal_sign = transit_data.get("natal_sign", "")
+        is_retrograde = transit_data.get("transit_retrograde", False)
+        duration = transit_data.get("estimated_duration", "")
+
+        prompt = f"""You are an expert astrologer specializing in transit analysis. Generate an insightful interpretation for this current transit:
+
+Transit: {transit_planet}{' (Retrograde)' if is_retrograde else ''} {aspect} natal {natal_planet}
+Transit Planet Position: {transit_planet} in {transit_sign}
+Natal Planet Position: {natal_planet} in {natal_sign}
+Orb: {orb:.2f}°
+Status: {'Applying (building in intensity)' if is_applying else 'Separating (waning in influence)'}
+Significance Level: {significance}
+Estimated Duration: {duration}
+
+Provide a 3-4 sentence interpretation focusing on:
+1. What energies this transit activates in the person's life
+2. What opportunities or challenges may arise
+3. How to best work with this energy
+4. Any timing considerations
+
+IMPORTANT: Output only plain text, NO markdown formatting. Be practical, insightful, and encouraging. Focus on actionable guidance."""
+
+        try:
+            message = await self.async_client.messages.create(
+                model=self.model,
+                max_tokens=400,
+                temperature=0.7,
+                messages=[{
+                    "role": "user",
+                    "content": prompt
+                }]
+            )
+            return message.content[0].text.strip()
+        except Exception as e:
+            logger.error(f"Error generating transit interpretation: {e}")
+            raise
+
+    def generate_daily_transit_forecast(
+        self,
+        daily_snapshot: Dict[str, Any],
+        natal_context: Optional[Dict[str, Any]] = None
+    ) -> str:
+        """
+        Generate a daily transit forecast
+
+        Args:
+            daily_snapshot: Daily snapshot with moon phase, active transits, themes
+            natal_context: Additional natal chart context
+
+        Returns:
+            AI-generated daily forecast
+        """
+        date = daily_snapshot.get("date", "today")
+        moon_phase = daily_snapshot.get("moon_phase", "")
+        moon_sign = daily_snapshot.get("moon_sign", "")
+        sun_sign = daily_snapshot.get("sun_sign", "")
+        themes = daily_snapshot.get("themes", [])
+        active_transits = daily_snapshot.get("active_transits", [])
+        major_transit = daily_snapshot.get("major_transit")
+
+        # Format active transits
+        transits_summary = []
+        for t in active_transits[:5]:  # Top 5
+            status = "applying" if t.get("is_applying") else "separating"
+            transits_summary.append(
+                f"- {t.get('transit_planet')} {t.get('aspect')} {t.get('natal_planet')} ({t.get('significance')}, {status})"
+            )
+        transits_str = "\n".join(transits_summary) if transits_summary else "No major transits"
+
+        major_transit_str = ""
+        if major_transit:
+            major_transit_str = f"\nMost Significant Transit: {major_transit.get('transit_planet')} {major_transit.get('aspect')} {major_transit.get('natal_planet')}"
+
+        themes_str = ", ".join(themes) if themes else "General flow"
+
+        prompt = f"""You are an expert astrologer creating a personalized daily transit forecast. Based on the following cosmic weather, write an inspiring and practical daily horoscope:
+
+Date: {date}
+Moon Phase: {moon_phase}
+Moon in: {moon_sign}
+Sun in: {sun_sign}
+Today's Themes: {themes_str}
+{major_transit_str}
+
+Active Transits to Natal Chart:
+{transits_str}
+
+Write a 4-5 sentence personalized daily forecast that:
+1. Sets the overall tone for the day based on the moon phase and sign
+2. Highlights the most important transit influences
+3. Suggests how to best use the day's energies
+4. Provides practical advice for decisions, relationships, or activities
+5. Ends with an uplifting or empowering message
+
+IMPORTANT: Output only plain text, NO markdown formatting. Be warm, insightful, and practically helpful. Speak directly to the reader as "you"."""
+
+        try:
+            message = self.client.messages.create(
+                model=self.model,
+                max_tokens=500,
+                temperature=0.8,
+                messages=[{
+                    "role": "user",
+                    "content": prompt
+                }]
+            )
+            return message.content[0].text.strip()
+        except Exception as e:
+            logger.error(f"Error generating daily forecast: {e}")
+            raise
+
+    async def generate_daily_transit_forecast_async(
+        self,
+        daily_snapshot: Dict[str, Any],
+        natal_context: Optional[Dict[str, Any]] = None
+    ) -> str:
+        """Async version of generate_daily_transit_forecast"""
+        date = daily_snapshot.get("date", "today")
+        moon_phase = daily_snapshot.get("moon_phase", "")
+        moon_sign = daily_snapshot.get("moon_sign", "")
+        sun_sign = daily_snapshot.get("sun_sign", "")
+        themes = daily_snapshot.get("themes", [])
+        active_transits = daily_snapshot.get("active_transits", [])
+        major_transit = daily_snapshot.get("major_transit")
+
+        transits_summary = []
+        for t in active_transits[:5]:
+            status = "applying" if t.get("is_applying") else "separating"
+            transits_summary.append(
+                f"- {t.get('transit_planet')} {t.get('aspect')} {t.get('natal_planet')} ({t.get('significance')}, {status})"
+            )
+        transits_str = "\n".join(transits_summary) if transits_summary else "No major transits"
+
+        major_transit_str = ""
+        if major_transit:
+            major_transit_str = f"\nMost Significant Transit: {major_transit.get('transit_planet')} {major_transit.get('aspect')} {major_transit.get('natal_planet')}"
+
+        themes_str = ", ".join(themes) if themes else "General flow"
+
+        prompt = f"""You are an expert astrologer creating a personalized daily transit forecast. Based on the following cosmic weather, write an inspiring and practical daily horoscope:
+
+Date: {date}
+Moon Phase: {moon_phase}
+Moon in: {moon_sign}
+Sun in: {sun_sign}
+Today's Themes: {themes_str}
+{major_transit_str}
+
+Active Transits to Natal Chart:
+{transits_str}
+
+Write a 4-5 sentence personalized daily forecast that:
+1. Sets the overall tone for the day based on the moon phase and sign
+2. Highlights the most important transit influences
+3. Suggests how to best use the day's energies
+4. Provides practical advice for decisions, relationships, or activities
+5. Ends with an uplifting or empowering message
+
+IMPORTANT: Output only plain text, NO markdown formatting. Be warm, insightful, and practically helpful. Speak directly to the reader as "you"."""
+
+        try:
+            message = await self.async_client.messages.create(
+                model=self.model,
+                max_tokens=500,
+                temperature=0.8,
+                messages=[{
+                    "role": "user",
+                    "content": prompt
+                }]
+            )
+            return message.content[0].text.strip()
+        except Exception as e:
+            logger.error(f"Error generating daily forecast: {e}")
+            raise
+
+    def generate_transit_report(
+        self,
+        transits_response: Dict[str, Any],
+        natal_context: Optional[Dict[str, Any]] = None,
+        report_type: str = "comprehensive"
+    ) -> str:
+        """
+        Generate a comprehensive transit report
+
+        Args:
+            transits_response: Full transit response with current_positions, transits, summary
+            natal_context: Additional natal chart context
+            report_type: "comprehensive", "highlights", or "brief"
+
+        Returns:
+            AI-generated transit report
+        """
+        summary = transits_response.get("summary", {})
+        transits = transits_response.get("transits", [])
+        transit_datetime = transits_response.get("transit_datetime", "")
+
+        # Group transits by significance
+        major_transits = [t for t in transits if t.get("significance") == "major"]
+        significant_transits = [t for t in transits if t.get("significance") == "significant"]
+
+        # Format major transits
+        major_str = ""
+        if major_transits:
+            major_list = []
+            for t in major_transits:
+                retro = " (R)" if t.get("transit_retrograde") else ""
+                status = "applying" if t.get("is_applying") else "separating"
+                major_list.append(
+                    f"- {t.get('transit_planet')}{retro} {t.get('aspect')} {t.get('natal_planet')} ({status}, {t.get('orb', 0):.1f}° orb)"
+                )
+            major_str = "\n".join(major_list)
+
+        # Format significant transits
+        significant_str = ""
+        if significant_transits:
+            sig_list = []
+            for t in significant_transits[:5]:
+                retro = " (R)" if t.get("transit_retrograde") else ""
+                sig_list.append(
+                    f"- {t.get('transit_planet')}{retro} {t.get('aspect')} {t.get('natal_planet')}"
+                )
+            significant_str = "\n".join(sig_list)
+
+        themes = summary.get("themes", [])
+        themes_str = ", ".join(themes) if themes else "No dominant themes"
+
+        max_tokens = 800 if report_type == "comprehensive" else (400 if report_type == "highlights" else 250)
+
+        prompt = f"""You are an expert astrologer writing a {report_type} transit report. Create an insightful analysis based on the current transits:
+
+Transit Time: {transit_datetime}
+Total Active Transits: {summary.get('total_transits', 0)}
+Major Transits: {summary.get('major_count', 0)}
+Significant Transits: {summary.get('significant_count', 0)}
+Current Themes: {themes_str}
+
+MAJOR TRANSITS (most impactful):
+{major_str if major_str else "None currently"}
+
+SIGNIFICANT TRANSITS:
+{significant_str if significant_str else "None currently"}
+
+Write a {report_type} transit report that:
+1. Opens with an overview of the current cosmic climate
+2. Analyzes each major transit and its implications
+3. Discusses how these transits interact and combine
+4. Identifies key opportunities and challenges
+5. Provides timing advice and practical recommendations
+6. Closes with empowering guidance
+
+IMPORTANT: Output only plain text, NO markdown formatting. Be thorough yet accessible. Write as if speaking directly to the person about their current situation."""
+
+        try:
+            message = self.client.messages.create(
+                model=self.model,
+                max_tokens=max_tokens,
+                temperature=0.7,
+                messages=[{
+                    "role": "user",
+                    "content": prompt
+                }]
+            )
+            return message.content[0].text.strip()
+        except Exception as e:
+            logger.error(f"Error generating transit report: {e}")
+            raise
+
+    async def generate_transit_report_async(
+        self,
+        transits_response: Dict[str, Any],
+        natal_context: Optional[Dict[str, Any]] = None,
+        report_type: str = "comprehensive"
+    ) -> str:
+        """Async version of generate_transit_report"""
+        summary = transits_response.get("summary", {})
+        transits = transits_response.get("transits", [])
+        transit_datetime = transits_response.get("transit_datetime", "")
+
+        major_transits = [t for t in transits if t.get("significance") == "major"]
+        significant_transits = [t for t in transits if t.get("significance") == "significant"]
+
+        major_str = ""
+        if major_transits:
+            major_list = []
+            for t in major_transits:
+                retro = " (R)" if t.get("transit_retrograde") else ""
+                status = "applying" if t.get("is_applying") else "separating"
+                major_list.append(
+                    f"- {t.get('transit_planet')}{retro} {t.get('aspect')} {t.get('natal_planet')} ({status}, {t.get('orb', 0):.1f}° orb)"
+                )
+            major_str = "\n".join(major_list)
+
+        significant_str = ""
+        if significant_transits:
+            sig_list = []
+            for t in significant_transits[:5]:
+                retro = " (R)" if t.get("transit_retrograde") else ""
+                sig_list.append(
+                    f"- {t.get('transit_planet')}{retro} {t.get('aspect')} {t.get('natal_planet')}"
+                )
+            significant_str = "\n".join(sig_list)
+
+        themes = summary.get("themes", [])
+        themes_str = ", ".join(themes) if themes else "No dominant themes"
+
+        max_tokens = 800 if report_type == "comprehensive" else (400 if report_type == "highlights" else 250)
+
+        prompt = f"""You are an expert astrologer writing a {report_type} transit report. Create an insightful analysis based on the current transits:
+
+Transit Time: {transit_datetime}
+Total Active Transits: {summary.get('total_transits', 0)}
+Major Transits: {summary.get('major_count', 0)}
+Significant Transits: {summary.get('significant_count', 0)}
+Current Themes: {themes_str}
+
+MAJOR TRANSITS (most impactful):
+{major_str if major_str else "None currently"}
+
+SIGNIFICANT TRANSITS:
+{significant_str if significant_str else "None currently"}
+
+Write a {report_type} transit report that:
+1. Opens with an overview of the current cosmic climate
+2. Analyzes each major transit and its implications
+3. Discusses how these transits interact and combine
+4. Identifies key opportunities and challenges
+5. Provides timing advice and practical recommendations
+6. Closes with empowering guidance
+
+IMPORTANT: Output only plain text, NO markdown formatting. Be thorough yet accessible. Write as if speaking directly to the person about their current situation."""
+
+        try:
+            message = await self.async_client.messages.create(
+                model=self.model,
+                max_tokens=max_tokens,
+                temperature=0.7,
+                messages=[{
+                    "role": "user",
+                    "content": prompt
+                }]
+            )
+            return message.content[0].text.strip()
+        except Exception as e:
+            logger.error(f"Error generating transit report: {e}")
+            raise

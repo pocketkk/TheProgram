@@ -15,7 +15,7 @@ interface ZodiacRing3DProps {
 }
 
 // Camera-aware text that flips to stay readable when viewed from different angles
-function UprightText({
+function _UprightText({
   position,
   radialAngle,
   ...textProps
@@ -55,7 +55,7 @@ function UprightText({
 export const ZodiacRing3D = ({
   zodiacBrightness = 1.0,
   zodiacGlowRadius = 1.0,
-  stadiumOpacity = 0.5,
+  stadiumOpacity: _stadiumOpacity = 0.5,
   rotationOffset = 0,
   showBackground = true
 }: ZodiacRing3DProps) => {
@@ -64,18 +64,18 @@ export const ZodiacRing3D = ({
   const cylinderHeight = 6 // Height of the ethereal cylinder/basket
 
   // Mathematical foundation: Curve function for bowl shape
-  const getRadiusAtHeight = (y: number): number => {
+  const _getRadiusAtHeight = (y: number): number => {
     const normalizedY = (2 * y) / cylinderHeight // -1 to 1
     const factor = 1 - normalizedY * normalizedY // Parabolic curve
     return minRadius + (maxRadius - minRadius) * factor
   }
 
   // Helper function: Generate curved beam points
-  const getCurvedBeamPoints = (angle: number, segments: number = 10): Float32Array => {
+  const _getCurvedBeamPoints = (angle: number, segments: number = 10): Float32Array => {
     const points: number[] = []
     for (let i = 0; i <= segments; i++) {
       const y = -cylinderHeight / 2 + (cylinderHeight * i / segments)
-      const radius = getRadiusAtHeight(y)
+      const radius = _getRadiusAtHeight(y)
       const x = Math.cos(angle) * radius
       const z = Math.sin(angle) * radius
       points.push(x, y, z)
@@ -130,8 +130,8 @@ export const ZodiacRing3D = ({
   }, [])
 
   // Create solid bowl exterior geometry
-  const bowlSegments = 64
-  const heightSegments = 32
+  const _bowlSegments = 64
+  const _heightSegments = 32
 
   return (
     <group rotation-y={rotationOffset}>
@@ -414,7 +414,6 @@ export const ZodiacRing3D = ({
               anchorY="middle"
               outlineWidth={outlineWidth}
               outlineColor="#000000"
-              fontWeight={isMajor ? 'bold' : 'normal'}
             >
               {degree}°
             </Text>
@@ -517,7 +516,7 @@ export const ZodiacRing3D = ({
         const topY = (cylinderHeight + 1.5) / 2
         const wallRadius = 15.75 // Pushed inward for padding
         const labelHeight = topY - 0.6 // Lower on the wall for visibility
-        const gateElements = []
+        const gateElements: JSX.Element[] = []
 
         // Add tick marks and labels for each gate
         HUMAN_DESIGN_GATES.forEach((gate, index) => {
@@ -606,7 +605,6 @@ export const ZodiacRing3D = ({
               anchorY="middle"
               outlineWidth={0.025}
               outlineColor={zodiacColor}
-              fontWeight="bold"
             >
               {gate.number}
             </Text>
@@ -738,7 +736,7 @@ export const ZodiacRing3D = ({
       {(() => {
         const bottomY = -cylinderHeight / 2 + 0.02
         const baseRadius = 15.15 // Pushed inward for padding
-        const gateElements = []
+        const gateElements: JSX.Element[] = []
 
         // Add tick marks and labels for each gate
         HUMAN_DESIGN_GATES.forEach((gate, index) => {
@@ -826,7 +824,6 @@ export const ZodiacRing3D = ({
               anchorY="middle"
               outlineWidth={0.025}
               outlineColor={zodiacColor}
-              fontWeight="bold"
             >
               {gate.number}
             </Text>
@@ -985,7 +982,6 @@ export const ZodiacRing3D = ({
               anchorY="middle"
               outlineWidth={outlineWidth}
               outlineColor="#000000"
-              fontWeight={isMajor ? 'bold' : 'normal'}
             >
               {degree}°
             </Text>
@@ -1027,7 +1023,6 @@ export const ZodiacRing3D = ({
               anchorY="middle"
               outlineWidth={outlineWidth}
               outlineColor="#000000"
-              fontWeight={isMajor ? 'bold' : 'normal'}
             >
               {degree}°
             </Text>
@@ -1415,7 +1410,6 @@ export const ZodiacRing3D = ({
               anchorY="middle"
               outlineWidth={outlineWidth}
               outlineColor={zodiacColor} // Subtle colored outline
-              fontWeight={isMajor ? 'bold' : 'normal'}
             >
               {degree}°
             </Text>
@@ -1495,7 +1489,7 @@ export const ZodiacRing3D = ({
       {(() => {
         const bottomY = -cylinderHeight / 2 + 0.02
         const gateRadius = 4.95 // Pushed inward for padding
-        const gateElements = []
+        const gateElements: JSX.Element[] = []
 
         // Add tick marks and labels for each gate
         HUMAN_DESIGN_GATES.forEach((gate, gateIndex) => {
@@ -1583,7 +1577,6 @@ export const ZodiacRing3D = ({
               anchorY="middle"
               outlineWidth={0.015} // Reduced for readability
               outlineColor={zodiacColor} // Subtle colored outline
-              fontWeight="bold"
             >
               {gate.number}
             </Text>

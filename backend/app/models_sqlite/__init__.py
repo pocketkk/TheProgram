@@ -27,6 +27,16 @@ from app.models_sqlite.transit_event import TransitEvent
 # Cache table
 from app.models_sqlite.location_cache import LocationCache
 
+# Phase 2: Journal System
+from app.models_sqlite.journal_entry import JournalEntry
+
+# Phase 2: Transit Timeline
+from app.models_sqlite.user_event import UserEvent
+from app.models_sqlite.transit_context import TransitContext
+
+# Phase 2: Canvas Exploration
+from app.models_sqlite.canvas_board import CanvasBoard, CanvasItem
+
 __all__ = [
     # Base classes
     'Base',
@@ -53,4 +63,15 @@ __all__ = [
 
     # Cache
     'LocationCache',
+
+    # Phase 2: Journal System
+    'JournalEntry',
+
+    # Phase 2: Transit Timeline
+    'UserEvent',
+    'TransitContext',
+
+    # Phase 2: Canvas Exploration
+    'CanvasBoard',
+    'CanvasItem',
 ]

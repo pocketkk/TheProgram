@@ -3,7 +3,6 @@ import { motion } from 'framer-motion'
 import { Sparkles, Moon, Stars, Zap, LogIn } from 'lucide-react'
 import {
   Button,
-  Card,
   CardHeader,
   CardTitle,
   CardDescription,

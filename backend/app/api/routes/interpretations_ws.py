@@ -1,7 +1,8 @@
 """
-WebSocket-based chart interpretation generation
+WebSocket-based chart interpretation generation (single-user mode)
 
 Real-time progress updates via WebSocket
+No user authentication needed
 """
 from typing import Optional
 from fastapi import APIRouter, Depends, WebSocketDisconnect, WebSocket, HTTPException, status
@@ -11,9 +12,8 @@ from uuid import UUID
 import logging
 import json
 
-from app.core.database import get_db
-from app.api.dependencies import get_current_user
-from app.models import User, Chart, ChartInterpretation
+from app.core.database_sqlite import get_db
+from app.models_sqlite import Chart, ChartInterpretation
 from app.services.ai_interpreter import AIInterpreter
 from app.core.websocket import manager
 
@@ -28,6 +28,8 @@ async def generate_interpretations_ws(
 ):
     """
     WebSocket endpoint for generating chart interpretations with real-time progress
+
+    No user authentication needed - all data belongs to "the user"
 
     Client sends:
     {
@@ -75,9 +77,6 @@ async def generate_interpretations_ws(
         regenerate_existing = request.get("regenerate_existing", False)
         ai_model = request.get("ai_model", "claude-haiku-4-5-20251001")
 
-        # Get chart from database (we'll need DB access via dependency injection in real implementation)
-        # For now, we'll simulate this
-
         # Initialize AI interpreter
         try:
             ai_interpreter = AIInterpreter(model=ai_model)
@@ -110,9 +109,8 @@ async def generate_interpretations_ws(
         # Note: This is a simplified version
         # In real implementation, you'd:
         # 1. Get chart from database using Depends(get_db)
-        # 2. Verify user has access to chart
-        # 3. Store interpretations in database
-        # 4. Handle all error cases properly
+        # 2. Store interpretations in database
+        # 3. Handle all error cases properly
 
         await manager.send_message(connection_id, {
             "type": "complete",

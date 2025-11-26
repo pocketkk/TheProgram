@@ -117,7 +117,7 @@ export const Planet = ({
   hideOrbit = false,
   isHighlighted = false,
   speed = 1,
-  allPlanetPositions = [],
+  allPlanetPositions: _allPlanetPositions = [],
 }: PlanetProps) => {
   const meshRef = useRef<THREE.Mesh>(null)
   const groupRef = useRef<THREE.Group>(null)
@@ -125,7 +125,7 @@ export const Planet = ({
   const { camera } = useThree()
 
   // Dynamic label scaling based on camera distance
-  const [labelScale, setLabelScale] = useState(1)
+  const [_labelScale, _setLabelScale] = useState(1)
 
   // Trail tracking system
   const [trailPositions, setTrailPositions] = useState<THREE.Vector3[]>([])
@@ -316,7 +316,7 @@ export const Planet = ({
 
     // Inverse scaling: closer = smaller labels, farther = larger labels
     const calculatedScale = Math.max(minScale, Math.min(maxScale, baseDistance / distanceToCamera))
-    setLabelScale(calculatedScale)
+    _setLabelScale(calculatedScale)
   })
 
   // Create orbit path

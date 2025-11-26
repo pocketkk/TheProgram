@@ -92,6 +92,28 @@ class UserPreferences(SingletonModel):
         comment="Points to show in charts: ['sun', 'moon', 'mercury', 'venus', ...]"
     )
 
+    # AI Companion / Consciousness Exploration preferences
+    enabled_paradigms = Column(
+        JSONEncodedList,
+        nullable=True,
+        default=lambda: ['astrology', 'tarot', 'jungian'],
+        comment="Enabled paradigms for AI guide: ['astrology', 'tarot', 'i_ching', 'jungian', 'numerology', 'kabbalah', 'dreams']"
+    )
+
+    synthesis_depth = Column(
+        String,
+        nullable=False,
+        default='balanced',
+        comment="AI synthesis depth: single, light, balanced, deep"
+    )
+
+    companion_position = Column(
+        String,
+        nullable=False,
+        default='bottom-right',
+        comment="AI companion bubble position: bottom-right, bottom-left, top-right, top-left"
+    )
+
     def __repr__(self):
         """String representation"""
         return (
@@ -143,3 +165,32 @@ class UserPreferences(SingletonModel):
             'jupiter', 'saturn', 'uranus', 'neptune', 'pluto',
             'north_node', 'south_node', 'chiron',
         ]
+
+    @property
+    def active_paradigms(self) -> list:
+        """
+        Get enabled paradigms with fallback to defaults
+
+        Returns:
+            List of enabled paradigm identifiers
+        """
+        if self.enabled_paradigms:
+            return self.enabled_paradigms
+
+        # Default paradigms
+        return ['astrology', 'tarot', 'jungian']
+
+    @property
+    def companion_preferences(self) -> dict:
+        """
+        Get all AI companion preferences as a dictionary
+        for easy serialization to frontend
+
+        Returns:
+            Dictionary with companion settings
+        """
+        return {
+            'enabled_paradigms': self.active_paradigms,
+            'synthesis_depth': self.synthesis_depth or 'balanced',
+            'position': self.companion_position or 'bottom-right'
+        }

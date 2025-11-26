@@ -4,8 +4,10 @@ Provides high-level interface for chart calculations
 """
 import swisseph as swe
 from datetime import datetime, timedelta
+from functools import lru_cache
 from typing import Dict, List, Optional, Tuple
 from app.core.config import settings
+from app.core.celestial_registry import CelestialRegistry, BodyCategory
 
 # Set ephemeris path on module import
 swe.set_ephe_path(settings.EPHEMERIS_PATH)
@@ -17,24 +19,17 @@ class EphemerisCalculator:
     Handles planetary positions, house calculations, and conversions
     """
 
-    # Planet constants mapping
-    PLANETS = {
-        'sun': swe.SUN,
-        'moon': swe.MOON,
-        'mercury': swe.MERCURY,
-        'venus': swe.VENUS,
-        'mars': swe.MARS,
-        'jupiter': swe.JUPITER,
-        'saturn': swe.SATURN,
-        'uranus': swe.URANUS,
-        'neptune': swe.NEPTUNE,
-        'pluto': swe.PLUTO,
+    # Planet constants mapping - now derived from registry
+    # This maintains backward compatibility while using the central registry
+    PLANETS = CelestialRegistry.get_swe_mapping()
+
+    # Legacy mappings for backward compatibility
+    # (Some old code may use these alternate names)
+    PLANETS.update({
         'true_node': swe.TRUE_NODE,
-        'mean_node': swe.MEAN_NODE,
-        'chiron': swe.CHIRON,
         'lilith_mean': swe.MEAN_APOG,
         'lilith_true': swe.OSCU_APOG,
-    }
+    })
 
     # House system codes
     HOUSE_SYSTEMS = {
@@ -114,7 +109,8 @@ class EphemerisCalculator:
         planet: str,
         jd: float,
         flags: int = swe.FLG_SWIEPH,
-        zodiac: str = 'tropical'
+        zodiac: str = 'tropical',
+        ayanamsa: str = 'lahiri'
     ) -> Dict:
         """
         Calculate position of a planet at given Julian Day
@@ -124,6 +120,7 @@ class EphemerisCalculator:
             jd: Julian Day
             flags: Swiss Ephemeris flags
             zodiac: 'tropical' or 'sidereal'
+            ayanamsa: Ayanamsa system for sidereal calculations (e.g., 'lahiri', 'raman', 'krishnamurti')
 
         Returns:
             Dict with planetary data:
@@ -144,8 +141,11 @@ class EphemerisCalculator:
         # Add sidereal flag if using sidereal zodiac
         if zodiac == 'sidereal':
             flags |= swe.FLG_SIDEREAL
-            # Set ayanamsa (default Lahiri)
-            swe.set_sid_mode(swe.SIDM_LAHIRI)
+            # Set ayanamsa from parameter (respects user selection)
+            ayanamsa_id = EphemerisCalculator.AYANAMSA_SYSTEMS.get(
+                ayanamsa.lower(), swe.SIDM_LAHIRI
+            )
+            swe.set_sid_mode(ayanamsa_id)
 
         # Calculate position
         result, ret_flag = swe.calc_ut(jd, planet_id, flags)
@@ -181,7 +181,9 @@ class EphemerisCalculator:
     def calculate_all_planets(
         jd: float,
         zodiac: str = 'tropical',
-        include_asteroids: bool = False
+        include_asteroids: bool = False,
+        body_ids: Optional[List[str]] = None,
+        ayanamsa: str = 'lahiri'
     ) -> Dict[str, Dict]:
         """
         Calculate positions for all main planets
@@ -190,25 +192,38 @@ class EphemerisCalculator:
             jd: Julian Day
             zodiac: 'tropical' or 'sidereal'
             include_asteroids: Include main asteroids (Ceres, Pallas, Juno, Vesta)
+            body_ids: Optional specific list of body IDs to calculate
+            ayanamsa: Ayanamsa system for sidereal calculations (e.g., 'lahiri', 'raman', 'krishnamurti')
 
         Returns:
             Dictionary with planet names as keys and position data as values
         """
-        planets = [
-            'sun', 'moon', 'mercury', 'venus', 'mars',
-            'jupiter', 'saturn', 'uranus', 'neptune', 'pluto',
-            'true_node', 'chiron', 'lilith_mean'
-        ]
-
-        if include_asteroids:
-            # TODO: Add asteroid calculations
-            pass
+        # Use provided body_ids or get from registry
+        if body_ids is not None:
+            planets = body_ids
+        else:
+            planets = CelestialRegistry.get_planets_for_calculation(include_asteroids)
 
         results = {}
         for planet in planets:
             try:
+                # Handle south node specially (calculated from north node)
+                if planet == 'south_node':
+                    north = EphemerisCalculator.calculate_planet_position(
+                        'north_node', jd, zodiac=zodiac, ayanamsa=ayanamsa
+                    )
+                    if north:
+                        results[planet] = north.copy()
+                        results[planet]['longitude'] = (north['longitude'] + 180) % 360
+                        results[planet]['sign'] = int(results[planet]['longitude'] / 30)
+                        results[planet]['degree_in_sign'] = results[planet]['longitude'] % 30
+                        results[planet]['sign_name'] = EphemerisCalculator.get_sign_name(
+                            results[planet]['sign']
+                        )
+                    continue
+
                 results[planet] = EphemerisCalculator.calculate_planet_position(
-                    planet, jd, zodiac=zodiac
+                    planet, jd, zodiac=zodiac, ayanamsa=ayanamsa
                 )
             except Exception as e:
                 print(f"Error calculating {planet}: {e}")
@@ -343,9 +358,12 @@ class EphemerisCalculator:
         return None
 
     @staticmethod
+    @lru_cache(maxsize=512)
     def calculate_ayanamsa(jd: float, ayanamsa_system: str = 'lahiri') -> float:
         """
         Calculate ayanamsa value for given date (Vedic astrology)
+
+        Cached to avoid redundant Swiss Ephemeris calls for same JD + ayanamsa.
 
         Args:
             jd: Julian Day

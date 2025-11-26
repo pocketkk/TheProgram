@@ -4,7 +4,7 @@
  * Manages Anthropic API key for AI interpretation features.
  * Allows users to set, update, validate, and clear their API key.
  */
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { Sparkles, Check, X, Loader2, Eye, EyeOff } from 'lucide-react'
 import { authApi } from '@/lib/api/auth'
 import { Button } from '@/components/ui/Button'

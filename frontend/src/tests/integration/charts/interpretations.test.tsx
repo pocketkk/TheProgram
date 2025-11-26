@@ -4,7 +4,6 @@
  * End-to-end tests for generating AI interpretations of charts.
  */
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { createClient } from '@/lib/api/clients'
 import { setMockPasswordState } from '@/tests/mocks/handlers'
 import { apiClient } from '@/lib/api/client'
 
@@ -12,7 +11,6 @@ import { apiClient } from '@/lib/api/client'
 vi.unmock('@/lib/api/client')
 
 describe('Chart Interpretations Integration Tests', () => {
-  let testClientId: string
   let testChartId: string
 
   beforeEach(async () => {
@@ -20,13 +18,8 @@ describe('Chart Interpretations Integration Tests', () => {
     setMockPasswordState(true, 'test1234')
     localStorage.setItem('session_token', 'mock-jwt-token-abc123')
 
-    // Create test client
-    const client = await createClient({ first_name: 'Interpretation Test' })
-    testClientId = client.id
-
     // Create birth data and chart
     const birthDataResponse = await apiClient.post('/api/birth-data', {
-      client_id: testClientId,
       date: '1990-01-15',
       time: '14:30:00',
       latitude: 40.7128,
@@ -35,7 +28,6 @@ describe('Chart Interpretations Integration Tests', () => {
     })
 
     const chartResponse = await apiClient.post('/api/charts', {
-      client_id: testClientId,
       birth_data_id: birthDataResponse.data.id,
       chart_type: 'natal',
     })
@@ -148,7 +140,6 @@ describe('Chart Interpretations Integration Tests', () => {
     it('should handle interpretation generation for newly created chart', async () => {
       // Create new chart
       const newBirthData = await apiClient.post('/api/birth-data', {
-        client_id: testClientId,
         date: '1985-06-20',
         time: '08:00:00',
         latitude: 51.5074,
@@ -157,7 +148,6 @@ describe('Chart Interpretations Integration Tests', () => {
       })
 
       const newChart = await apiClient.post('/api/charts', {
-        client_id: testClientId,
         birth_data_id: newBirthData.data.id,
         chart_type: 'natal',
       })

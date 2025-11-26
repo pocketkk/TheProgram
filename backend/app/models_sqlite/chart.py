@@ -246,3 +246,8 @@ class Chart(BaseModel):
         result['display_name'] = self.display_name
         # Note: chart_data is already included via to_dict
         return result
+
+    def update_last_viewed(self):
+        """Update last viewed timestamp"""
+        from datetime import datetime
+        self.last_viewed = datetime.utcnow().isoformat()

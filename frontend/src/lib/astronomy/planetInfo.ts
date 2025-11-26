@@ -10,8 +10,6 @@ import {
   getZodiacSign,
   calculateAspect,
   isRetrograde,
-  type PlanetData,
-  type SatelliteData,
   type Aspect
 } from './planetaryData'
 import { calculateDignity, type Dignity } from './planetaryDignities'

@@ -111,6 +111,11 @@ class ChartCalculationRequest(BaseModel):
     include_arabic_parts: bool = Field(False, description="Include Arabic parts")
     custom_orbs: Optional[Dict[str, float]] = Field(None, description="Custom aspect orbs")
 
+    # Hybrid chart options
+    include_nakshatras: bool = Field(False, description="Include Vedic nakshatras in Western charts")
+    include_western_aspects: bool = Field(False, description="Include Western-style aspects in Vedic charts")
+    include_minor_aspects: bool = Field(False, description="Include minor aspects in calculations")
+
     @validator("chart_type")
     def validate_chart_type(cls, v):
         """Validate chart type"""

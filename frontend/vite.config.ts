@@ -20,7 +20,8 @@ export default defineConfig({
   },
   server: {
     host: '0.0.0.0', // Allow external connections (required for Docker)
-    port: 3000,
+    port: 3001,
+    strictPort: true, // Fail if port is already in use
     watch: {
       usePolling: true, // Required for file watching in Docker
       interval: 1000,

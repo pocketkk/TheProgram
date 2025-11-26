@@ -94,7 +94,7 @@ function calculateChironLongitude(date: Date): number {
 
   // Chiron orbital elements (J2000)
   const epoch = 2451545.0 // J2000 epoch
-  const T = (jd - epoch) / 36525 // Julian centuries from J2000
+  const _T = (jd - epoch) / 36525 // Julian centuries from J2000
 
   // Mean longitude calculation
   const L0 = 205.04 // Mean longitude at epoch (degrees)
@@ -170,8 +170,8 @@ const BODY_MAP: Record<string, Astronomy.Body> = {
  */
 export function calculatePlanetPositions(
   date: Date,
-  latitude: number = 0,
-  longitude: number = 0,
+  _latitude: number = 0,
+  _longitude: number = 0,
   zodiacSystem: ZodiacSystem = 'western'
 ): PlanetPosition[] {
   const planets: PlanetPosition[] = []

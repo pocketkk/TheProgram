@@ -2,6 +2,8 @@
  * Astrological Types and Interfaces
  */
 
+import { PLANETS_COMPAT } from '@/lib/celestial'
+
 export interface BirthData {
   date: Date
   latitude: number
@@ -79,21 +81,8 @@ export const ZODIAC_SIGNS = [
   { name: 'Pisces', symbol: '♓', element: 'Water', modality: 'Mutable', ruler: 'Jupiter' },
 ] as const
 
-export const PLANETS = [
-  { name: 'Sun', symbol: '☉', color: '#FDB813' },
-  { name: 'Earth', symbol: '♁', color: '#4A90E2' },
-  { name: 'Moon', symbol: '☽', color: '#C0C0C0' },
-  { name: 'Mercury', symbol: '☿', color: '#8B7355' },
-  { name: 'Venus', symbol: '♀', color: '#FFC0CB' },
-  { name: 'Mars', symbol: '♂', color: '#DC143C' },
-  { name: 'Jupiter', symbol: '♃', color: '#DAA520' },
-  { name: 'Saturn', symbol: '♄', color: '#B8860B' },
-  { name: 'Uranus', symbol: '♅', color: '#4FD0E0' },
-  { name: 'Neptune', symbol: '♆', color: '#4169E1' },
-  { name: 'Pluto', symbol: '♇', color: '#8B4513' },
-  { name: 'Chiron', symbol: '⚷', color: '#9370DB' },
-  { name: 'Lilith', symbol: '⚸', color: '#8B008B' },
-] as const
+// PLANETS derived from celestial registry for single source of truth
+export const PLANETS = PLANETS_COMPAT
 
 export const ASPECT_CONFIG = {
   Conjunction: { angle: 0, orb: 8, color: '#FFFF00', symbol: '☌' },

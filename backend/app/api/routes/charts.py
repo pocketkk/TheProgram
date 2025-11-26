@@ -1,17 +1,18 @@
 """
-Chart management and calculation endpoints
+Chart management and calculation endpoints (single-user mode)
+
+No user authentication - all charts belong to "the user"
 """
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 import time
 from datetime import datetime
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from uuid import UUID
 
-from app.core.database import get_db
-from app.api.dependencies import get_current_user
-from app.models import User, BirthData, Chart
-from app.schemas import (
+from app.core.database_sqlite import get_db
+from app.models_sqlite import BirthData, Chart
+from app.schemas_sqlite import (
     ChartCreate,
     ChartUpdate,
     ChartResponse,
@@ -34,29 +35,27 @@ router = APIRouter()
 @router.post("/", response_model=ChartResponse, status_code=status.HTTP_201_CREATED)
 async def create_chart(
     chart_in: ChartCreate,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    db: Session = Depends(get_db)
 ):
     """
     Create a chart with pre-calculated data
 
     Creates a new chart record with pre-calculated chart data.
     For calculating a chart from birth data, use POST /charts/calculate
+    No user ownership check needed.
 
     Args:
         chart_in: Chart creation data (includes calculated chart_data)
         db: Database session
-        current_user: Current authenticated user
 
     Returns:
         Created chart
 
     Raises:
         HTTPException 404: If birth data or client not found
-        HTTPException 403: If resources don't belong to user
     """
-    # Verify birth data exists and belongs to user
-    birth_data = db.query(BirthData).filter(BirthData.id == chart_in.birth_data_id).first()
+    # Verify birth data exists (convert UUID to string for SQLite)
+    birth_data = db.query(BirthData).filter(BirthData.id == str(chart_in.birth_data_id)).first()
 
     if not birth_data:
         raise HTTPException(
@@ -64,26 +63,10 @@ async def create_chart(
             detail="Birth data not found"
         )
 
-    # Check ownership through client
-    client = db.query(Client).filter(Client.id == birth_data.client_id).first()
-    if not client or client.user_id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to create chart for this birth data"
-        )
-
-    # Verify client_id if provided
-    if chart_in.client_id and chart_in.client_id != birth_data.client_id:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Client ID does not match birth data's client"
-        )
-
-    # Create chart
+    # Create chart (no client_id in single-user mode)
+    # Convert UUID to string for SQLite
     chart = Chart(
-        user_id=current_user.id,
-        client_id=chart_in.client_id or birth_data.client_id,
-        birth_data_id=chart_in.birth_data_id,
+        birth_data_id=str(chart_in.birth_data_id),
         chart_name=chart_in.chart_name,
         chart_type=chart_in.chart_type,
         astro_system=chart_in.astro_system,
@@ -105,14 +88,12 @@ async def create_chart(
 async def list_charts(
     skip: int = 0,
     limit: int = 100,
-    chart_type: str = None,
-    astro_system: str = None,
-    client_id: UUID = None,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    chart_type: Optional[str] = Query(None, description="Filter by chart type"),
+    astro_system: Optional[str] = Query(None, description="Filter by astrological system"),
+    db: Session = Depends(get_db)
 ):
     """
-    List charts for current user
+    List all charts (single-user mode)
 
     Returns a paginated list of charts with optional filtering.
 
@@ -121,23 +102,18 @@ async def list_charts(
         limit: Maximum number of records to return
         chart_type: Filter by chart type (optional)
         astro_system: Filter by astrological system (optional)
-        client_id: Filter by client ID (optional)
         db: Database session
-        current_user: Current authenticated user
 
     Returns:
         List of charts
     """
-    query = db.query(Chart).filter(Chart.user_id == current_user.id)
+    query = db.query(Chart)
 
     if chart_type:
         query = query.filter(Chart.chart_type == chart_type)
 
     if astro_system:
         query = query.filter(Chart.astro_system == astro_system)
-
-    if client_id:
-        query = query.filter(Chart.client_id == client_id)
 
     charts = query.offset(skip).limit(limit).all()
 
@@ -147,39 +123,31 @@ async def list_charts(
 @router.get("/{chart_id}", response_model=ChartResponse)
 async def get_chart(
     chart_id: UUID,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    db: Session = Depends(get_db)
 ):
     """
     Get chart by ID
 
     Returns a specific chart's information and data.
+    No user ownership check needed.
 
     Args:
         chart_id: Chart ID
         db: Database session
-        current_user: Current authenticated user
 
     Returns:
         Chart information and calculated data
 
     Raises:
         HTTPException 404: If chart not found
-        HTTPException 403: If chart doesn't belong to user
     """
-    chart = db.query(Chart).filter(Chart.id == chart_id).first()
+    # Convert UUID to string for SQLite query (IDs stored as TEXT)
+    chart = db.query(Chart).filter(Chart.id == str(chart_id)).first()
 
     if not chart:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Chart not found"
-        )
-
-    # Check ownership
-    if chart.user_id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to access this chart"
         )
 
     # Update last viewed
@@ -193,41 +161,33 @@ async def get_chart(
 async def update_chart(
     chart_id: UUID,
     chart_update: ChartUpdate,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    db: Session = Depends(get_db)
 ):
     """
     Update chart metadata
 
     Updates chart metadata (name, type, etc.) but not calculation data.
     To recalculate a chart, use POST /charts/calculate
+    No user ownership check needed.
 
     Args:
         chart_id: Chart ID
         chart_update: Chart update data
         db: Database session
-        current_user: Current authenticated user
 
     Returns:
         Updated chart
 
     Raises:
         HTTPException 404: If chart not found
-        HTTPException 403: If chart doesn't belong to user
     """
-    chart = db.query(Chart).filter(Chart.id == chart_id).first()
+    # Convert UUID to string for SQLite query (IDs stored as TEXT)
+    chart = db.query(Chart).filter(Chart.id == str(chart_id)).first()
 
     if not chart:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Chart not found"
-        )
-
-    # Check ownership
-    if chart.user_id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to update this chart"
         )
 
     # Update fields
@@ -261,39 +221,31 @@ async def update_chart(
 @router.delete("/{chart_id}", response_model=Message)
 async def delete_chart(
     chart_id: UUID,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    db: Session = Depends(get_db)
 ):
     """
     Delete chart
 
     Permanently deletes a chart record.
+    No user ownership check needed.
 
     Args:
         chart_id: Chart ID
         db: Database session
-        current_user: Current authenticated user
 
     Returns:
         Success message
 
     Raises:
         HTTPException 404: If chart not found
-        HTTPException 403: If chart doesn't belong to user
     """
-    chart = db.query(Chart).filter(Chart.id == chart_id).first()
+    # Convert UUID to string for SQLite query (IDs stored as TEXT)
+    chart = db.query(Chart).filter(Chart.id == str(chart_id)).first()
 
     if not chart:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Chart not found"
-        )
-
-    # Check ownership
-    if chart.user_id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to delete this chart"
         )
 
     db.delete(chart)
@@ -312,47 +264,36 @@ async def delete_chart(
 @router.post("/calculate", response_model=ChartCalculationResponse, status_code=status.HTTP_201_CREATED)
 async def calculate_chart(
     calc_request: ChartCalculationRequest,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    db: Session = Depends(get_db)
 ):
     """
     Calculate a new chart from birth data
 
     Calculates planetary positions, houses, and aspects from birth data
-    and creates a new chart record.
+    and creates a new chart record. No user ownership check needed.
 
     Args:
         calc_request: Chart calculation request with birth data and options
         db: Database session
-        current_user: Current authenticated user
 
     Returns:
         Calculated chart with timing information
 
     Raises:
         HTTPException 404: If birth data not found
-        HTTPException 403: If birth data doesn't belong to user
         HTTPException 400: If calculation fails
     """
     start_time = time.time()
 
-    # Verify birth data exists and belongs to user
+    # Verify birth data exists (convert UUID to string for SQLite)
     birth_data = db.query(BirthData).filter(
-        BirthData.id == calc_request.birth_data_id
+        BirthData.id == str(calc_request.birth_data_id)
     ).first()
 
     if not birth_data:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Birth data not found"
-        )
-
-    # Check ownership through client
-    client = db.query(Client).filter(Client.id == birth_data.client_id).first()
-    if not client or client.user_id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to calculate chart for this birth data"
         )
 
     try:
@@ -382,11 +323,10 @@ async def calculate_chart(
             detail=f"Chart calculation failed: {str(e)}"
         )
 
-    # Create chart record
+    # Create chart record (no client_id in single-user mode)
+    # birth_data.id is already a string in SQLite
     chart = Chart(
-        user_id=current_user.id,
-        client_id=birth_data.client_id,
-        birth_data_id=birth_data.id,
+        birth_data_id=birth_data.id,  # Already a string from SQLite
         chart_name=calc_request.chart_name,
         chart_type=calc_request.chart_type,
         astro_system=calc_request.astro_system,
@@ -397,7 +337,10 @@ async def calculate_chart(
             "include_asteroids": calc_request.include_asteroids,
             "include_fixed_stars": calc_request.include_fixed_stars,
             "include_arabic_parts": calc_request.include_arabic_parts,
-            "custom_orbs": calc_request.custom_orbs
+            "custom_orbs": calc_request.custom_orbs,
+            "include_nakshatras": calc_request.include_nakshatras,
+            "include_western_aspects": calc_request.include_western_aspects,
+            "include_minor_aspects": calc_request.include_minor_aspects
         },
         chart_data=chart_data
     )
@@ -410,11 +353,9 @@ async def calculate_chart(
     end_time = time.time()
     calculation_time_ms = (end_time - start_time) * 1000
 
-    # Create response
+    # Create response (single-user mode, no client_id)
     response_dict = {
         "id": chart.id,
-        "user_id": chart.user_id,
-        "client_id": chart.client_id,
         "birth_data_id": chart.birth_data_id,
         "chart_name": chart.chart_name,
         "chart_type": chart.chart_type,
@@ -444,11 +385,25 @@ async def _calculate_natal_chart(
 ) -> Dict[str, Any]:
     """Calculate natal chart using appropriate system (Western or Vedic)"""
 
-    # Convert birth datetime
-    birth_datetime = datetime.combine(
-        birth_data.birth_date,
-        birth_data.birth_time or datetime.min.time()
-    )
+    # Convert birth datetime (SQLite stores as strings)
+    from datetime import datetime as dt, time as dt_time, date as dt_date
+
+    # Parse date string to date object
+    if isinstance(birth_data.birth_date, str):
+        birth_date = dt.fromisoformat(birth_data.birth_date).date()
+    else:
+        birth_date = birth_data.birth_date
+
+    # Parse time string to time object
+    if birth_data.birth_time:
+        if isinstance(birth_data.birth_time, str):
+            birth_time = dt.fromisoformat(f"2000-01-01T{birth_data.birth_time}").time()
+        else:
+            birth_time = birth_data.birth_time
+    else:
+        birth_time = datetime.min.time()
+
+    birth_datetime = datetime.combine(birth_date, birth_time)
 
     # Route to appropriate calculator based on astro_system
     if calc_request.astro_system == "vedic":
@@ -459,7 +414,11 @@ async def _calculate_natal_chart(
             longitude=float(birth_data.longitude),
             timezone_offset_minutes=birth_data.utc_offset or 0,
             ayanamsa=calc_request.ayanamsa or 'lahiri',
-            include_divisional=[1, 9]  # D-1 (Rasi) and D-9 (Navamsa) by default
+            house_system=calc_request.house_system or 'whole_sign',
+            include_divisional=[1, 9],  # D-1 (Rasi) and D-9 (Navamsa) by default
+            include_western_aspects=calc_request.include_western_aspects,
+            include_minor_aspects=calc_request.include_minor_aspects,
+            custom_orbs=calc_request.custom_orbs
         )
     else:
         # Calculate Western chart
@@ -471,8 +430,9 @@ async def _calculate_natal_chart(
             house_system=calc_request.house_system or 'placidus',
             zodiac=calc_request.zodiac_type or 'tropical',
             ayanamsa=calc_request.ayanamsa or 'lahiri',
-            include_minor_aspects=True,
-            custom_orbs=calc_request.custom_orbs
+            include_minor_aspects=calc_request.include_minor_aspects,
+            custom_orbs=calc_request.custom_orbs,
+            include_nakshatras=calc_request.include_nakshatras
         )
 
     # Add metadata

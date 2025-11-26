@@ -378,7 +378,7 @@ export function ExampleAspectLines({ aspects }: { aspects: Aspect[] }) {
   const center = size / 2
 
   // Mock positions
-  const getPlanetPosition = (name: string) => ({
+  const getPlanetPosition = (_name: string) => ({
     x: center + Math.random() * 200 - 100,
     y: center + Math.random() * 200 - 100,
   })

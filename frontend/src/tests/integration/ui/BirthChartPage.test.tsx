@@ -15,17 +15,13 @@ import { BirthChartPage } from '@/features/birthchart/BirthChartPage'
 import { renderWithProviders } from '@/tests/utils/testUtils'
 import { useAuthStore } from '@/store/authStore'
 import { setMockPasswordState } from '@/tests/mocks/handlers'
-import { createClient } from '@/lib/api/clients'
 import { apiClient } from '@/lib/api/client'
 
 // Don't mock stores for integration tests
 vi.unmock('@/store/authStore')
-vi.unmock('@/store/clientStore')
 
 describe('BirthChartPage UI Integration Tests', () => {
-  let testClientId: string
-
-  beforeEach(async () => {
+  beforeEach(() => {
     // Set up authenticated state
     setMockPasswordState(true, 'test1234')
     localStorage.setItem('session_token', 'mock-jwt-token-abc123')
@@ -37,10 +33,6 @@ describe('BirthChartPage UI Integration Tests', () => {
       isLoading: false,
       error: null,
     })
-
-    // Create a test client for chart creation
-    const client = await createClient({ first_name: 'Chart', last_name: 'TestUser' })
-    testClientId = client.id
   })
 
   describe('Page Loading', () => {
@@ -222,7 +214,6 @@ describe('BirthChartPage UI Integration Tests', () => {
     it('should display chart wheel visualization', async () => {
       // Create birth data and chart first
       const birthData = await apiClient.post('/api/birth-data', {
-        client_id: testClientId,
         date: '1990-01-15',
         time: '14:30:00',
         latitude: 40.7128,
@@ -231,7 +222,6 @@ describe('BirthChartPage UI Integration Tests', () => {
       })
 
       const chart = await apiClient.post('/api/charts', {
-        client_id: testClientId,
         birth_data_id: birthData.data.id,
         chart_type: 'natal',
       })
@@ -249,7 +239,6 @@ describe('BirthChartPage UI Integration Tests', () => {
 
     it('should display planetary positions', async () => {
       const birthData = await apiClient.post('/api/birth-data', {
-        client_id: testClientId,
         date: '1990-01-15',
         time: '14:30:00',
         latitude: 40.7128,
@@ -258,7 +247,6 @@ describe('BirthChartPage UI Integration Tests', () => {
       })
 
       const chart = await apiClient.post('/api/charts', {
-        client_id: testClientId,
         birth_data_id: birthData.data.id,
         chart_type: 'natal',
       })
@@ -272,7 +260,6 @@ describe('BirthChartPage UI Integration Tests', () => {
 
     it('should display house cusps', async () => {
       const birthData = await apiClient.post('/api/birth-data', {
-        client_id: testClientId,
         date: '1990-01-15',
         time: '14:30:00',
         latitude: 40.7128,
@@ -281,7 +268,6 @@ describe('BirthChartPage UI Integration Tests', () => {
       })
 
       const chart = await apiClient.post('/api/charts', {
-        client_id: testClientId,
         birth_data_id: birthData.data.id,
         chart_type: 'natal',
       })
@@ -295,7 +281,6 @@ describe('BirthChartPage UI Integration Tests', () => {
 
     it('should display zodiac signs', async () => {
       const birthData = await apiClient.post('/api/birth-data', {
-        client_id: testClientId,
         date: '1990-01-15',
         time: '14:30:00',
         latitude: 40.7128,
@@ -304,7 +289,6 @@ describe('BirthChartPage UI Integration Tests', () => {
       })
 
       const chart = await apiClient.post('/api/charts', {
-        client_id: testClientId,
         birth_data_id: birthData.data.id,
         chart_type: 'natal',
       })
@@ -321,7 +305,6 @@ describe('BirthChartPage UI Integration Tests', () => {
   describe('Chart Interpretation', () => {
     it('should generate interpretation for chart', async () => {
       const birthData = await apiClient.post('/api/birth-data', {
-        client_id: testClientId,
         date: '1990-01-15',
         time: '14:30:00',
         latitude: 40.7128,
@@ -330,7 +313,6 @@ describe('BirthChartPage UI Integration Tests', () => {
       })
 
       const chart = await apiClient.post('/api/charts', {
-        client_id: testClientId,
         birth_data_id: birthData.data.id,
         chart_type: 'natal',
       })
@@ -359,7 +341,6 @@ describe('BirthChartPage UI Integration Tests', () => {
 
     it('should display interpretation content', async () => {
       const birthData = await apiClient.post('/api/birth-data', {
-        client_id: testClientId,
         date: '1990-01-15',
         time: '14:30:00',
         latitude: 40.7128,
@@ -368,7 +349,6 @@ describe('BirthChartPage UI Integration Tests', () => {
       })
 
       const chart = await apiClient.post('/api/charts', {
-        client_id: testClientId,
         birth_data_id: birthData.data.id,
         chart_type: 'natal',
       })
@@ -387,7 +367,6 @@ describe('BirthChartPage UI Integration Tests', () => {
 
     it('should handle interpretation generation errors', async () => {
       const birthData = await apiClient.post('/api/birth-data', {
-        client_id: testClientId,
         date: '1990-01-15',
         time: '14:30:00',
         latitude: 40.7128,
@@ -396,7 +375,6 @@ describe('BirthChartPage UI Integration Tests', () => {
       })
 
       const chart = await apiClient.post('/api/charts', {
-        client_id: testClientId,
         birth_data_id: birthData.data.id,
         chart_type: 'natal',
       })
@@ -425,7 +403,6 @@ describe('BirthChartPage UI Integration Tests', () => {
 
     it('should show planet details on hover/click', async () => {
       const birthData = await apiClient.post('/api/birth-data', {
-        client_id: testClientId,
         date: '1990-01-15',
         time: '14:30:00',
         latitude: 40.7128,
@@ -434,7 +411,6 @@ describe('BirthChartPage UI Integration Tests', () => {
       })
 
       const chart = await apiClient.post('/api/charts', {
-        client_id: testClientId,
         birth_data_id: birthData.data.id,
         chart_type: 'natal',
       })
@@ -459,7 +435,6 @@ describe('BirthChartPage UI Integration Tests', () => {
 
     it('should export chart as image', async () => {
       const birthData = await apiClient.post('/api/birth-data', {
-        client_id: testClientId,
         date: '1990-01-15',
         time: '14:30:00',
         latitude: 40.7128,
@@ -468,7 +443,6 @@ describe('BirthChartPage UI Integration Tests', () => {
       })
 
       const chart = await apiClient.post('/api/charts', {
-        client_id: testClientId,
         birth_data_id: birthData.data.id,
         chart_type: 'natal',
       })
@@ -486,7 +460,6 @@ describe('BirthChartPage UI Integration Tests', () => {
 
     it('should print chart', async () => {
       const birthData = await apiClient.post('/api/birth-data', {
-        client_id: testClientId,
         date: '1990-01-15',
         time: '14:30:00',
         latitude: 40.7128,
@@ -495,7 +468,6 @@ describe('BirthChartPage UI Integration Tests', () => {
       })
 
       const chart = await apiClient.post('/api/charts', {
-        client_id: testClientId,
         birth_data_id: birthData.data.id,
         chart_type: 'natal',
       })
@@ -514,7 +486,6 @@ describe('BirthChartPage UI Integration Tests', () => {
   describe('Data Persistence', () => {
     it('should save chart data across page reloads', async () => {
       const birthData = await apiClient.post('/api/birth-data', {
-        client_id: testClientId,
         date: '1990-01-15',
         time: '14:30:00',
         latitude: 40.7128,
@@ -523,7 +494,6 @@ describe('BirthChartPage UI Integration Tests', () => {
       })
 
       const chart = await apiClient.post('/api/charts', {
-        client_id: testClientId,
         birth_data_id: birthData.data.id,
         chart_type: 'natal',
       })
@@ -547,7 +517,6 @@ describe('BirthChartPage UI Integration Tests', () => {
 
     it('should maintain interpretation data across navigation', async () => {
       const birthData = await apiClient.post('/api/birth-data', {
-        client_id: testClientId,
         date: '1990-01-15',
         time: '14:30:00',
         latitude: 40.7128,
@@ -556,7 +525,6 @@ describe('BirthChartPage UI Integration Tests', () => {
       })
 
       const chart = await apiClient.post('/api/charts', {
-        client_id: testClientId,
         birth_data_id: birthData.data.id,
         chart_type: 'natal',
       })
@@ -583,7 +551,6 @@ describe('BirthChartPage UI Integration Tests', () => {
       global.innerHeight = 667
 
       const birthData = await apiClient.post('/api/birth-data', {
-        client_id: testClientId,
         date: '1990-01-15',
         time: '14:30:00',
         latitude: 40.7128,
@@ -592,7 +559,6 @@ describe('BirthChartPage UI Integration Tests', () => {
       })
 
       const chart = await apiClient.post('/api/charts', {
-        client_id: testClientId,
         birth_data_id: birthData.data.id,
         chart_type: 'natal',
       })
@@ -606,7 +572,6 @@ describe('BirthChartPage UI Integration Tests', () => {
 
     it('should adapt chart size to container', async () => {
       const birthData = await apiClient.post('/api/birth-data', {
-        client_id: testClientId,
         date: '1990-01-15',
         time: '14:30:00',
         latitude: 40.7128,
@@ -615,7 +580,6 @@ describe('BirthChartPage UI Integration Tests', () => {
       })
 
       const chart = await apiClient.post('/api/charts', {
-        client_id: testClientId,
         birth_data_id: birthData.data.id,
         chart_type: 'natal',
       })
@@ -632,7 +596,6 @@ describe('BirthChartPage UI Integration Tests', () => {
   describe('Performance', () => {
     it('should render chart within acceptable time', async () => {
       const birthData = await apiClient.post('/api/birth-data', {
-        client_id: testClientId,
         date: '1990-01-15',
         time: '14:30:00',
         latitude: 40.7128,
@@ -641,7 +604,6 @@ describe('BirthChartPage UI Integration Tests', () => {
       })
 
       const chart = await apiClient.post('/api/charts', {
-        client_id: testClientId,
         birth_data_id: birthData.data.id,
         chart_type: 'natal',
       })
