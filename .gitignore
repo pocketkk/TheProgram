@@ -1,0 +1,61 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+test_venv/
+.env
+*.egg-info/
+dist/
+build/
+.eggs/
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Node
+node_modules/
+npm-debug.log*
+.npm
+
+# Build outputs
+frontend/dist/
+backend/dist/
+release/
+*.AppImage
+*.deb
+
+# Database
+*.db
+*.db-shm
+*.db-wal
+!backend/data/.gitkeep
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Temporary
+tmp/
+temp/
+*.tmp
+
+# Electron
+dist-electron/
+
+# Test artifacts
+.vitest/

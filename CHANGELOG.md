@@ -5,6 +5,19 @@ All notable changes to The Program will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- Project documentation system (CLAUDE.md, ARCHITECTURE_DECISIONS.md, ROADMAP.md)
+- Custom slash commands for development workflow
+- Pre-commit hooks for code quality
+- Comprehensive documentation cleanup
+
+### Changed
+- Archived historical task completion reports to `docs/archive/`
+
+---
+
 ## [2.0.0] - 2025-11-16
 
 ### Major Architecture Change: PostgreSQL → SQLite Migration
@@ -305,51 +318,18 @@ First production release of The Program with multi-user PostgreSQL architecture.
 
 ## Future Roadmap
 
-### Planned for 2.1.0
-- Desktop application (Electron wrapper)
-- Mobile-responsive UI improvements
-- Advanced transit search
-- Custom interpretation libraries
-- Batch chart processing
-- Export in multiple formats
-
-### Planned for 2.2.0
-- Advanced visualization options
-- Astrocartography mapping
-- Electional astrology tools
-- Enhanced Human Design features
-- Plugin system architecture
-
-### Planned for 3.0.0
-- Mobile apps (iOS/Android native)
-- Optional cloud sync
-- Advanced statistical analysis
-- Machine learning insights
-- Multi-language support
-
----
-
-## Support and Feedback
-
-For questions, bug reports, or feature requests:
-- GitHub Issues: [link to repository]
-- Documentation: [docs/](docs/)
-- Email: [support contact]
+See [ROADMAP.md](docs/ROADMAP.md) for planned features and project direction.
 
 ---
 
 ## Contributors
 
-**Phase 1 (v2.0.0) Development:**
-- Claude Code (Sonnet 4.5) - Architecture, implementation, testing, documentation
+- Claude Code - Architecture, implementation, testing, documentation
 
 **Special Thanks:**
 - Swiss Ephemeris team for astronomical calculations
 - Anthropic for Claude AI integration
-- FastAPI and React communities
 
 ---
 
-**Last Updated**: November 16, 2025
-**Version**: 2.0.0
-**Status**: Production Ready
+**Last Updated**: November 28, 2025
