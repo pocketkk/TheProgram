@@ -71,7 +71,7 @@ export interface CompanionPreferences {
 }
 
 // WebSocket connection status
-export type ConnectionStatus = 'disconnected' | 'connecting' | 'connected' | 'error'
+export type ConnectionStatus = 'disconnected' | 'connecting' | 'connected' | 'error' | 'no_api_key'
 
 // Current action being performed
 export interface CurrentAction {

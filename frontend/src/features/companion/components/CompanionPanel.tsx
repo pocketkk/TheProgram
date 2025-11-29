@@ -5,7 +5,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Send, Trash2, Loader2, Sparkles } from 'lucide-react'
+import { X, Send, Trash2, Loader2, Sparkles, Key, ExternalLink } from 'lucide-react'
 import { useCompanionStore } from '../stores/companionStore'
 import { useCompanionActions } from '../hooks/useCompanionActions'
 import { CompanionAvatar } from './CompanionAvatar'
@@ -86,7 +86,9 @@ export function CompanionPanel({ onMinimize }: CompanionPanelProps) {
                 ? 'Thinking...'
                 : isConnected
                   ? 'Ready to explore'
-                  : 'Connecting...'}
+                  : connectionStatus === 'no_api_key'
+                    ? 'API key needed'
+                    : 'Connecting...'}
             </p>
           </div>
         </div>
@@ -155,7 +157,55 @@ export function CompanionPanel({ onMinimize }: CompanionPanelProps) {
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4">
-        {messages.length === 0 ? (
+        {connectionStatus === 'no_api_key' ? (
+          <div className="flex flex-col items-center justify-center h-full text-center px-6">
+            <div className="w-16 h-16 rounded-full bg-amber-500/20 flex items-center justify-center mb-4">
+              <Key className="w-8 h-8 text-amber-400" />
+            </div>
+            <h4 className="text-white font-medium mb-2">API Key Required</h4>
+            <p className="text-sm text-slate-400 mb-4">
+              The Guide uses Claude AI to provide personalized insights about your chart.
+              To enable this feature, add your Anthropic API key in Settings.
+            </p>
+
+            {/* BYOT Benefits */}
+            <div className="bg-slate-800/50 rounded-lg p-4 mb-4 text-left w-full">
+              <h5 className="text-xs font-medium text-amber-400 mb-2 flex items-center gap-1">
+                <Sparkles size={12} />
+                Why Bring Your Own Key?
+              </h5>
+              <ul className="text-xs text-slate-400 space-y-1.5">
+                <li>• <span className="text-slate-300">No middleman</span> – Connect directly to Anthropic</li>
+                <li>• <span className="text-slate-300">Pay only for what you use</span> – No subscription fees</li>
+                <li>• <span className="text-slate-300">Full control</span> – Your data stays between you and Claude</li>
+                <li>• <span className="text-slate-300">$5 free credit</span> – New accounts get free usage</li>
+              </ul>
+            </div>
+
+            <button
+              onClick={() => {
+                window.dispatchEvent(
+                  new CustomEvent('companion-navigate', { detail: { page: 'settings' } })
+                )
+                onMinimize()
+              }}
+              className="flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-900 font-medium rounded-lg transition-colors"
+            >
+              <Key size={16} />
+              Configure API Key
+            </button>
+
+            <a
+              href="https://console.anthropic.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1 mt-3 text-xs text-slate-500 hover:text-slate-300 transition-colors"
+            >
+              Get your key at console.anthropic.com
+              <ExternalLink size={12} />
+            </a>
+          </div>
+        ) : messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center text-slate-400 px-6">
             <CompanionAvatar state="curious" size={64} className="mb-4" />
             <p className="text-sm">
