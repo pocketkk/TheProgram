@@ -931,6 +931,14 @@ class AgentService:
                 stop_reason = None
 
                 # Create streaming message with tools
+                # Debug: Log tools being passed to Claude
+                tool_names = [t.get("name") for t in self.tools]
+                logger.info(f"[DEBUG] Passing {len(self.tools)} tools to Claude: {tool_names}")
+                if "capture_screenshot" in tool_names:
+                    logger.info("[DEBUG] capture_screenshot tool IS in the tools list!")
+                else:
+                    logger.warning("[DEBUG] capture_screenshot tool is MISSING from tools list!")
+
                 async with self.client.messages.stream(
                     model=self.model,
                     max_tokens=2000,
