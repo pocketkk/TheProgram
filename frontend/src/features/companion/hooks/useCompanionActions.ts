@@ -493,9 +493,12 @@ export function useCompanionActions() {
 
     setConnectionStatus('connecting')
 
+    // Get API base URL - use env var or default to localhost for Electron
+    const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+
     // First check if API key is configured
     try {
-      const response = await fetch('/api/auth/api-key/status')
+      const response = await fetch(`${apiBaseUrl}/api/auth/api-key/status`)
       if (response.ok) {
         const status = await response.json()
         if (!status.has_api_key) {
@@ -509,10 +512,10 @@ export function useCompanionActions() {
       // Continue anyway - the WebSocket will fail if no key
     }
 
-    // Use relative WebSocket URL based on current location
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-    const host = window.location.host
-    const wsUrl = `${protocol}//${host}/api/ws/agent`
+    // Build WebSocket URL from API base URL
+    const wsProtocol = apiBaseUrl.startsWith('https') ? 'wss:' : 'ws:'
+    const apiHost = apiBaseUrl.replace(/^https?:\/\//, '')
+    const wsUrl = `${wsProtocol}//${apiHost}/api/ws/agent`
 
     try {
       const ws = new WebSocket(wsUrl)
