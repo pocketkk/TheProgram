@@ -15,13 +15,29 @@ NC='\033[0m' # No Color
 echo -e "${YELLOW}=== The Program - Reset User Data ===${NC}"
 echo ""
 
-# Data locations
-CONFIG_DIR="$HOME/.config/theprogram"
-DB_FILE="$CONFIG_DIR/data/theprogram.db"
-ELECTRON_DATA="$HOME/.config/The Program"
+# Data location - Electron stores everything here
+APP_DATA_DIR="$HOME/.config/theprogram"
+
+# Check if anything exists
+if [ ! -d "$APP_DATA_DIR" ]; then
+    echo -e "${YELLOW}No user data found at: $APP_DATA_DIR${NC}"
+    echo "Nothing to reset."
+    exit 0
+fi
+
+# Show what will be deleted
+echo "This will delete ALL data in: $APP_DATA_DIR"
+echo ""
+echo "Including:"
+echo "  - SQLite database (charts, birth data, settings)"
+echo "  - Authentication state"
+echo "  - API keys"
+echo "  - Local storage & session data"
+echo "  - Preferences"
+echo ""
 
 # Confirm before proceeding
-read -p "This will DELETE all your data (charts, birth data, settings). Continue? [y/N] " -n 1 -r
+read -p "Continue with full reset? [y/N] " -n 1 -r
 echo ""
 if [[ ! $REPLY =~ ^[Yy]$ ]]; then
     echo -e "${YELLOW}Cancelled.${NC}"
@@ -31,40 +47,24 @@ fi
 echo ""
 echo -e "${YELLOW}Resetting user data...${NC}"
 
-# 1. Remove SQLite database
-if [ -f "$DB_FILE" ]; then
-    rm -f "$DB_FILE"
-    echo -e "${GREEN}✓${NC} Removed database: $DB_FILE"
-else
-    echo -e "${YELLOW}○${NC} No database found at: $DB_FILE"
+# Kill any running backend on port 8000
+if lsof -ti:8000 >/dev/null 2>&1; then
+    lsof -ti:8000 | xargs kill -9 2>/dev/null
+    echo -e "${GREEN}✓${NC} Killed backend process on port 8000"
+    sleep 1
 fi
 
-# 2. Remove Electron app data (includes localStorage)
-if [ -d "$ELECTRON_DATA" ]; then
-    rm -rf "$ELECTRON_DATA"
-    echo -e "${GREEN}✓${NC} Removed Electron data: $ELECTRON_DATA"
-else
-    echo -e "${YELLOW}○${NC} No Electron data found at: $ELECTRON_DATA"
-fi
-
-# 3. Keep config directory structure but remove data files
-if [ -d "$CONFIG_DIR/data" ]; then
-    rm -rf "$CONFIG_DIR/data"/*
-    echo -e "${GREEN}✓${NC} Cleared data directory: $CONFIG_DIR/data"
-fi
-
-# 4. Remove any alembic version tracking (forces fresh migrations)
-ALEMBIC_DIR="$CONFIG_DIR/data/alembic"
-if [ -d "$ALEMBIC_DIR" ]; then
-    rm -rf "$ALEMBIC_DIR"
-    echo -e "${GREEN}✓${NC} Removed alembic data"
-fi
+# Remove the entire app data directory
+rm -rf "$APP_DATA_DIR"
+echo -e "${GREEN}✓${NC} Removed: $APP_DATA_DIR"
 
 echo ""
 echo -e "${GREEN}=== Reset Complete ===${NC}"
 echo ""
-echo "Next steps:"
-echo "  1. Restart the backend server (it will recreate the database)"
-echo "  2. Restart the Electron app"
-echo "  3. You'll see the password setup screen as a new user"
+echo "The app will start fresh with:"
+echo "  - Password setup screen"
+echo "  - No saved charts or birth data"
+echo "  - No API key configured"
+echo ""
+echo "Just launch the app - no server restart needed."
 echo ""

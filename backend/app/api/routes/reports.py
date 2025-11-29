@@ -11,8 +11,8 @@ from sqlalchemy.orm import Session
 import io
 
 from app.core.database import get_db
-from app.models_sqlite.birth_data import BirthData
-from app.models_sqlite.chart import Chart
+from app.models.birth_data import BirthData
+from app.models.chart import Chart
 from app.services.report_service import get_report_service
 from app.services.chart_calculator import NatalChartCalculator
 
@@ -212,7 +212,7 @@ async def export_journal(
     """
     Export journal entries to PDF or JSON format.
     """
-    from app.models_sqlite.journal import JournalEntry
+    from app.models.journal import JournalEntry
 
     if format not in ['pdf', 'json']:
         raise HTTPException(status_code=400, detail="Format must be 'pdf' or 'json'")
@@ -293,7 +293,7 @@ async def export_timeline(
     """
     Export timeline events to PDF or JSON format.
     """
-    from app.models_sqlite.timeline import TimelineEvent
+    from app.models.timeline import TimelineEvent
 
     if format not in ['pdf', 'json']:
         raise HTTPException(status_code=400, detail="Format must be 'pdf' or 'json'")

@@ -210,7 +210,7 @@ def create_initial_password():
         # Import password utilities
         from passlib.context import CryptContext
         from app.db.session_sqlite import SessionLocal
-        from app.models_sqlite.app_config import AppConfig
+        from app.models.app_config import AppConfig
 
         pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 

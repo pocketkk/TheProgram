@@ -1,5 +1,7 @@
 """
-Chart-related Pydantic schemas
+Chart-related Pydantic schemas (single-user mode)
+
+No user_id in responses - all charts belong to "the user"
 """
 from typing import Optional, Dict, Any
 from pydantic import BaseModel, Field, validator
@@ -47,7 +49,6 @@ class ChartBase(BaseModel):
 
 class ChartCreate(ChartBase):
     """Schema for creating a new chart (with pre-calculated data)"""
-    client_id: Optional[UUID] = Field(None, description="Client ID (optional)")
     birth_data_id: UUID = Field(..., description="Birth data ID used for calculation")
     chart_data: Dict[str, Any] = Field(..., description="Calculated chart data as JSON")
 
@@ -66,8 +67,6 @@ class ChartUpdate(BaseModel):
 class ChartResponse(ChartBase):
     """Schema for chart response"""
     id: UUID = Field(..., description="Chart ID")
-    user_id: UUID = Field(..., description="User ID who created the chart")
-    client_id: Optional[UUID] = Field(None, description="Client ID")
     birth_data_id: UUID = Field(..., description="Birth data ID")
     chart_data: Dict[str, Any] = Field(..., description="Calculated chart data")
     last_viewed: Optional[datetime] = Field(None, description="Last time chart was viewed")
@@ -76,6 +75,11 @@ class ChartResponse(ChartBase):
 
     class Config:
         from_attributes = True
+
+
+class ChartWithRelations(ChartResponse):
+    """Chart response with additional relations for display"""
+    pass
 
 
 # =============================================================================
@@ -106,6 +110,11 @@ class ChartCalculationRequest(BaseModel):
     include_fixed_stars: bool = Field(False, description="Include fixed stars")
     include_arabic_parts: bool = Field(False, description="Include Arabic parts")
     custom_orbs: Optional[Dict[str, float]] = Field(None, description="Custom aspect orbs")
+
+    # Hybrid chart options
+    include_nakshatras: bool = Field(False, description="Include Vedic nakshatras in Western charts")
+    include_western_aspects: bool = Field(False, description="Include Western-style aspects in Vedic charts")
+    include_minor_aspects: bool = Field(False, description="Include minor aspects in calculations")
 
     @validator("chart_type")
     def validate_chart_type(cls, v):

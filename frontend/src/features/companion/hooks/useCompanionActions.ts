@@ -8,6 +8,7 @@ import { useCompanionStore } from '../stores/companionStore'
 import { useChartStore } from '@/features/birthchart/stores/chartStore'
 import { useTransitStore } from '@/store/transitStore'
 import type { AspectPattern } from '@/lib/astrology/patterns'
+import { captureScreenshot, captureChartWheel, captureCurrentView } from '@/lib/utils/screenshot'
 
 // Custom events for the app to listen to
 // These dispatch state changes that specific pages handle
@@ -109,23 +110,44 @@ export function useCompanionActions() {
     const chart = chartStore.getActiveChart()
     if (!chart) return null
 
+    // Build planets lookup
+    const planets = chart.planets.reduce(
+      (acc, p) => {
+        acc[p.name.toLowerCase()] = {
+          sign_name: p.sign,
+          degree_in_sign: p.degree,
+          longitude: p.longitude,
+          retrograde: p.isRetrograde,
+          house: p.house,
+        }
+        return acc
+      },
+      {} as Record<string, unknown>
+    )
+
+    // Build detailed house information
+    const houseDetails = chart.houses?.map(h => {
+      // Find planets in this house
+      const planetsInHouse = chart.planets
+        .filter(p => p.house === h.number)
+        .map(p => p.name)
+
+      return {
+        number: h.number,
+        sign: h.sign,
+        cusp_degree: h.cusp,
+        degree_in_sign: h.degree,
+        planets_in_house: planetsInHouse,
+      }
+    }) || []
+
     return {
-      planets: chart.planets.reduce(
-        (acc, p) => {
-          acc[p.name.toLowerCase()] = {
-            sign_name: p.sign,
-            degree_in_sign: p.degree,
-            longitude: p.longitude,
-            retrograde: p.isRetrograde,
-            house: p.house,
-          }
-          return acc
-        },
-        {} as Record<string, unknown>
-      ),
+      planets,
       houses: {
-        cusps: chart.houses?.map(h => h.degree) || [],
-        ascendant: chart.houses?.[0]?.degree,
+        cusps: chart.houses?.map(h => h.cusp) || [],
+        ascendant: chart.houses?.find(h => h.number === 1)?.cusp,
+        midheaven: chart.houses?.find(h => h.number === 10)?.cusp,
+        house_details: houseDetails,
       },
       aspects: chart.aspects.map(a => ({
         planet1: a.planet1,
@@ -354,6 +376,51 @@ export function useCompanionActions() {
             break
           }
 
+          case 'capture_screenshot': {
+            // Capture a screenshot and send it back to the agent
+            const target = input.target as string | undefined
+
+            // Run async screenshot capture
+            (async () => {
+              let result
+              if (target === 'chart' || target === 'chart_wheel') {
+                result = await captureChartWheel()
+              } else if (target === 'page' || target === 'current') {
+                result = await captureCurrentView()
+              } else if (target) {
+                // Custom selector
+                result = await captureScreenshot({ selector: target })
+              } else {
+                // Default to current view
+                result = await captureCurrentView()
+              }
+
+              // Send the screenshot back to the WebSocket
+              if (wsRef.current?.readyState === WebSocket.OPEN) {
+                wsRef.current.send(
+                  JSON.stringify({
+                    type: 'tool_result',
+                    tool_call_id: id,
+                    tool_name: name,
+                    result: result.success
+                      ? {
+                          success: true,
+                          image: result.image,
+                          mime_type: result.mimeType,
+                          width: result.width,
+                          height: result.height,
+                        }
+                      : {
+                          success: false,
+                          error: result.error,
+                        },
+                  })
+                )
+              }
+            })()
+            break
+          }
+
           default:
             console.warn(`Unknown tool: ${name}`)
         }
@@ -486,17 +553,37 @@ export function useCompanionActions() {
   )
 
   // Connect to WebSocket
-  const connect = useCallback(() => {
+  const connect = useCallback(async () => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
       return
     }
 
     setConnectionStatus('connecting')
 
-    // Use relative WebSocket URL based on current location
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-    const host = window.location.host
-    const wsUrl = `${protocol}//${host}/api/ws/agent`
+    // Get API base URL - use env var or default to localhost for Electron
+    // VITE_API_URL should include /api prefix (e.g., http://localhost:8000/api)
+    const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
+
+    // First check if API key is configured
+    try {
+      const response = await fetch(`${apiBaseUrl}/auth/api-key/status`)
+      if (response.ok) {
+        const status = await response.json()
+        if (!status.has_api_key) {
+          console.log('No API key configured')
+          setConnectionStatus('no_api_key')
+          return
+        }
+      }
+    } catch (error) {
+      console.warn('Could not check API key status:', error)
+      // Continue anyway - the WebSocket will fail if no key
+    }
+
+    // Build WebSocket URL from API base URL
+    const wsProtocol = apiBaseUrl.startsWith('https') ? 'wss:' : 'ws:'
+    const apiHost = apiBaseUrl.replace(/^https?:\/\//, '')
+    const wsUrl = `${wsProtocol}//${apiHost}/ws/agent`
 
     try {
       const ws = new WebSocket(wsUrl)
@@ -513,8 +600,9 @@ export function useCompanionActions() {
         setConnectionStatus('disconnected')
         wsRef.current = null
 
-        // Attempt reconnect with exponential backoff
-        if (reconnectAttemptsRef.current < 5) {
+        // Attempt reconnect with exponential backoff (but not if no API key)
+        const currentStatus = useCompanionStore.getState().connectionStatus
+        if (reconnectAttemptsRef.current < 5 && currentStatus !== 'no_api_key') {
           const delay = Math.min(
             1000 * Math.pow(2, reconnectAttemptsRef.current),
             30000

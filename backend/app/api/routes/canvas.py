@@ -11,8 +11,8 @@ from uuid import UUID
 import math
 
 from app.core.database_sqlite import get_db
-from app.models_sqlite import CanvasBoard, CanvasItem, BirthData, Chart
-from app.schemas_sqlite.canvas import (
+from app.models import CanvasBoard, CanvasItem, BirthData, Chart
+from app.schemas.canvas import (
     CanvasBoardCreate,
     CanvasBoardUpdate,
     CanvasBoardResponse,
@@ -27,7 +27,7 @@ from app.schemas_sqlite.canvas import (
     ArrangeItemsRequest,
     ArrangeItemsResponse,
 )
-from app.schemas_sqlite.common import Message
+from app.schemas.common import Message
 
 router = APIRouter()
 

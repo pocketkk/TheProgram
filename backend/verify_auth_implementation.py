@@ -41,7 +41,7 @@ def main():
 
     files_to_check = [
         (base_path / "core/auth_simple.py", "Core auth functions"),
-        (base_path / "schemas_sqlite/auth.py", "Pydantic schemas"),
+        (base_path / "schemas/auth.py", "Pydantic schemas"),
         (base_path / "api/routes_sqlite/auth_simple.py", "Auth endpoints"),
         (base_path / "api/routes_sqlite/__init__.py", "SQLite router"),
         (base_path / "api/dependencies_simple.py", "Auth dependencies"),
@@ -70,8 +70,8 @@ def main():
         from app.core import auth_simple
         print("✓ app.core.auth_simple imported")
 
-        from app.schemas_sqlite import auth
-        print("✓ app.schemas_sqlite.auth imported")
+        from app.schemas import auth
+        print("✓ app.schemas.auth imported")
 
         from app.api.routes_sqlite import auth_simple as auth_routes
         print("✓ app.api.routes_sqlite.auth_simple imported")

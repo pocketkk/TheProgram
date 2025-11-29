@@ -1,77 +1,181 @@
 """
-Pydantic schemas for API request/response validation
+Pydantic schemas for SQLite single-user mode
+
+These schemas are identical to the multi-user schemas except:
+- No user_id fields (single user implicit)
+- Simpler validation (no user ownership checks)
 """
-from app.schemas.user import (
-    UserCreate,
-    UserUpdate,
-    UserResponse,
-    UserLogin,
-    UserWithToken,
-    UserPreferencesCreate,
-    UserPreferencesUpdate,
-    UserPreferencesResponse,
-)
+from app.schemas.common import Message
 from app.schemas.birth_data import (
     BirthDataCreate,
     BirthDataUpdate,
     BirthDataResponse,
-    BirthDataWithLocation,
+    BirthDataWithLocation
 )
 from app.schemas.chart import (
     ChartCreate,
     ChartUpdate,
     ChartResponse,
+    ChartWithRelations,
     ChartCalculationRequest,
-    ChartCalculationResponse,
+    ChartCalculationResponse
 )
 from app.schemas.chart_interpretation import (
     ChartInterpretationCreate,
     ChartInterpretationUpdate,
     ChartInterpretationResponse,
+    InterpretationSection,
     GenerateInterpretationRequest,
-    GenerateInterpretationResponse,
+    GenerateInterpretationResponse
 )
-from app.schemas.common import (
-    Token,
-    TokenPayload,
-    Message,
-    PaginatedResponse,
-    HealthResponse,
-    ErrorResponse,
+
+# Phase 2: Journal System
+from app.schemas.journal import (
+    JournalEntryCreate,
+    JournalEntryUpdate,
+    JournalEntryResponse,
+    JournalEntryWithContext,
+    JournalSearchRequest,
+    JournalSearchResponse,
+    GenerateJournalSummaryRequest,
+    GenerateJournalSummaryResponse,
+    JournalInsightsRequest,
+    JournalInsightsResponse
+)
+
+# Phase 2: Transit Timeline
+from app.schemas.timeline import (
+    UserEventCreate,
+    UserEventUpdate,
+    UserEventResponse,
+    UserEventWithTransits,
+    TransitContextCreate,
+    TransitContextUpdate,
+    TransitContextResponse,
+    TimelineRangeRequest,
+    TimelineRangeResponse,
+    TimelineDataPoint,
+    GenerateTransitContextRequest,
+    GenerateTransitContextResponse,
+    TimelineSummaryRequest,
+    TimelineSummaryResponse
+)
+
+# Phase 2: Canvas Exploration
+from app.schemas.canvas import (
+    CanvasBoardCreate,
+    CanvasBoardUpdate,
+    CanvasBoardResponse,
+    CanvasBoardWithItems,
+    CanvasItemCreate,
+    CanvasItemUpdate,
+    CanvasItemResponse,
+    CanvasItemBatchUpdate,
+    CanvasItemBatchResponse,
+    AddChartElementsRequest,
+    AddChartElementsResponse,
+    ArrangeItemsRequest,
+    ArrangeItemsResponse,
+    AnalyzeCanvasRequest,
+    AnalyzeCanvasResponse,
+    SuggestArrangementRequest,
+    SuggestArrangementResponse
 )
 
 __all__ = [
-    # User schemas
-    "UserCreate",
-    "UserUpdate",
-    "UserResponse",
-    "UserLogin",
-    "UserWithToken",
-    "UserPreferencesCreate",
-    "UserPreferencesUpdate",
-    "UserPreferencesResponse",
-    # Birth data schemas
-    "BirthDataCreate",
-    "BirthDataUpdate",
-    "BirthDataResponse",
-    "BirthDataWithLocation",
-    # Chart schemas
-    "ChartCreate",
-    "ChartUpdate",
-    "ChartResponse",
-    "ChartCalculationRequest",
-    "ChartCalculationResponse",
-    # Chart interpretation schemas
-    "ChartInterpretationCreate",
-    "ChartInterpretationUpdate",
-    "ChartInterpretationResponse",
-    "GenerateInterpretationRequest",
-    "GenerateInterpretationResponse",
-    # Common schemas
-    "Token",
-    "TokenPayload",
-    "Message",
-    "PaginatedResponse",
-    "HealthResponse",
-    "ErrorResponse",
+    # Common
+    'Message',
+
+    # Birth Data
+    'BirthDataCreate',
+    'BirthDataUpdate',
+    'BirthDataResponse',
+    'BirthDataWithLocation',
+
+    # Chart
+    'ChartCreate',
+    'ChartUpdate',
+    'ChartResponse',
+    'ChartWithRelations',
+    'ChartCalculationRequest',
+    'ChartCalculationResponse',
+
+    # Chart Interpretation
+    'ChartInterpretationCreate',
+    'ChartInterpretationUpdate',
+    'ChartInterpretationResponse',
+    'InterpretationSection',
+    'GenerateInterpretationRequest',
+    'GenerateInterpretationResponse',
+
+    # Phase 2: Journal System
+    'JournalEntryCreate',
+    'JournalEntryUpdate',
+    'JournalEntryResponse',
+    'JournalEntryWithContext',
+    'JournalSearchRequest',
+    'JournalSearchResponse',
+    'GenerateJournalSummaryRequest',
+    'GenerateJournalSummaryResponse',
+    'JournalInsightsRequest',
+    'JournalInsightsResponse',
+
+    # Phase 2: Transit Timeline
+    'UserEventCreate',
+    'UserEventUpdate',
+    'UserEventResponse',
+    'UserEventWithTransits',
+    'TransitContextCreate',
+    'TransitContextUpdate',
+    'TransitContextResponse',
+    'TimelineRangeRequest',
+    'TimelineRangeResponse',
+    'TimelineDataPoint',
+    'GenerateTransitContextRequest',
+    'GenerateTransitContextResponse',
+    'TimelineSummaryRequest',
+    'TimelineSummaryResponse',
+
+    # Phase 2: Canvas Exploration
+    'CanvasBoardCreate',
+    'CanvasBoardUpdate',
+    'CanvasBoardResponse',
+    'CanvasBoardWithItems',
+    'CanvasItemCreate',
+    'CanvasItemUpdate',
+    'CanvasItemResponse',
+    'CanvasItemBatchUpdate',
+    'CanvasItemBatchResponse',
+    'AddChartElementsRequest',
+    'AddChartElementsResponse',
+    'ArrangeItemsRequest',
+    'ArrangeItemsResponse',
+    'AnalyzeCanvasRequest',
+    'AnalyzeCanvasResponse',
+    'SuggestArrangementRequest',
+    'SuggestArrangementResponse',
+
+    # Phase 3: Human Design
+    'HDCalculationRequest',
+    'HDChartResponse',
+    'HDInterpretationRequest',
+    'GateActivation',
+    'ChannelDefinition',
+    'CenterDefinition',
+    'ProfileInfo',
+    'IncarnationCross',
+    'Variables',
+    'HDGateInfo',
+    'HDChannelInfo',
+    'HDCenterInfo',
+    'HDTypeInfo',
+    'HDGatesListResponse',
+    'HDChannelsListResponse',
+    'HDCentersListResponse',
+    'HDTypesListResponse',
+    'HDTypeInterpretationResponse',
+    'HDProfileInterpretationResponse',
+    'HDChannelInterpretationResponse',
+    'HDGateInterpretationResponse',
+    'HDFullReadingResponse',
 ]

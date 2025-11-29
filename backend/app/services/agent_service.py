@@ -501,6 +501,25 @@ CANVAS_TOOLS = [
     }
 ]
 
+# Screenshot tool for visual context
+SCREENSHOT_TOOLS = [
+    {
+        "name": "capture_screenshot",
+        "description": "Capture a screenshot of the current view or a specific element. Use this to see what the user is looking at, especially when discussing charts or visual elements. The screenshot will be shown to you as an image.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "target": {
+                    "type": "string",
+                    "description": "What to capture: 'chart' or 'chart_wheel' for the birth chart, 'page' or 'current' for the entire view, or a CSS selector for a specific element. Defaults to current view if not specified.",
+                    "enum": ["chart", "chart_wheel", "page", "current"]
+                }
+            },
+            "required": []
+        }
+    }
+]
+
 # Combine all tools
 ALL_TOOLS = (
     NAVIGATION_TOOLS +
@@ -510,7 +529,8 @@ ALL_TOOLS = (
     INFORMATION_TOOLS +
     JOURNAL_TOOLS +
     TIMELINE_TOOLS +
-    CANVAS_TOOLS
+    CANVAS_TOOLS +
+    SCREENSHOT_TOOLS
 )
 
 # Tools that execute on frontend (return instruction to client)
@@ -520,7 +540,14 @@ FRONTEND_TOOLS = {
     "highlight_pattern", "clear_selection", "toggle_layer", "set_aspect_filter",
     "set_chart_orientation",
     # Phase 2 frontend tools (trigger UI updates)
-    "arrange_canvas"
+    "arrange_canvas",
+    # Screenshot tool
+    "capture_screenshot"
+}
+
+# Frontend tools that require waiting for a response (async frontend tools)
+ASYNC_FRONTEND_TOOLS = {
+    "capture_screenshot"  # Need to wait for the image data
 }
 
 # Tools that execute on backend (return data)
@@ -549,8 +576,8 @@ def get_user_profile(db_session) -> Optional[Dict[str, Any]]:
         return None
 
     try:
-        from app.models_sqlite.birth_data import BirthData
-        from app.models_sqlite.chart import Chart
+        from app.models.birth_data import BirthData
+        from app.models.chart import Chart
 
         # Get the most recent birth data (primary user profile)
         birth_data = db_session.query(BirthData).order_by(
@@ -711,6 +738,10 @@ YOUR CAPABILITIES:
 - Journal: Help users record reflections and insights, search past entries, track moods
 - Timeline: Create life events, correlate experiences with transits
 - Canvas: Create visual explorations by arranging chart elements on a freeform canvas
+- Screenshot Capture: You HAVE the capture_screenshot tool - USE IT to see what's on screen
+
+IMPORTANT - YOU HAVE SCREENSHOT CAPABILITY:
+You have access to the capture_screenshot tool. When someone asks you to "take a screenshot", "show me what you see", "look at my chart", or anything visual - USE the capture_screenshot tool. It will return an actual image that you can see and describe. Do NOT say you can't take screenshots - you CAN and SHOULD use this tool.
 
 AUTONOMY GUIDELINES - BE PROACTIVE:
 - You have FULL AUTONOMY to use tools without asking permission
@@ -746,6 +777,7 @@ TOOL USE GUIDELINES:
 - For Vedic astrology: set_zodiac_system("vedic"), set_ayanamsa("lahiri"), then recalculate_chart
 - Offer to create journal entries when the user shares insights
 - Suggest adding significant moments to their timeline
+- USE capture_screenshot to visually see what the user sees - use target "chart" for the birth chart wheel, or "page" for the full view. The screenshot will be returned to you as an image you can analyze.
 
 OUTPUT FORMAT:
 - Write in plain text without markdown formatting
@@ -844,7 +876,8 @@ class AgentService:
         app_context: Optional[Dict[str, Any]] = None,
         chart_context: Optional[Dict[str, Any]] = None,
         user_preferences: Optional[Dict[str, Any]] = None,
-        db_session: Optional[Any] = None
+        db_session: Optional[Any] = None,
+        wait_for_tool_result: Optional[Any] = None  # Callable[[str], Awaitable[Dict[str, Any]]]
     ) -> AsyncGenerator[Dict[str, Any], None]:
         """
         Process a user message and stream responses with tool use continuation.
@@ -862,6 +895,9 @@ class AgentService:
             chart_context: Current chart data
             user_preferences: User's paradigm preferences
             db_session: Database session for backend tool execution
+            wait_for_tool_result: Optional callback to wait for async frontend tool results.
+                                  Takes tool_id, returns result dict. Used for tools like
+                                  capture_screenshot that need to receive data from frontend.
 
         Yields:
             Response chunks with types: 'text_delta', 'tool_call', 'tool_result', 'complete'
@@ -895,6 +931,14 @@ class AgentService:
                 stop_reason = None
 
                 # Create streaming message with tools
+                # Debug: Log tools being passed to Claude
+                tool_names = [t.get("name") for t in self.tools]
+                logger.info(f"[DEBUG] Passing {len(self.tools)} tools to Claude: {tool_names}")
+                if "capture_screenshot" in tool_names:
+                    logger.info("[DEBUG] capture_screenshot tool IS in the tools list!")
+                else:
+                    logger.warning("[DEBUG] capture_screenshot tool is MISSING from tools list!")
+
                 async with self.client.messages.stream(
                     model=self.model,
                     max_tokens=2000,
@@ -961,20 +1005,58 @@ class AgentService:
 
                                 # Determine if frontend or backend tool
                                 if current_tool_call["name"] in FRONTEND_TOOLS:
+                                    is_async_tool = current_tool_call["name"] in ASYNC_FRONTEND_TOOLS
                                     yield {
                                         "type": "tool_call",
                                         "id": current_tool_call["id"],
                                         "name": current_tool_call["name"],
                                         "input": current_tool_call["input"],
-                                        "execute_on": "frontend"
+                                        "execute_on": "frontend",
+                                        "await_result": is_async_tool
                                     }
-                                    # For frontend tools, we can't wait for result
-                                    # Add a placeholder result
-                                    iteration_tool_results.append({
-                                        "type": "tool_result",
-                                        "tool_use_id": current_tool_call["id"],
-                                        "content": json.dumps({"success": True, "message": "Frontend action executed"})
-                                    })
+
+                                    if is_async_tool and wait_for_tool_result:
+                                        # Wait for the actual result from frontend
+                                        logger.info(f"Waiting for async frontend tool result: {current_tool_call['name']}")
+                                        frontend_result = await wait_for_tool_result(current_tool_call["id"])
+
+                                        # Format result for Claude - handle image content specially
+                                        if current_tool_call["name"] == "capture_screenshot" and frontend_result.get("success") and frontend_result.get("image"):
+                                            # Include image as vision content for Claude
+                                            tool_result_content = [
+                                                {
+                                                    "type": "image",
+                                                    "source": {
+                                                        "type": "base64",
+                                                        "media_type": frontend_result.get("mime_type", "image/jpeg"),
+                                                        "data": frontend_result["image"]
+                                                    }
+                                                },
+                                                {
+                                                    "type": "text",
+                                                    "text": f"Screenshot captured successfully ({frontend_result.get('width', 0)}x{frontend_result.get('height', 0)} pixels)"
+                                                }
+                                            ]
+                                            iteration_tool_results.append({
+                                                "type": "tool_result",
+                                                "tool_use_id": current_tool_call["id"],
+                                                "content": tool_result_content
+                                            })
+                                            logger.info(f"Added screenshot image to tool result ({frontend_result.get('width')}x{frontend_result.get('height')})")
+                                        else:
+                                            # Regular async tool result (or failed screenshot)
+                                            iteration_tool_results.append({
+                                                "type": "tool_result",
+                                                "tool_use_id": current_tool_call["id"],
+                                                "content": json.dumps(frontend_result)
+                                            })
+                                    else:
+                                        # Non-async frontend tool - use placeholder result
+                                        iteration_tool_results.append({
+                                            "type": "tool_result",
+                                            "tool_use_id": current_tool_call["id"],
+                                            "content": json.dumps({"success": True, "message": "Frontend action executed"})
+                                        })
                                 else:
                                     # Execute backend tool and yield result
                                     result = await self._execute_backend_tool(
@@ -1121,8 +1203,8 @@ class AgentService:
                     return {"success": False, "error": "Database not available"}
 
                 try:
-                    from app.models_sqlite.chart import Chart
-                    from app.models_sqlite.birth_data import BirthData
+                    from app.models.chart import Chart
+                    from app.models.birth_data import BirthData
 
                     # Query charts with their birth data
                     charts = db_session.query(Chart).join(
@@ -1158,7 +1240,7 @@ class AgentService:
                     return {"success": False, "error": "Database not available"}
 
                 try:
-                    from app.models_sqlite.birth_data import BirthData
+                    from app.models.birth_data import BirthData
                     from app.services.human_design_calculator import HumanDesignCalculator
 
                     # Get the most recent birth data
@@ -1209,7 +1291,7 @@ class AgentService:
                     return {"success": False, "error": "Database not available"}
 
                 try:
-                    from app.models_sqlite.journal_entry import JournalEntry
+                    from app.models.journal_entry import JournalEntry
                     from datetime import date
                     import json as json_lib
 
@@ -1237,7 +1319,7 @@ class AgentService:
                     return {"success": False, "error": "Database not available"}
 
                 try:
-                    from app.models_sqlite.journal_entry import JournalEntry
+                    from app.models.journal_entry import JournalEntry
                     from sqlalchemy import or_
 
                     query = db_session.query(JournalEntry)
@@ -1281,7 +1363,7 @@ class AgentService:
                     return {"success": False, "error": "Database not available"}
 
                 try:
-                    from app.models_sqlite.journal_entry import JournalEntry
+                    from app.models.journal_entry import JournalEntry
 
                     limit = tool_input.get("limit", 5)
                     entries = db_session.query(JournalEntry).order_by(
@@ -1310,7 +1392,7 @@ class AgentService:
                     return {"success": False, "error": "Database not available"}
 
                 try:
-                    from app.models_sqlite.journal_entry import JournalEntry
+                    from app.models.journal_entry import JournalEntry
                     from datetime import date, timedelta
                     from sqlalchemy import func
 
@@ -1342,13 +1424,13 @@ class AgentService:
                     return {"success": False, "error": "Database not available"}
 
                 try:
-                    from app.models_sqlite.user_event import UserEvent
+                    from app.models.user_event import UserEvent
                     import json as json_lib
 
                     # Get birth_data_id from context or use first available
                     birth_data_id = chart_context.get("birth_data_id") if chart_context else None
                     if not birth_data_id:
-                        from app.models_sqlite.birth_data import BirthData
+                        from app.models.birth_data import BirthData
                         first_bd = db_session.query(BirthData).first()
                         birth_data_id = str(first_bd.id) if first_bd else None
 
@@ -1382,7 +1464,7 @@ class AgentService:
                     return {"success": False, "error": "Database not available"}
 
                 try:
-                    from app.models_sqlite.user_event import UserEvent
+                    from app.models.user_event import UserEvent
 
                     query = db_session.query(UserEvent)
 
@@ -1447,7 +1529,7 @@ class AgentService:
                     return {"success": False, "error": "Database not available"}
 
                 try:
-                    from app.models_sqlite.canvas_board import CanvasBoard
+                    from app.models.canvas_board import CanvasBoard
 
                     canvas = CanvasBoard(
                         name=tool_input.get("name"),
@@ -1471,7 +1553,7 @@ class AgentService:
                     return {"success": False, "error": "Database not available"}
 
                 try:
-                    from app.models_sqlite.canvas_board import CanvasItem
+                    from app.models.canvas_board import CanvasItem
                     import json as json_lib
 
                     item = CanvasItem(
@@ -1506,7 +1588,7 @@ class AgentService:
                     return {"success": False, "error": "Database not available"}
 
                 try:
-                    from app.models_sqlite.canvas_board import CanvasBoard
+                    from app.models.canvas_board import CanvasBoard
 
                     canvases = db_session.query(CanvasBoard).order_by(
                         CanvasBoard.updated_at.desc()

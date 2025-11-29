@@ -11,8 +11,8 @@ from uuid import UUID
 from datetime import date, timedelta
 
 from app.core.database_sqlite import get_db
-from app.models_sqlite import UserEvent, TransitContext, BirthData
-from app.schemas_sqlite.timeline import (
+from app.models import UserEvent, TransitContext, BirthData
+from app.schemas.timeline import (
     UserEventCreate,
     UserEventUpdate,
     UserEventResponse,
@@ -24,7 +24,7 @@ from app.schemas_sqlite.timeline import (
     TimelineRangeResponse,
     TimelineDataPoint,
 )
-from app.schemas_sqlite.common import Message
+from app.schemas.common import Message
 
 router = APIRouter()
 

@@ -38,8 +38,8 @@ TheProgram/
 │   ├── app/
 │   │   ├── api/routes/      # API endpoints
 │   │   ├── services/        # Business logic
-│   │   ├── models_sqlite/   # SQLAlchemy models
-│   │   ├── schemas_sqlite/  # Pydantic schemas
+│   │   ├── models/          # SQLAlchemy models
+│   │   ├── schemas/         # Pydantic schemas
 │   │   ├── core/            # Config, database
 │   │   └── utils/           # Helpers, ephemeris
 │   ├── tests/
@@ -63,7 +63,7 @@ TheProgram/
 **Adding an API endpoint:**
 1. Create/update route in `backend/app/api/routes/`
 2. Add service logic in `backend/app/services/`
-3. Define schemas in `backend/app/schemas_sqlite/`
+3. Define schemas in `backend/app/schemas/`
 4. Register route in `backend/app/api/routes/__init__.py`
 
 **Patterns:**
@@ -124,8 +124,21 @@ npm run electron:start
 ### Build for Distribution
 
 ```bash
+# Manual build
 npm run dist          # Full build + package
 npm run dist:linux    # Linux only (AppImage, deb)
+
+# Automated build (recommended)
+./scripts/build-release.sh   # Full pipeline: PyInstaller → Vite → Electron
+
+# Auto-build on commit: Add [build] tag to commit message
+git commit -m "Your message [build]"  # Triggers post-commit hook
+```
+
+### Reset for Testing
+
+```bash
+./scripts/reset-user-data.sh  # Clears all app data + kills backend on port 8000
 ```
 
 ### Database Migrations
@@ -158,8 +171,8 @@ alembic upgrade head
 
 _Updated as work progresses_
 
-- Documentation cleanup and workflow definition
-- Preparing for next feature phase
+- Guide agent with screenshot capability for visual chart assistance
+- Automated build pipeline with `[build]` commit tag triggers
 
 ---
 

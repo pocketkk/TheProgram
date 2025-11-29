@@ -11,8 +11,8 @@ from uuid import UUID
 import logging
 
 from app.core.database_sqlite import get_db
-from app.models_sqlite import Chart, ChartInterpretation
-from app.schemas_sqlite import (
+from app.models import Chart, ChartInterpretation
+from app.schemas import (
     ChartInterpretationCreate,
     ChartInterpretationUpdate,
     ChartInterpretationResponse,

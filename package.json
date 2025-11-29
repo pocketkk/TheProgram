@@ -18,7 +18,8 @@
     "build:all": "npm run build:frontend && npm run build:backend && npm run build:electron",
     "package": "electron-builder",
     "dist:linux": "electron-builder --linux",
-    "dist": "npm run build:all && npm run package"
+    "dist": "npm run build:all && npm run package",
+    "release": "./scripts/build-release.sh"
   },
   "keywords": [
     "astrology",

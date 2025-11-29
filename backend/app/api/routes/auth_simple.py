@@ -15,8 +15,8 @@ from app.core.auth_simple import (
     verify_session_token,
     get_token_expiry_seconds,
 )
-from app.models_sqlite.app_config import AppConfig
-from app.schemas_sqlite.auth import (
+from app.models.app_config import AppConfig
+from app.schemas.auth import (
     PasswordSetup,
     LoginRequest,
     LoginResponse,
@@ -513,9 +513,9 @@ async def validate_api_key(db: Session = Depends(get_db)):
 
         client = Anthropic(api_key=config.anthropic_api_key)
 
-        # Make a minimal test request
+        # Make a minimal test request using Claude Haiku 4.5 (fast & cheap)
         response = client.messages.create(
-            model="claude-haiku-4-5-20250929",
+            model="claude-haiku-4-5-20251001",
             max_tokens=10,
             messages=[{"role": "user", "content": "test"}],
         )
@@ -524,7 +524,7 @@ async def validate_api_key(db: Session = Depends(get_db)):
         return ApiKeyValidateResponse(
             valid=True,
             message="API key is valid and working correctly.",
-            model_access=["claude-haiku-4-5-20250929", "claude-sonnet-4-5-20250929"],
+            model_access=["claude-haiku-4-5-20251001", "claude-sonnet-4-5-20250514"],
         )
 
     except Exception as e:

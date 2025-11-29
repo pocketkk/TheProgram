@@ -11,15 +11,15 @@ from fastapi import APIRouter, HTTPException, Depends
 
 from app.services.dasha_calculator import VimshottariDashaCalculator
 from app.utils.ephemeris import EphemerisCalculator
-from app.schemas_sqlite.dasha import (
+from app.schemas.dasha import (
     DashaRequest,
     DashaFromChartRequest,
     DashaFromPositionRequest,
     DashaResponse,
     DashaSummary,
 )
-from app.models_sqlite.birth_data import BirthData
-from app.models_sqlite.chart import Chart
+from app.models.birth_data import BirthData
+from app.models.chart import Chart
 from app.core.database import get_db
 
 

@@ -8,7 +8,7 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
-from app.models_sqlite.app_config import AppConfig
+from app.models.app_config import AppConfig
 
 
 # =============================================================================

@@ -270,8 +270,10 @@ class EphemerisCalculator:
         # Calculate houses
         cusps, ascmc = swe.houses(jd, latitude, longitude, house_code)
 
+        # Swiss Ephemeris returns 12 house cusps starting at index 0
+        # cusps[0] = House 1 (ASC), cusps[1] = House 2, etc.
         return {
-            'cusps': list(cusps[1:]),  # Skip index 0, use 1-12
+            'cusps': list(cusps),  # All 12 house cusps
             'ascendant': ascmc[0],
             'mc': ascmc[1],
             'armc': ascmc[2],
