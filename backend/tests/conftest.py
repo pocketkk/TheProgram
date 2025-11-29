@@ -280,8 +280,8 @@ def test_db():
     from sqlalchemy.orm import sessionmaker
     from sqlalchemy.pool import StaticPool
     from app.core.database_sqlite import Base
-    from app.models_sqlite.app_config import AppConfig
-    from app.models_sqlite.user_preferences import UserPreferences
+    from app.models.app_config import AppConfig
+    from app.models.user_preferences import UserPreferences
 
     # Create in-memory database
     engine = create_engine(

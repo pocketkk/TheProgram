@@ -13,7 +13,7 @@ import logging
 import json
 
 from app.core.database_sqlite import get_db
-from app.models_sqlite import Chart, ChartInterpretation
+from app.models import Chart, ChartInterpretation
 from app.services.ai_interpreter import AIInterpreter
 from app.core.websocket import manager
 

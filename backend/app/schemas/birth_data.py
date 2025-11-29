@@ -1,5 +1,7 @@
 """
-Birth data-related Pydantic schemas
+Birth data-related Pydantic schemas (single-user mode)
+
+Same as multi-user schemas - birth data already doesn't have user_id
 """
 from typing import Optional
 from pydantic import BaseModel, Field, validator
@@ -43,7 +45,7 @@ class BirthDataBase(BaseModel):
 
 class BirthDataCreate(BirthDataBase):
     """Schema for creating new birth data"""
-    client_id: UUID = Field(..., description="Client ID this birth data belongs to")
+    pass
 
 
 class BirthDataUpdate(BaseModel):
@@ -75,7 +77,6 @@ class BirthDataUpdate(BaseModel):
 class BirthDataResponse(BirthDataBase):
     """Schema for birth data response"""
     id: UUID = Field(..., description="Birth data ID")
-    client_id: UUID = Field(..., description="Client ID")
     created_at: datetime = Field(..., description="Creation timestamp")
     updated_at: datetime = Field(..., description="Last update timestamp")
 
@@ -86,5 +87,5 @@ class BirthDataResponse(BirthDataBase):
 class BirthDataWithLocation(BirthDataResponse):
     """Birth data response with formatted location string"""
     location_string: str = Field(..., description="Formatted location string")
-    is_time_known: bool = Field(..., description="Whether birth time is known")
+    has_time: bool = Field(..., description="Whether birth time is known")
     data_quality: str = Field(..., description="Human-readable data quality description")

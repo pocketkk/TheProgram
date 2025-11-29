@@ -12,8 +12,8 @@ from uuid import UUID
 from datetime import date
 
 from app.core.database_sqlite import get_db
-from app.models_sqlite import JournalEntry, BirthData, Chart
-from app.schemas_sqlite.journal import (
+from app.models import JournalEntry, BirthData, Chart
+from app.schemas.journal import (
     JournalEntryCreate,
     JournalEntryUpdate,
     JournalEntryResponse,
@@ -21,7 +21,7 @@ from app.schemas_sqlite.journal import (
     JournalSearchRequest,
     JournalSearchResponse,
 )
-from app.schemas_sqlite.common import Message
+from app.schemas.common import Message
 
 router = APIRouter()
 

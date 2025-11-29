@@ -13,7 +13,7 @@ from sqlalchemy import create_engine, event
 from sqlalchemy.engine import Engine
 from sqlalchemy.pool import StaticPool
 
-from app.models_sqlite import (
+from app.models import (
     Base,
     AppConfig, UserPreferences,
     Client, BirthData, Chart,
