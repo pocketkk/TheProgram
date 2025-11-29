@@ -494,11 +494,12 @@ export function useCompanionActions() {
     setConnectionStatus('connecting')
 
     // Get API base URL - use env var or default to localhost for Electron
-    const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+    // VITE_API_URL should include /api prefix (e.g., http://localhost:8000/api)
+    const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
 
     // First check if API key is configured
     try {
-      const response = await fetch(`${apiBaseUrl}/api/auth/api-key/status`)
+      const response = await fetch(`${apiBaseUrl}/auth/api-key/status`)
       if (response.ok) {
         const status = await response.json()
         if (!status.has_api_key) {
@@ -515,7 +516,7 @@ export function useCompanionActions() {
     // Build WebSocket URL from API base URL
     const wsProtocol = apiBaseUrl.startsWith('https') ? 'wss:' : 'ws:'
     const apiHost = apiBaseUrl.replace(/^https?:\/\//, '')
-    const wsUrl = `${wsProtocol}//${apiHost}/api/ws/agent`
+    const wsUrl = `${wsProtocol}//${apiHost}/ws/agent`
 
     try {
       const ws = new WebSocket(wsUrl)
