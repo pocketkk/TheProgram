@@ -47,6 +47,13 @@ fi
 echo ""
 echo -e "${YELLOW}Resetting user data...${NC}"
 
+# Kill any running backend on port 8000
+if lsof -ti:8000 >/dev/null 2>&1; then
+    lsof -ti:8000 | xargs kill -9 2>/dev/null
+    echo -e "${GREEN}✓${NC} Killed backend process on port 8000"
+    sleep 1
+fi
+
 # Remove the entire app data directory
 rm -rf "$APP_DATA_DIR"
 echo -e "${GREEN}✓${NC} Removed: $APP_DATA_DIR"
