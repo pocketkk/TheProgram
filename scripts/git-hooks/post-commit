@@ -1,0 +1,51 @@
+#!/bin/bash
+# Post-commit hook to automatically build release
+#
+# INSTALLATION:
+#   cp scripts/git-hooks/post-commit .git/hooks/post-commit
+#   chmod +x .git/hooks/post-commit
+#
+# USAGE:
+# Triggers build when:
+#   1. Commit message contains "[build]" tag
+#   2. AUTO_BUILD_RELEASE=1 environment variable is set
+#
+# To enable auto-build for all commits:
+#   export AUTO_BUILD_RELEASE=1
+#
+# To build on a specific commit:
+#   git commit -m "Your message [build]"
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(dirname "$(dirname "$SCRIPT_DIR")")"
+
+# Get the commit message
+COMMIT_MSG=$(git log -1 --pretty=%B)
+
+# Check if we should build
+SHOULD_BUILD=false
+
+if [[ "$COMMIT_MSG" == *"[build]"* ]]; then
+    SHOULD_BUILD=true
+    echo ""
+    echo "[post-commit] Detected [build] tag in commit message"
+fi
+
+if [[ "$AUTO_BUILD_RELEASE" == "1" ]]; then
+    SHOULD_BUILD=true
+    echo ""
+    echo "[post-commit] AUTO_BUILD_RELEASE is enabled"
+fi
+
+if [ "$SHOULD_BUILD" = true ]; then
+    echo "[post-commit] Starting release build..."
+    echo ""
+
+    # Run the build script
+    if [ -x "$PROJECT_ROOT/scripts/build-release.sh" ]; then
+        "$PROJECT_ROOT/scripts/build-release.sh"
+    else
+        echo "[post-commit] ERROR: build-release.sh not found or not executable"
+        exit 1
+    fi
+fi
