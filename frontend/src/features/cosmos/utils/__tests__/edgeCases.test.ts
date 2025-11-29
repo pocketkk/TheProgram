@@ -68,35 +68,35 @@ describe('Edge Case Handling - Orbital Mechanics', () => {
       const elements = { ...EARTH_ELEMENTS, semiMajorAxis: -1.0 }
       const result = validateKeplerianElements(elements)
       expect(result.valid).toBe(false)
-      expect(result.errors).toContain(expect.stringContaining('semi-major axis'))
+      expect(result.errors.some((e) => e.includes('Semi-major axis'))).toBe(true)
     })
 
     it('should reject eccentricity >= 1 (hyperbolic)', () => {
       const elements = { ...EARTH_ELEMENTS, eccentricity: 1.5 }
       const result = validateKeplerianElements(elements)
       expect(result.valid).toBe(false)
-      expect(result.errors).toContain(expect.stringContaining('eccentricity'))
+      expect(result.errors.some((e) => e.includes('Eccentricity'))).toBe(true)
     })
 
     it('should reject negative eccentricity', () => {
       const elements = { ...EARTH_ELEMENTS, eccentricity: -0.2 }
       const result = validateKeplerianElements(elements)
       expect(result.valid).toBe(false)
-      expect(result.errors).toContain(expect.stringContaining('eccentricity'))
+      expect(result.errors.some((e) => e.includes('Eccentricity'))).toBe(true)
     })
 
     it('should reject extreme inclination', () => {
       const elements = { ...EARTH_ELEMENTS, inclination: 270 }
       const result = validateKeplerianElements(elements)
       expect(result.valid).toBe(false)
-      expect(result.errors).toContain(expect.stringContaining('inclination'))
+      expect(result.errors.some((e) => e.includes('Inclination'))).toBe(true)
     })
 
     it('should reject negative period', () => {
       const elements = { ...EARTH_ELEMENTS, period: -365 }
       const result = validateKeplerianElements(elements)
       expect(result.valid).toBe(false)
-      expect(result.errors).toContain(expect.stringContaining('period'))
+      expect(result.errors.some((e) => e.includes('Orbital period'))).toBe(true)
     })
   })
 
