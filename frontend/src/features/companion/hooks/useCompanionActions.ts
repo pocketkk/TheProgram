@@ -8,6 +8,7 @@ import { useCompanionStore } from '../stores/companionStore'
 import { useChartStore } from '@/features/birthchart/stores/chartStore'
 import { useTransitStore } from '@/store/transitStore'
 import type { AspectPattern } from '@/lib/astrology/patterns'
+import { captureScreenshot, captureChartWheel, captureCurrentView } from '@/lib/utils/screenshot'
 
 // Custom events for the app to listen to
 // These dispatch state changes that specific pages handle
@@ -109,23 +110,44 @@ export function useCompanionActions() {
     const chart = chartStore.getActiveChart()
     if (!chart) return null
 
+    // Build planets lookup
+    const planets = chart.planets.reduce(
+      (acc, p) => {
+        acc[p.name.toLowerCase()] = {
+          sign_name: p.sign,
+          degree_in_sign: p.degree,
+          longitude: p.longitude,
+          retrograde: p.isRetrograde,
+          house: p.house,
+        }
+        return acc
+      },
+      {} as Record<string, unknown>
+    )
+
+    // Build detailed house information
+    const houseDetails = chart.houses?.map(h => {
+      // Find planets in this house
+      const planetsInHouse = chart.planets
+        .filter(p => p.house === h.number)
+        .map(p => p.name)
+
+      return {
+        number: h.number,
+        sign: h.sign,
+        cusp_degree: h.cusp,
+        degree_in_sign: h.degree,
+        planets_in_house: planetsInHouse,
+      }
+    }) || []
+
     return {
-      planets: chart.planets.reduce(
-        (acc, p) => {
-          acc[p.name.toLowerCase()] = {
-            sign_name: p.sign,
-            degree_in_sign: p.degree,
-            longitude: p.longitude,
-            retrograde: p.isRetrograde,
-            house: p.house,
-          }
-          return acc
-        },
-        {} as Record<string, unknown>
-      ),
+      planets,
       houses: {
-        cusps: chart.houses?.map(h => h.degree) || [],
-        ascendant: chart.houses?.[0]?.degree,
+        cusps: chart.houses?.map(h => h.cusp) || [],
+        ascendant: chart.houses?.find(h => h.number === 1)?.cusp,
+        midheaven: chart.houses?.find(h => h.number === 10)?.cusp,
+        house_details: houseDetails,
       },
       aspects: chart.aspects.map(a => ({
         planet1: a.planet1,
@@ -351,6 +373,51 @@ export function useCompanionActions() {
             console.log(`Arrange canvas ${canvasId} in ${arrangement} layout`)
             // This would be handled by the canvas store via the API
             // For now, we just acknowledge it
+            break
+          }
+
+          case 'capture_screenshot': {
+            // Capture a screenshot and send it back to the agent
+            const target = input.target as string | undefined
+
+            // Run async screenshot capture
+            (async () => {
+              let result
+              if (target === 'chart' || target === 'chart_wheel') {
+                result = await captureChartWheel()
+              } else if (target === 'page' || target === 'current') {
+                result = await captureCurrentView()
+              } else if (target) {
+                // Custom selector
+                result = await captureScreenshot({ selector: target })
+              } else {
+                // Default to current view
+                result = await captureCurrentView()
+              }
+
+              // Send the screenshot back to the WebSocket
+              if (wsRef.current?.readyState === WebSocket.OPEN) {
+                wsRef.current.send(
+                  JSON.stringify({
+                    type: 'tool_result',
+                    tool_call_id: id,
+                    tool_name: name,
+                    result: result.success
+                      ? {
+                          success: true,
+                          image: result.image,
+                          mime_type: result.mimeType,
+                          width: result.width,
+                          height: result.height,
+                        }
+                      : {
+                          success: false,
+                          error: result.error,
+                        },
+                  })
+                )
+              }
+            })()
             break
           }
 

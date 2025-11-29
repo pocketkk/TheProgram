@@ -501,6 +501,25 @@ CANVAS_TOOLS = [
     }
 ]
 
+# Screenshot tool for visual context
+SCREENSHOT_TOOLS = [
+    {
+        "name": "capture_screenshot",
+        "description": "Capture a screenshot of the current view or a specific element. Use this to see what the user is looking at, especially when discussing charts or visual elements. The screenshot will be shown to you as an image.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "target": {
+                    "type": "string",
+                    "description": "What to capture: 'chart' or 'chart_wheel' for the birth chart, 'page' or 'current' for the entire view, or a CSS selector for a specific element. Defaults to current view if not specified.",
+                    "enum": ["chart", "chart_wheel", "page", "current"]
+                }
+            },
+            "required": []
+        }
+    }
+]
+
 # Combine all tools
 ALL_TOOLS = (
     NAVIGATION_TOOLS +
@@ -510,7 +529,8 @@ ALL_TOOLS = (
     INFORMATION_TOOLS +
     JOURNAL_TOOLS +
     TIMELINE_TOOLS +
-    CANVAS_TOOLS
+    CANVAS_TOOLS +
+    SCREENSHOT_TOOLS
 )
 
 # Tools that execute on frontend (return instruction to client)
@@ -520,7 +540,14 @@ FRONTEND_TOOLS = {
     "highlight_pattern", "clear_selection", "toggle_layer", "set_aspect_filter",
     "set_chart_orientation",
     # Phase 2 frontend tools (trigger UI updates)
-    "arrange_canvas"
+    "arrange_canvas",
+    # Screenshot tool
+    "capture_screenshot"
+}
+
+# Frontend tools that require waiting for a response (async frontend tools)
+ASYNC_FRONTEND_TOOLS = {
+    "capture_screenshot"  # Need to wait for the image data
 }
 
 # Tools that execute on backend (return data)
@@ -844,7 +871,8 @@ class AgentService:
         app_context: Optional[Dict[str, Any]] = None,
         chart_context: Optional[Dict[str, Any]] = None,
         user_preferences: Optional[Dict[str, Any]] = None,
-        db_session: Optional[Any] = None
+        db_session: Optional[Any] = None,
+        wait_for_tool_result: Optional[Any] = None  # Callable[[str], Awaitable[Dict[str, Any]]]
     ) -> AsyncGenerator[Dict[str, Any], None]:
         """
         Process a user message and stream responses with tool use continuation.
@@ -862,6 +890,9 @@ class AgentService:
             chart_context: Current chart data
             user_preferences: User's paradigm preferences
             db_session: Database session for backend tool execution
+            wait_for_tool_result: Optional callback to wait for async frontend tool results.
+                                  Takes tool_id, returns result dict. Used for tools like
+                                  capture_screenshot that need to receive data from frontend.
 
         Yields:
             Response chunks with types: 'text_delta', 'tool_call', 'tool_result', 'complete'
@@ -961,20 +992,58 @@ class AgentService:
 
                                 # Determine if frontend or backend tool
                                 if current_tool_call["name"] in FRONTEND_TOOLS:
+                                    is_async_tool = current_tool_call["name"] in ASYNC_FRONTEND_TOOLS
                                     yield {
                                         "type": "tool_call",
                                         "id": current_tool_call["id"],
                                         "name": current_tool_call["name"],
                                         "input": current_tool_call["input"],
-                                        "execute_on": "frontend"
+                                        "execute_on": "frontend",
+                                        "await_result": is_async_tool
                                     }
-                                    # For frontend tools, we can't wait for result
-                                    # Add a placeholder result
-                                    iteration_tool_results.append({
-                                        "type": "tool_result",
-                                        "tool_use_id": current_tool_call["id"],
-                                        "content": json.dumps({"success": True, "message": "Frontend action executed"})
-                                    })
+
+                                    if is_async_tool and wait_for_tool_result:
+                                        # Wait for the actual result from frontend
+                                        logger.info(f"Waiting for async frontend tool result: {current_tool_call['name']}")
+                                        frontend_result = await wait_for_tool_result(current_tool_call["id"])
+
+                                        # Format result for Claude - handle image content specially
+                                        if current_tool_call["name"] == "capture_screenshot" and frontend_result.get("success") and frontend_result.get("image"):
+                                            # Include image as vision content for Claude
+                                            tool_result_content = [
+                                                {
+                                                    "type": "image",
+                                                    "source": {
+                                                        "type": "base64",
+                                                        "media_type": frontend_result.get("mime_type", "image/jpeg"),
+                                                        "data": frontend_result["image"]
+                                                    }
+                                                },
+                                                {
+                                                    "type": "text",
+                                                    "text": f"Screenshot captured successfully ({frontend_result.get('width', 0)}x{frontend_result.get('height', 0)} pixels)"
+                                                }
+                                            ]
+                                            iteration_tool_results.append({
+                                                "type": "tool_result",
+                                                "tool_use_id": current_tool_call["id"],
+                                                "content": tool_result_content
+                                            })
+                                            logger.info(f"Added screenshot image to tool result ({frontend_result.get('width')}x{frontend_result.get('height')})")
+                                        else:
+                                            # Regular async tool result (or failed screenshot)
+                                            iteration_tool_results.append({
+                                                "type": "tool_result",
+                                                "tool_use_id": current_tool_call["id"],
+                                                "content": json.dumps(frontend_result)
+                                            })
+                                    else:
+                                        # Non-async frontend tool - use placeholder result
+                                        iteration_tool_results.append({
+                                            "type": "tool_result",
+                                            "tool_use_id": current_tool_call["id"],
+                                            "content": json.dumps({"success": True, "message": "Frontend action executed"})
+                                        })
                                 else:
                                     # Execute backend tool and yield result
                                     result = await self._execute_backend_tool(
