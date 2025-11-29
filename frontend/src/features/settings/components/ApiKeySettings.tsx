@@ -274,15 +274,40 @@ export function ApiKeySettings() {
         </div>
       </div>
 
-      {/* Info Section */}
-      <div className="p-4 rounded-lg bg-cosmic-900/30 border border-cosmic-700/30">
-        <h4 className="text-sm font-medium mb-2">About AI Interpretations</h4>
-        <ul className="text-xs text-gray-400 space-y-1">
-          <li>• AI interpretations use Claude Haiku 4.5 for fast, cost-effective results</li>
-          <li>• Estimated cost: $0.10-0.12 per full chart interpretation</li>
-          <li>• Your API key is stored securely and never shared</li>
-          <li>• Free tier includes $5 credit (40-50 full charts)</li>
-        </ul>
+      {/* BYOT Benefits Section */}
+      <div className="p-4 rounded-lg bg-gradient-to-br from-amber-950/30 to-cosmic-900/30 border border-amber-700/20">
+        <h4 className="text-sm font-medium mb-3 text-amber-300">
+          ✨ Bring Your Own Token (BYOT)
+        </h4>
+        <p className="text-xs text-gray-300 mb-3">
+          The Program uses a "Bring Your Own Token" model – you connect directly to Anthropic's Claude AI with your own API key. Here's why this is better for you:
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+          <div className="bg-cosmic-900/40 p-3 rounded-lg">
+            <h5 className="text-xs font-medium text-white mb-1">💰 No Subscription</h5>
+            <p className="text-xs text-gray-400">Pay only for what you use. No monthly fees, no locked features.</p>
+          </div>
+          <div className="bg-cosmic-900/40 p-3 rounded-lg">
+            <h5 className="text-xs font-medium text-white mb-1">🔒 Privacy First</h5>
+            <p className="text-xs text-gray-400">Your conversations go directly to Anthropic. We never see your data.</p>
+          </div>
+          <div className="bg-cosmic-900/40 p-3 rounded-lg">
+            <h5 className="text-xs font-medium text-white mb-1">🚫 No Middleman</h5>
+            <p className="text-xs text-gray-400">Direct connection means faster responses and no markup on API costs.</p>
+          </div>
+          <div className="bg-cosmic-900/40 p-3 rounded-lg">
+            <h5 className="text-xs font-medium text-white mb-1">🎁 Free to Start</h5>
+            <p className="text-xs text-gray-400">New Anthropic accounts include $5 credit – enough for dozens of readings.</p>
+          </div>
+        </div>
+        <div className="text-xs text-gray-400 border-t border-cosmic-700/30 pt-3">
+          <p className="mb-1"><strong className="text-gray-300">Typical costs:</strong></p>
+          <ul className="space-y-0.5 ml-2">
+            <li>• Full chart interpretation: ~$0.10-0.15</li>
+            <li>• Guide conversation: ~$0.01-0.05 per message</li>
+            <li>• Human Design reading: ~$0.08-0.12</li>
+          </ul>
+        </div>
       </div>
     </div>
   )

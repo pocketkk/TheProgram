@@ -190,7 +190,7 @@ export function TarotPage() {
                     value={question}
                     onChange={(e) => setQuestion(e.target.value)}
                     placeholder="What guidance do you seek?"
-                    className="w-full p-3 bg-cosmic-dark/50 border border-cosmic-light/20 rounded-lg
+                    className="w-full p-3 bg-cosmic-900/50 border border-cosmic-400/20 rounded-lg
                              text-white placeholder-gray-500 resize-none
                              focus:outline-none focus:border-purple-500/50"
                     rows={3}

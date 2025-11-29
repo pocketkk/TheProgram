@@ -486,12 +486,28 @@ export function useCompanionActions() {
   )
 
   // Connect to WebSocket
-  const connect = useCallback(() => {
+  const connect = useCallback(async () => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
       return
     }
 
     setConnectionStatus('connecting')
+
+    // First check if API key is configured
+    try {
+      const response = await fetch('/api/auth/api-key/status')
+      if (response.ok) {
+        const status = await response.json()
+        if (!status.has_api_key) {
+          console.log('No API key configured')
+          setConnectionStatus('no_api_key')
+          return
+        }
+      }
+    } catch (error) {
+      console.warn('Could not check API key status:', error)
+      // Continue anyway - the WebSocket will fail if no key
+    }
 
     // Use relative WebSocket URL based on current location
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
@@ -513,8 +529,9 @@ export function useCompanionActions() {
         setConnectionStatus('disconnected')
         wsRef.current = null
 
-        // Attempt reconnect with exponential backoff
-        if (reconnectAttemptsRef.current < 5) {
+        // Attempt reconnect with exponential backoff (but not if no API key)
+        const currentStatus = useCompanionStore.getState().connectionStatus
+        if (reconnectAttemptsRef.current < 5 && currentStatus !== 'no_api_key') {
           const delay = Math.min(
             1000 * Math.pow(2, reconnectAttemptsRef.current),
             30000
