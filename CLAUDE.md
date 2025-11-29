@@ -124,8 +124,21 @@ npm run electron:start
 ### Build for Distribution
 
 ```bash
+# Manual build
 npm run dist          # Full build + package
 npm run dist:linux    # Linux only (AppImage, deb)
+
+# Automated build (recommended)
+./scripts/build-release.sh   # Full pipeline: PyInstaller → Vite → Electron
+
+# Auto-build on commit: Add [build] tag to commit message
+git commit -m "Your message [build]"  # Triggers post-commit hook
+```
+
+### Reset for Testing
+
+```bash
+./scripts/reset-user-data.sh  # Clears all app data + kills backend on port 8000
 ```
 
 ### Database Migrations
@@ -158,8 +171,8 @@ alembic upgrade head
 
 _Updated as work progresses_
 
-- Documentation cleanup and workflow definition
-- Preparing for next feature phase
+- Guide agent with screenshot capability for visual chart assistance
+- Automated build pipeline with `[build]` commit tag triggers
 
 ---
 
