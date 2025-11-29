@@ -139,7 +139,7 @@ export const useChartStore = create<ChartStore>((set, get) => ({
   houseSystem: 'placidus',
   includeNakshatras: false,
   includeWesternAspects: false,
-  includeMinorAspects: true,
+  includeMinorAspects: false,
 
   visibility: {
     zodiac: true,

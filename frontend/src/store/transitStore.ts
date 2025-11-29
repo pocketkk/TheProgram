@@ -42,6 +42,7 @@ interface TransitState {
   currentBirthDataId: string | null
   zodiac: 'tropical' | 'sidereal'
   daysAhead: number
+  transitDate: string | null  // ISO date string, null = "now"
 
   // UI State
   isLoading: boolean
@@ -52,8 +53,9 @@ interface TransitState {
   setBirthDataId: (id: string) => void
   setZodiac: (zodiac: 'tropical' | 'sidereal') => void
   setDaysAhead: (days: number) => void
+  setTransitDate: (date: string | null) => void  // null = reset to "now"
 
-  fetchCurrentTransits: (birthDataId?: string) => Promise<void>
+  fetchCurrentTransits: (birthDataId?: string, date?: string) => Promise<void>
   fetchUpcomingTransits: (birthDataId?: string, days?: number) => Promise<void>
   fetchDailySnapshot: (birthDataId?: string, date?: string) => Promise<void>
   fetchTimeline: (startDate: string, endDate: string) => Promise<void>
@@ -103,6 +105,7 @@ export const useTransitStore = create<TransitState>((set, get) => ({
   currentBirthDataId: null,
   zodiac: 'tropical',
   daysAhead: 30,
+  transitDate: null,  // null = "now"
   isLoading: false,
   error: null,
   lastUpdated: null,
@@ -111,9 +114,10 @@ export const useTransitStore = create<TransitState>((set, get) => ({
   setBirthDataId: (id) => set({ currentBirthDataId: id }),
   setZodiac: (zodiac) => set({ zodiac }),
   setDaysAhead: (days) => set({ daysAhead: days }),
+  setTransitDate: (date) => set({ transitDate: date }),
 
   // Fetch current transits
-  fetchCurrentTransits: async (birthDataId) => {
+  fetchCurrentTransits: async (birthDataId, date) => {
     const id = birthDataId || get().currentBirthDataId
     if (!id) {
       set({ error: 'No birth data selected' })
@@ -122,8 +126,16 @@ export const useTransitStore = create<TransitState>((set, get) => ({
 
     set({ isLoading: true, error: null })
     try {
-      const { zodiac } = get()
-      const transits = await transitApi.getCurrentTransitsSimple(id, zodiac)
+      const { zodiac, transitDate } = get()
+      const targetDate = date ?? transitDate
+      // Use POST endpoint when date is specified, GET for "now"
+      const transits = targetDate
+        ? await transitApi.getCurrentTransits({
+            birth_data_id: id,
+            transit_date: targetDate,
+            zodiac
+          })
+        : await transitApi.getCurrentTransitsSimple(id, zodiac)
       set({
         currentTransits: transits,
         isLoading: false,
@@ -287,13 +299,13 @@ export const useTransitStore = create<TransitState>((set, get) => ({
 
   // Refresh all data
   refreshAll: async () => {
-    const { currentBirthDataId, timelineStartDate, timelineEndDate } = get()
+    const { currentBirthDataId, timelineStartDate, timelineEndDate, transitDate } = get()
     if (!currentBirthDataId) return
 
     await Promise.all([
       get().fetchCurrentTransits(),
       get().fetchUpcomingTransits(),
-      get().fetchDailySnapshot(),
+      get().fetchDailySnapshot(undefined, transitDate || undefined),
       get().fetchTimeline(timelineStartDate, timelineEndDate)
     ])
   },

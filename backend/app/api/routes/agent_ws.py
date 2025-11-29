@@ -13,6 +13,7 @@ import uuid
 
 from app.services.agent_service import AgentService
 from app.core.websocket import manager
+from app.core.database_sqlite import SessionLocal
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -105,6 +106,7 @@ async def agent_conversation(websocket: WebSocket):
                         connection_id=connection_id,
                         session_id=request.get("session_id", session_id),
                         content=request.get("content", ""),
+                        app_context=request.get("app_context"),
                         chart_context=request.get("chart_context"),
                         user_preferences=request.get("user_preferences"),
                         agent_service=agent_service
@@ -167,6 +169,7 @@ async def handle_chat_message(
     connection_id: str,
     session_id: str,
     content: str,
+    app_context: Optional[Dict[str, Any]],
     chart_context: Optional[Dict[str, Any]],
     user_preferences: Optional[Dict[str, Any]],
     agent_service: AgentService
@@ -178,6 +181,7 @@ async def handle_chat_message(
         connection_id: WebSocket connection identifier
         session_id: Conversation session identifier
         content: User's message content
+        app_context: Current app state (page, chart_id, zodiac_system, etc.)
         chart_context: Current chart data from frontend
         user_preferences: User's paradigm preferences
         agent_service: Agent service instance
@@ -201,14 +205,17 @@ async def handle_chat_message(
         "message": "Contemplating your question..."
     })
 
+    # Create database session for backend tools
+    db = SessionLocal()
     try:
         # Stream response from agent
         async for chunk in agent_service.process_message(
             message=content,
             conversation_history=conversation_history,
+            app_context=app_context,
             chart_context=chart_context,
             user_preferences=user_preferences,
-            db_session=None  # TODO: Add database session for backend tools
+            db_session=db
         ):
             await manager.send_message(connection_id, chunk)
 
@@ -238,6 +245,8 @@ async def handle_chat_message(
             "type": "error",
             "error": f"Failed to process message: {str(e)}"
         })
+    finally:
+        db.close()
 
 
 @router.websocket("/ws/agent/proactive")

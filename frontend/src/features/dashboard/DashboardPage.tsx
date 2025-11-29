@@ -13,8 +13,10 @@ import {
 } from '@/components/ui'
 import { listCharts, type ChartResponse } from '@/lib/api/charts'
 import { listBirthData } from '@/lib/api/birthData'
+import { useUserProfileStore } from '@/store/userProfileStore'
 
 export const DashboardPage = ({ onNavigate }: { onNavigate: (page: string) => void }) => {
+  const { profile } = useUserProfileStore()
   const [totalCharts, setTotalCharts] = useState(0)
   const [totalBirthData, setTotalBirthData] = useState(0)
   const [recentChartsData, setRecentChartsData] = useState<ChartResponse[]>([])
@@ -98,7 +100,7 @@ export const DashboardPage = ({ onNavigate }: { onNavigate: (page: string) => vo
       >
         <div>
           <h1 className="text-4xl font-heading font-bold text-gradient-celestial mb-2">
-            Welcome back!
+            Welcome back{profile.name ? `, ${profile.name}` : ''}!
           </h1>
           <p className="text-gray-400">
             Here's what's happening with your astrological practice today.

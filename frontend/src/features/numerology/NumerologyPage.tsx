@@ -4,10 +4,11 @@
  * Interactive numerology calculator with profile analysis.
  * Part of Phase 3: Multi-Paradigm Integration
  */
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Hash, Calendar, User, Heart, Search, Sparkles } from 'lucide-react'
 import { useNumerologyStore } from '@/store/numerologyStore'
+import { useUserProfileStore } from '@/store/userProfileStore'
 import { getNumberColorClass, isMasterNumber, formatDateForApi } from '@/lib/api/numerology'
 import type { NumerologyProfile, NumberMeaning, NameAnalysis } from '@/lib/api/numerology'
 
@@ -20,6 +21,10 @@ export const NumerologyPage = () => {
   const [analyzeName, setAnalyzeName] = useState('')
   const [compNum1, setCompNum1] = useState('')
   const [compNum2, setCompNum2] = useState('')
+  const hasAutoCalculated = useRef(false)
+
+  // Get user profile for auto-population
+  const { profile } = useUserProfileStore()
 
   const {
     meanings,
@@ -50,6 +55,22 @@ export const NumerologyPage = () => {
       fetchDailyNumber()
     }
   }, [])
+
+  // Auto-populate and calculate from user profile
+  useEffect(() => {
+    if (profile.name && profile.birthDate && !hasAutoCalculated.current && !currentProfile) {
+      // Set form values from profile
+      setFullName(profile.name)
+      setBirthDate(profile.birthDate)
+
+      // Auto-calculate profile
+      hasAutoCalculated.current = true
+      calculateFullProfile({
+        full_name: profile.name,
+        birth_date: profile.birthDate,
+      })
+    }
+  }, [profile.name, profile.birthDate, currentProfile, calculateFullProfile])
 
   const handleCalculate = async () => {
     if (fullName.trim() && birthDate) {

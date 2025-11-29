@@ -5,6 +5,7 @@
   "main": "dist/electron/main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "reset": "./scripts/reset-user-data.sh",
     "electron:compile": "tsc -p electron/tsconfig.json",
     "electron:dev": "NODE_ENV=development electron . --no-sandbox",
     "electron:prod": "NODE_ENV=production electron . --no-sandbox",

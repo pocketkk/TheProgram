@@ -27,11 +27,20 @@ export function ModalityChart({ chart }: ModalityChartProps) {
       Mutable: 0,
     }
 
+    if (!chart?.planets) {
+      return Object.entries(counts).map(([modality, count]) => ({
+        modality,
+        count,
+        percentage: 0,
+        color: MODALITY_COLORS[modality as keyof typeof MODALITY_COLORS],
+      }))
+    }
+
     chart.planets.forEach(planet => {
       counts[planet.modality] = (counts[planet.modality] || 0) + 1
     })
 
-    const total = chart.planets.length
+    const total = chart.planets.length || 1
 
     // Create data array
     return Object.entries(counts).map(([modality, count]) => ({
@@ -40,9 +49,9 @@ export function ModalityChart({ chart }: ModalityChartProps) {
       percentage: (count / total) * 100,
       color: MODALITY_COLORS[modality as keyof typeof MODALITY_COLORS],
     }))
-  }, [chart.planets])
+  }, [chart?.planets])
 
-  const maxCount = Math.max(...modalityData.map(d => d.count))
+  const maxCount = Math.max(...modalityData.map(d => d.count), 1) // Ensure minimum of 1 to prevent division by zero
 
   return (
     <div className="bg-gradient-to-br from-cosmic-900/80 to-cosmic-800/80 rounded-lg p-3 border border-cosmic-700/50">

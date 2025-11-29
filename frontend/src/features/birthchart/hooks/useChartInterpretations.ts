@@ -8,6 +8,7 @@ import type { ChartInterpretation, ElementType } from '@/types/interpretation'
 
 interface UseChartInterpretationsOptions {
   chartId: string | null
+  zodiacSystem?: string  // Triggers refetch when zodiac system changes
   autoFetch?: boolean
 }
 
@@ -22,14 +23,15 @@ interface UseChartInterpretationsReturn {
 
 export function useChartInterpretations({
   chartId,
+  zodiacSystem,
   autoFetch = true,
 }: UseChartInterpretationsOptions): UseChartInterpretationsReturn {
   const [interpretations, setInterpretations] = useState<Map<string, ChartInterpretation>>(new Map())
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<Error | null>(null)
 
-  const fetchInterpretations = async () => {
-    console.log('[useChartInterpretations] fetchInterpretations called with chartId:', chartId)
+  const fetchInterpretations = async (signal?: AbortSignal) => {
+    console.log('[useChartInterpretations] fetchInterpretations called with chartId:', chartId, 'zodiacSystem:', zodiacSystem)
     if (!chartId) {
       console.log('[useChartInterpretations] No chartId, skipping fetch')
       return
@@ -40,7 +42,14 @@ export function useChartInterpretations({
 
     try {
       console.log('[useChartInterpretations] Fetching interpretations for chartId:', chartId)
-      const data = await getChartInterpretations(chartId)
+      const data = await getChartInterpretations(chartId, undefined, signal)
+
+      // Check if request was aborted before updating state
+      if (signal?.aborted) {
+        console.log('[useChartInterpretations] Request aborted, not updating state')
+        return
+      }
+
       console.log('[useChartInterpretations] Received data:', data.length, 'interpretations')
       const interpretationMap = new Map<string, ChartInterpretation>()
 
@@ -52,10 +61,22 @@ export function useChartInterpretations({
       setInterpretations(interpretationMap)
       console.log('[useChartInterpretations] Set interpretations map, size:', interpretationMap.size)
     } catch (err) {
+      // Ignore abort errors - they're expected when switching zodiac systems
+      if (err instanceof Error && err.name === 'AbortError') {
+        console.log('[useChartInterpretations] Fetch aborted (expected during zodiac system switch)')
+        return
+      }
+      if (signal?.aborted) {
+        console.log('[useChartInterpretations] Request was aborted, ignoring error')
+        return
+      }
       setError(err as Error)
       console.error('[useChartInterpretations] Error fetching interpretations:', err)
     } finally {
-      setIsLoading(false)
+      // Only update loading state if not aborted
+      if (!signal?.aborted) {
+        setIsLoading(false)
+      }
     }
   }
 
@@ -100,14 +121,28 @@ export function useChartInterpretations({
   }
 
   useEffect(() => {
-    console.log('[useChartInterpretations] useEffect triggered. chartId:', chartId, 'autoFetch:', autoFetch)
+    console.log('[useChartInterpretations] useEffect triggered. chartId:', chartId, 'zodiacSystem:', zodiacSystem, 'autoFetch:', autoFetch)
+
+    // Create AbortController for this effect
+    const controller = new AbortController()
+
+    // IMPORTANT: Clear interpretations immediately when chartId OR zodiacSystem changes
+    // This prevents stale interpretations from showing when switching chart types or zodiac systems
+    setInterpretations(new Map())
+
     if (autoFetch && chartId) {
       console.log('[useChartInterpretations] Calling fetchInterpretations')
-      fetchInterpretations()
+      fetchInterpretations(controller.signal)
     } else {
       console.log('[useChartInterpretations] NOT fetching. autoFetch:', autoFetch, 'chartId:', chartId)
     }
-  }, [chartId, autoFetch])
+
+    // Cleanup: abort any pending requests when dependencies change or component unmounts
+    return () => {
+      console.log('[useChartInterpretations] Cleanup: aborting pending request')
+      controller.abort()
+    }
+  }, [chartId, zodiacSystem, autoFetch])
 
   return {
     interpretations,

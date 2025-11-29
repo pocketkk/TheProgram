@@ -6,11 +6,14 @@ export type ElementType = 'planet' | 'house' | 'aspect' | 'pattern'
 
 export type ApprovalStatus = 'pending' | 'approved' | 'rejected' | 'needs_review'
 
+export type AstroSystem = 'western' | 'vedic' | 'human_design'
+
 export interface ChartInterpretation {
   id: string
   chart_id: string
   element_type: ElementType
   element_key: string
+  astro_system: AstroSystem
   ai_description: string
   ai_model: string | null
   ai_prompt_version: string | null

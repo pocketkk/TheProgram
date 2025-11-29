@@ -21,11 +21,12 @@ const InterpretationsContext = createContext<InterpretationsContextValue | null>
 
 interface InterpretationsProviderProps {
   chartId: string | null
+  zodiacSystem?: string  // Triggers refetch when zodiac system changes
   children: ReactNode
 }
 
-export function InterpretationsProvider({ chartId, children }: InterpretationsProviderProps) {
-  const interpretationsData = useChartInterpretations({ chartId, autoFetch: true })
+export function InterpretationsProvider({ chartId, zodiacSystem, children }: InterpretationsProviderProps) {
+  const interpretationsData = useChartInterpretations({ chartId, zodiacSystem, autoFetch: true })
 
   return (
     <InterpretationsContext.Provider value={interpretationsData}>

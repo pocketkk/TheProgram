@@ -22,6 +22,8 @@ from . import (
     numerology,
     reports,
     insights,
+    # Phase 4: Human Design
+    human_design,
 )
 
 # Create main API router
@@ -53,5 +55,8 @@ router.include_router(reports.router, prefix="/reports", tags=["Reports"])
 
 # Phase 3: AI Proactive Intelligence
 router.include_router(insights.router, prefix="/insights", tags=["Insights"])
+
+# Phase 4: Human Design
+router.include_router(human_design.router, prefix="/human-design", tags=["Human Design"])
 
 __all__ = ["router"]

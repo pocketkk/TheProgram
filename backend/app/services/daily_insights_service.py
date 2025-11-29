@@ -9,8 +9,8 @@ from typing import Dict, List, Optional, Any
 from datetime import date, datetime, timedelta
 from functools import lru_cache
 
-from app.services.transit_calculator import get_transit_calculator
-from app.services.ai_interpreter import get_ai_interpreter
+from app.services.transit_calculator import TransitCalculator
+from app.services.ai_interpreter import AIInterpreter
 
 
 class DailyInsightsService:
@@ -43,8 +43,8 @@ class DailyInsightsService:
     }
 
     def __init__(self):
-        self.transit_calc = get_transit_calculator()
-        self.ai_interpreter = get_ai_interpreter()
+        self.transit_calc = TransitCalculator()
+        self.ai_interpreter = AIInterpreter()
 
     def generate_daily_insights(
         self,

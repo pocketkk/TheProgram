@@ -30,11 +30,20 @@ export function ElementBalanceChart({ chart, size = 200 }: ElementBalanceChartPr
       Water: 0,
     }
 
+    if (!chart?.planets) {
+      return Object.entries(counts).map(([element, count]) => ({
+        element,
+        count,
+        percentage: 0,
+        color: ELEMENT_COLORS[element as keyof typeof ELEMENT_COLORS],
+      }))
+    }
+
     chart.planets.forEach(planet => {
       counts[planet.element] = (counts[planet.element] || 0) + 1
     })
 
-    const total = chart.planets.length
+    const total = chart.planets.length || 1
 
     // Create data array
     return Object.entries(counts).map(([element, count]) => ({
@@ -43,7 +52,7 @@ export function ElementBalanceChart({ chart, size = 200 }: ElementBalanceChartPr
       percentage: (count / total) * 100,
       color: ELEMENT_COLORS[element as keyof typeof ELEMENT_COLORS],
     }))
-  }, [chart.planets])
+  }, [chart?.planets])
 
   const center = size / 2
   const outerRadius = size / 2 - 10

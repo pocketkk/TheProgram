@@ -297,13 +297,64 @@ export function getAspectSymbol(aspect: string): string {
 }
 
 /**
- * Format transit for display
+ * Get astrological glyph for planet
+ */
+export function getPlanetSymbol(planet: string): string {
+  // Normalize planet name (lowercase, handle variations)
+  const normalized = planet.toLowerCase().replace(/_/g, ' ').trim()
+
+  const symbols: Record<string, string> = {
+    'sun': '☉',
+    'moon': '☽',
+    'mercury': '☿',
+    'venus': '♀',
+    'mars': '♂',
+    'jupiter': '♃',
+    'saturn': '♄',
+    'uranus': '♅',
+    'neptune': '♆',
+    'pluto': '♇',
+    'chiron': '⚷',
+    'north node': '☊',
+    'south node': '☋',
+    'ascendant': 'Asc',
+    'midheaven': 'MC',
+    'lilith': '⚸',
+  }
+
+  return symbols[normalized] || planet
+}
+
+/**
+ * Get planet display name (capitalized)
+ */
+export function getPlanetDisplayName(planet: string): string {
+  // Handle snake_case like "north_node"
+  return planet
+    .split('_')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ')
+}
+
+/**
+ * Format transit for display (with symbols)
  */
 export function formatTransit(transit: TransitAspect): string {
-  const symbol = getAspectSymbol(transit.aspect)
+  const transitSymbol = getPlanetSymbol(transit.transit_planet)
+  const aspectSymbol = getAspectSymbol(transit.aspect)
+  const natalSymbol = getPlanetSymbol(transit.natal_planet)
   const status = transit.is_applying ? '→' : '←'
-  const retro = transit.transit_retrograde ? ' ℞' : ''
-  return `${transit.transit_planet}${retro} ${symbol} ${transit.natal_planet} (${transit.orb.toFixed(1)}° ${status})`
+  const retro = transit.transit_retrograde ? '℞' : ''
+  return `${transitSymbol}${retro} ${aspectSymbol} ${natalSymbol} (${transit.orb.toFixed(1)}° ${status})`
+}
+
+/**
+ * Format transit with full planet names (for accessibility/tooltips)
+ */
+export function formatTransitFull(transit: TransitAspect): string {
+  const status = transit.is_applying ? 'applying' : 'separating'
+  const retro = transit.transit_retrograde ? ' (retrograde)' : ''
+  return `${getPlanetDisplayName(transit.transit_planet)}${retro} ${transit.aspect} ${getPlanetDisplayName(transit.natal_planet)} - ${transit.orb.toFixed(1)}° ${status}`
 }
 
 /**

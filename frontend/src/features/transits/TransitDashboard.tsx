@@ -32,7 +32,10 @@ import { listBirthData, type BirthDataResponse } from '@/lib/api/birthData'
 import {
   getSignificanceColor,
   getAspectSymbol,
+  getPlanetSymbol,
+  getPlanetDisplayName,
   formatTransit,
+  formatTransitFull,
   getThemeDescription
 } from '@/lib/api/transits'
 
@@ -58,12 +61,14 @@ export function TransitDashboard() {
     currentBirthDataId,
     zodiac,
     daysAhead,
+    transitDate,
     isLoading,
     error,
     lastUpdated,
     setBirthDataId,
     setZodiac,
     setDaysAhead,
+    setTransitDate,
     fetchCurrentTransits,
     fetchUpcomingTransits,
     fetchDailySnapshot,
@@ -91,12 +96,12 @@ export function TransitDashboard() {
     loadBirthData()
   }, [currentBirthDataId, setBirthDataId])
 
-  // Fetch transits when birth data changes
+  // Fetch transits when birth data or date changes
   useEffect(() => {
     if (currentBirthDataId) {
       refreshAll()
     }
-  }, [currentBirthDataId, zodiac])
+  }, [currentBirthDataId, zodiac, transitDate])
 
   // Auto-refresh every 5 minutes
   useEffect(() => {
@@ -123,17 +128,64 @@ export function TransitDashboard() {
               <Activity className="h-8 w-8 text-celestial-gold" />
               Transit Dashboard
             </h1>
-            <p className="text-gray-400 mt-2">
+            <p className="text-gray-400 mt-1">
               Real-time planetary transits to your natal chart
             </p>
+            {/* Prominent transit date display */}
+            <div className="mt-3 flex items-center gap-3">
+              <Calendar className="h-5 w-5 text-celestial-gold" />
+              <span className="text-lg font-medium text-white">
+                {transitDate
+                  ? new Date(transitDate + 'T12:00:00').toLocaleDateString('en-US', {
+                      weekday: 'long',
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    })
+                  : 'Right Now'
+                }
+              </span>
+              {transitDate && (
+                <button
+                  onClick={() => setTransitDate(null)}
+                  className="text-xs text-celestial-gold hover:text-celestial-gold/80 underline"
+                >
+                  Reset to Now
+                </button>
+              )}
+            </div>
           </div>
           <div className="flex items-center gap-4">
+            {/* Transit date picker */}
+            <div className="flex items-center gap-2">
+              <input
+                type="date"
+                value={transitDate || new Date().toISOString().split('T')[0]}
+                onChange={e => {
+                  const today = new Date().toISOString().split('T')[0]
+                  setTransitDate(e.target.value === today ? null : e.target.value)
+                }}
+                className="px-3 py-2 bg-cosmic-900 border border-cosmic-light/20 rounded-lg
+                         text-white focus:outline-none focus:border-celestial-gold/50
+                         [color-scheme:dark]"
+              />
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setTransitDate(null)}
+                className={transitDate === null ? 'bg-celestial-gold/20 text-celestial-gold' : ''}
+              >
+                Today
+              </Button>
+            </div>
+
             {/* Birth data selector */}
             <select
               value={currentBirthDataId || ''}
               onChange={e => setBirthDataId(e.target.value)}
-              className="px-4 py-2 bg-cosmic-dark/50 border border-cosmic-light/20 rounded-lg
-                       text-white focus:outline-none focus:border-celestial-gold/50"
+              className="px-4 py-2 bg-cosmic-900 border border-cosmic-light/20 rounded-lg
+                       text-white focus:outline-none focus:border-celestial-gold/50
+                       [&>option]:bg-cosmic-900 [&>option]:text-white"
             >
               <option value="">Select chart...</option>
               {birthDataList.map(bd => (
@@ -236,12 +288,15 @@ export function TransitDashboard() {
                         <p className="text-sm text-gray-400 mt-1">{dailySnapshot.moon_phase}</p>
                       </div>
                       <div className="text-right">
-                        <p className="text-sm text-gray-400">Moon in</p>
+                        <p className="text-sm text-gray-400 flex items-center gap-1 justify-end">
+                          <span className="text-lg text-celestial-purple">{getPlanetSymbol('Moon')}</span>
+                          Moon in
+                        </p>
                         <p className="text-lg font-medium text-white">{dailySnapshot.moon_sign}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2 text-sm text-gray-400">
-                      <Sun className="h-4 w-4 text-celestial-gold" />
+                      <span className="text-lg text-celestial-gold">{getPlanetSymbol('Sun')}</span>
                       Sun in {dailySnapshot.sun_sign}
                     </div>
                   </CardContent>
@@ -357,15 +412,18 @@ export function TransitDashboard() {
                           >
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
-                                <span className={`text-lg ${getSignificanceColor(transit.significance)}`}>
-                                  {getAspectSymbol(transit.aspect)}
-                                </span>
+                                {/* Planet symbols display */}
+                                <div className="flex items-center gap-1 text-lg font-serif" title={formatTransitFull(transit)}>
+                                  <span className="text-celestial-gold">{getPlanetSymbol(transit.transit_planet)}</span>
+                                  {transit.transit_retrograde && <span className="text-celestial-pink text-sm">℞</span>}
+                                  <span className={getSignificanceColor(transit.significance)}>{getAspectSymbol(transit.aspect)}</span>
+                                  <span className="text-celestial-purple">{getPlanetSymbol(transit.natal_planet)}</span>
+                                </div>
                                 <div>
                                   <p className="text-sm text-white">
-                                    {transit.transit_planet}
-                                    {transit.transit_retrograde && <span className="text-celestial-pink ml-1">℞</span>}
-                                    {' '}{transit.aspect}{' '}
-                                    {transit.natal_planet}
+                                    {getPlanetDisplayName(transit.transit_planet)}{' '}
+                                    <span className="text-gray-500">{transit.aspect}</span>{' '}
+                                    {getPlanetDisplayName(transit.natal_planet)}
                                   </p>
                                   <p className="text-xs text-gray-500">
                                     {transit.orb.toFixed(1)}° {transit.is_applying ? 'applying' : 'separating'}
@@ -482,8 +540,8 @@ export function TransitDashboard() {
                         setDaysAhead(Number(e.target.value))
                         fetchUpcomingTransits(undefined, Number(e.target.value))
                       }}
-                      className="text-xs bg-cosmic-dark/50 border border-cosmic-light/20 rounded
-                               px-2 py-1 text-white"
+                      className="text-xs bg-cosmic-900 border border-cosmic-light/20 rounded
+                               px-2 py-1 text-white [&>option]:bg-cosmic-900 [&>option]:text-white"
                     >
                       <option value={7}>7 days</option>
                       <option value={14}>14 days</option>
@@ -503,12 +561,21 @@ export function TransitDashboard() {
                         <div
                           key={i}
                           className="p-3 bg-cosmic-dark/30 rounded-lg flex items-center justify-between"
+                          title={formatTransitFull(transit)}
                         >
                           <div>
-                            <p className="text-sm text-white">
-                              {transit.transit_planet} {getAspectSymbol(transit.aspect)} {transit.natal_planet}
-                            </p>
-                            <p className="text-xs text-gray-500 flex items-center gap-1">
+                            <div className="flex items-center gap-2">
+                              {/* Planet symbols */}
+                              <div className="flex items-center gap-1 text-lg font-serif">
+                                <span className="text-celestial-gold">{getPlanetSymbol(transit.transit_planet)}</span>
+                                <span className={getSignificanceColor(transit.significance)}>{getAspectSymbol(transit.aspect)}</span>
+                                <span className="text-celestial-purple">{getPlanetSymbol(transit.natal_planet)}</span>
+                              </div>
+                              <p className="text-sm text-white">
+                                {getPlanetDisplayName(transit.natal_planet)}
+                              </p>
+                            </div>
+                            <p className="text-xs text-gray-500 flex items-center gap-1 mt-1">
                               <Calendar className="h-3 w-3" />
                               {new Date(transit.first_date).toLocaleDateString()}
                             </p>

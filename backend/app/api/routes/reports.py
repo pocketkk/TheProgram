@@ -11,9 +11,10 @@ from sqlalchemy.orm import Session
 import io
 
 from app.core.database import get_db
-from app.models_sqlite.chart import BirthData, Chart
+from app.models_sqlite.birth_data import BirthData
+from app.models_sqlite.chart import Chart
 from app.services.report_service import get_report_service
-from app.services.chart_calculator import ChartCalculator
+from app.services.chart_calculator import NatalChartCalculator
 
 router = APIRouter()
 
@@ -101,7 +102,7 @@ async def generate_birth_chart_report_by_birth_data(
     else:
         # Calculate chart on the fly
         try:
-            calculator = ChartCalculator()
+            calculator = NatalChartCalculator()
             from datetime import datetime
             birth_datetime = datetime.combine(birth_data.birth_date, birth_data.birth_time)
             chart_data = calculator.calculate_chart(

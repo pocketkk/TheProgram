@@ -10,7 +10,8 @@ from fastapi import APIRouter, HTTPException, Depends, Query
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.models_sqlite.chart import BirthData, Chart
+from app.models_sqlite.birth_data import BirthData
+from app.models_sqlite.chart import Chart
 from app.services.daily_insights_service import get_daily_insights_service
 
 router = APIRouter()

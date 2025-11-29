@@ -4,7 +4,9 @@ Timeline-related Pydantic schemas (single-user mode)
 Schemas for user events, transit context, and timeline visualization.
 Part of Phase 2: Transit Timeline.
 """
-from typing import Optional, List, Dict, Any
+from __future__ import annotations
+
+from typing import Optional, List, Dict, Any, TYPE_CHECKING
 from pydantic import BaseModel, Field, validator
 from datetime import datetime, date
 from uuid import UUID
@@ -89,9 +91,23 @@ class UserEventResponse(UserEventBase):
         from_attributes = True
 
 
-class UserEventWithTransits(UserEventResponse):
-    """User event with transit context included"""
-    transit_context: Optional["TransitContextResponse"] = Field(None, description="Transit context")
+class UserEventWithTransitsData(BaseModel):
+    """User event data with transit context included (no inheritance to avoid circular refs)"""
+    # Core event fields
+    id: UUID = Field(..., description="Event ID")
+    birth_data_id: UUID = Field(..., description="Birth data ID")
+    event_date: date = Field(..., description="Date of the event")
+    event_time: Optional[str] = Field(None, description="Optional time (HH:MM:SS)")
+    title: str = Field(..., description="Event title")
+    description: Optional[str] = Field(None, description="Event description")
+    category: Optional[str] = Field(None, description="Event category")
+    importance: str = Field("moderate", description="Importance level")
+    tags: Optional[List[str]] = Field(default_factory=list, description="Event tags")
+    transit_analysis: Optional[str] = Field(None, description="AI transit analysis")
+    transit_context: Optional[Dict[str, Any]] = Field(None, description="Transit context data")
+
+    class Config:
+        from_attributes = True
 
 
 # =============================================================================
@@ -155,11 +171,14 @@ class TimelineRangeRequest(BaseModel):
 
 class TimelineDataPoint(BaseModel):
     """A single point on the timeline"""
-    date: date = Field(..., description="Date of the data point")
-    events: List[UserEventResponse] = Field(default_factory=list, description="Events on this date")
-    transit_context: Optional[TransitContextResponse] = Field(None, description="Transit context")
+    point_date: date = Field(..., description="Date of the data point", alias="date")
+    events: List[Dict[str, Any]] = Field(default_factory=list, description="Events on this date")
+    transit_context: Optional[Dict[str, Any]] = Field(None, description="Transit context")
     significant_transits: List[Dict[str, Any]] = Field(default_factory=list, description="Significant transits")
     lunar_phase: Optional[str] = Field(None, description="Moon phase")
+
+    class Config:
+        populate_by_name = True
 
 
 class TimelineRangeResponse(BaseModel):
@@ -214,5 +233,5 @@ class TimelineSummaryResponse(BaseModel):
     recommendations: List[str] = Field(..., description="AI recommendations")
 
 
-# Update forward references
-UserEventWithTransits.model_rebuild()
+# Alias for backwards compatibility
+UserEventWithTransits = UserEventWithTransitsData

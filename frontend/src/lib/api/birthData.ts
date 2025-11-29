@@ -55,7 +55,7 @@ export async function createBirthData(data: BirthDataCreate): Promise<BirthDataR
  */
 export async function listBirthData(): Promise<BirthDataResponse[]> {
   try {
-    const response = await apiClient.get<BirthDataResponse[]>('/birth-data')
+    const response = await apiClient.get<BirthDataResponse[]>('/birth-data/')
     return response.data
   } catch (error) {
     throw new Error(getErrorMessage(error))
