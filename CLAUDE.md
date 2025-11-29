@@ -38,8 +38,8 @@ TheProgram/
 │   ├── app/
 │   │   ├── api/routes/      # API endpoints
 │   │   ├── services/        # Business logic
-│   │   ├── models_sqlite/   # SQLAlchemy models
-│   │   ├── schemas_sqlite/  # Pydantic schemas
+│   │   ├── models/          # SQLAlchemy models
+│   │   ├── schemas/         # Pydantic schemas
 │   │   ├── core/            # Config, database
 │   │   └── utils/           # Helpers, ephemeris
 │   ├── tests/
@@ -63,7 +63,7 @@ TheProgram/
 **Adding an API endpoint:**
 1. Create/update route in `backend/app/api/routes/`
 2. Add service logic in `backend/app/services/`
-3. Define schemas in `backend/app/schemas_sqlite/`
+3. Define schemas in `backend/app/schemas/`
 4. Register route in `backend/app/api/routes/__init__.py`
 
 **Patterns:**

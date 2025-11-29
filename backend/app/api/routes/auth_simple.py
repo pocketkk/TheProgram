@@ -15,8 +15,8 @@ from app.core.auth_simple import (
     verify_session_token,
     get_token_expiry_seconds,
 )
-from app.models_sqlite.app_config import AppConfig
-from app.schemas_sqlite.auth import (
+from app.models.app_config import AppConfig
+from app.schemas.auth import (
     PasswordSetup,
     LoginRequest,
     LoginResponse,

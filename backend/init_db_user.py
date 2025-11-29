@@ -29,7 +29,7 @@ def initialize_database():
         from app.core.database_sqlite import engine, Base
 
         # Import all models so they're registered with Base
-        from app import models_sqlite
+        from app import models
 
         print("Creating all tables...")
 

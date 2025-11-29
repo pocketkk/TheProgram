@@ -549,8 +549,8 @@ def get_user_profile(db_session) -> Optional[Dict[str, Any]]:
         return None
 
     try:
-        from app.models_sqlite.birth_data import BirthData
-        from app.models_sqlite.chart import Chart
+        from app.models.birth_data import BirthData
+        from app.models.chart import Chart
 
         # Get the most recent birth data (primary user profile)
         birth_data = db_session.query(BirthData).order_by(
@@ -1121,8 +1121,8 @@ class AgentService:
                     return {"success": False, "error": "Database not available"}
 
                 try:
-                    from app.models_sqlite.chart import Chart
-                    from app.models_sqlite.birth_data import BirthData
+                    from app.models.chart import Chart
+                    from app.models.birth_data import BirthData
 
                     # Query charts with their birth data
                     charts = db_session.query(Chart).join(
@@ -1158,7 +1158,7 @@ class AgentService:
                     return {"success": False, "error": "Database not available"}
 
                 try:
-                    from app.models_sqlite.birth_data import BirthData
+                    from app.models.birth_data import BirthData
                     from app.services.human_design_calculator import HumanDesignCalculator
 
                     # Get the most recent birth data
@@ -1209,7 +1209,7 @@ class AgentService:
                     return {"success": False, "error": "Database not available"}
 
                 try:
-                    from app.models_sqlite.journal_entry import JournalEntry
+                    from app.models.journal_entry import JournalEntry
                     from datetime import date
                     import json as json_lib
 
@@ -1237,7 +1237,7 @@ class AgentService:
                     return {"success": False, "error": "Database not available"}
 
                 try:
-                    from app.models_sqlite.journal_entry import JournalEntry
+                    from app.models.journal_entry import JournalEntry
                     from sqlalchemy import or_
 
                     query = db_session.query(JournalEntry)
@@ -1281,7 +1281,7 @@ class AgentService:
                     return {"success": False, "error": "Database not available"}
 
                 try:
-                    from app.models_sqlite.journal_entry import JournalEntry
+                    from app.models.journal_entry import JournalEntry
 
                     limit = tool_input.get("limit", 5)
                     entries = db_session.query(JournalEntry).order_by(
@@ -1310,7 +1310,7 @@ class AgentService:
                     return {"success": False, "error": "Database not available"}
 
                 try:
-                    from app.models_sqlite.journal_entry import JournalEntry
+                    from app.models.journal_entry import JournalEntry
                     from datetime import date, timedelta
                     from sqlalchemy import func
 
@@ -1342,13 +1342,13 @@ class AgentService:
                     return {"success": False, "error": "Database not available"}
 
                 try:
-                    from app.models_sqlite.user_event import UserEvent
+                    from app.models.user_event import UserEvent
                     import json as json_lib
 
                     # Get birth_data_id from context or use first available
                     birth_data_id = chart_context.get("birth_data_id") if chart_context else None
                     if not birth_data_id:
-                        from app.models_sqlite.birth_data import BirthData
+                        from app.models.birth_data import BirthData
                         first_bd = db_session.query(BirthData).first()
                         birth_data_id = str(first_bd.id) if first_bd else None
 
@@ -1382,7 +1382,7 @@ class AgentService:
                     return {"success": False, "error": "Database not available"}
 
                 try:
-                    from app.models_sqlite.user_event import UserEvent
+                    from app.models.user_event import UserEvent
 
                     query = db_session.query(UserEvent)
 
@@ -1447,7 +1447,7 @@ class AgentService:
                     return {"success": False, "error": "Database not available"}
 
                 try:
-                    from app.models_sqlite.canvas_board import CanvasBoard
+                    from app.models.canvas_board import CanvasBoard
 
                     canvas = CanvasBoard(
                         name=tool_input.get("name"),
@@ -1471,7 +1471,7 @@ class AgentService:
                     return {"success": False, "error": "Database not available"}
 
                 try:
-                    from app.models_sqlite.canvas_board import CanvasItem
+                    from app.models.canvas_board import CanvasItem
                     import json as json_lib
 
                     item = CanvasItem(
@@ -1506,7 +1506,7 @@ class AgentService:
                     return {"success": False, "error": "Database not available"}
 
                 try:
-                    from app.models_sqlite.canvas_board import CanvasBoard
+                    from app.models.canvas_board import CanvasBoard
 
                     canvases = db_session.query(CanvasBoard).order_by(
                         CanvasBoard.updated_at.desc()

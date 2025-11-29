@@ -107,9 +107,9 @@ def init_db(drop_existing: bool = False) -> None:
     Note:
         This is for development. In production, use migrations.
     """
-    from app.models_sqlite import Base as ModelsBase
-    from app.models_sqlite.app_config import AppConfig
-    from app.models_sqlite.user_preferences import UserPreferences
+    from app.models import Base as ModelsBase
+    from app.models.app_config import AppConfig
+    from app.models.user_preferences import UserPreferences
 
     # Drop tables if requested
     if drop_existing:
@@ -150,7 +150,7 @@ def drop_db() -> None:
 
     For production, use proper migrations.
     """
-    from app.models_sqlite import Base as ModelsBase
+    from app.models import Base as ModelsBase
     ModelsBase.metadata.drop_all(bind=engine)
 
 

@@ -6,7 +6,7 @@ Stores password hash and application metadata
 """
 from sqlalchemy import Column, String, Integer
 
-from app.models_sqlite.base import SingletonModel
+from app.models.base import SingletonModel
 
 
 class AppConfig(SingletonModel):

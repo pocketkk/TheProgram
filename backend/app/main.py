@@ -129,7 +129,7 @@ async def startup_event():
 
         # Auto-initialize database tables if they don't exist
         from app.core.database_sqlite import engine, Base
-        from app.models_sqlite.app_config import AppConfig
+        from app.models.app_config import AppConfig
         from app.core.database_sqlite import SessionLocal
         from sqlalchemy import inspect
 
@@ -141,7 +141,7 @@ async def startup_event():
             logger.info("Database tables not found - initializing database...")
 
             # Import all models so they're registered with Base
-            import app.models_sqlite  # This imports all models
+            import app.models  # This imports all models
 
             # Create all tables
             Base.metadata.create_all(bind=engine)

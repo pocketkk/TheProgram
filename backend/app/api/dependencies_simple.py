@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 
 from app.core.database_sqlite import get_db
 from app.core.auth_simple import verify_session_token, extract_token_from_header
-from app.models_sqlite.app_config import AppConfig
+from app.models.app_config import AppConfig
 
 
 async def verify_auth(

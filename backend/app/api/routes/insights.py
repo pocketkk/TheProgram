@@ -10,8 +10,8 @@ from fastapi import APIRouter, HTTPException, Depends, Query
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.models_sqlite.birth_data import BirthData
-from app.models_sqlite.chart import Chart
+from app.models.birth_data import BirthData
+from app.models.chart import Chart
 from app.services.daily_insights_service import get_daily_insights_service
 
 router = APIRouter()
@@ -178,7 +178,7 @@ async def analyze_journal_patterns(
 
     Returns mood trends, themes, temporal patterns, and AI-generated insights.
     """
-    from app.models_sqlite.journal import JournalEntry
+    from app.models.journal import JournalEntry
     from app.services.journal_pattern_service import get_journal_pattern_service
 
     # Get all journal entries
@@ -228,7 +228,7 @@ async def get_insights_dashboard(
     Get a comprehensive insights dashboard combining daily insights,
     journal patterns, and week preview.
     """
-    from app.models_sqlite.journal import JournalEntry
+    from app.models.journal import JournalEntry
     from app.services.journal_pattern_service import get_journal_pattern_service
 
     # Get birth data

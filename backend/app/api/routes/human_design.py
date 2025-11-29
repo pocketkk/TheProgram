@@ -11,9 +11,9 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Body
 from sqlalchemy.orm import Session
 
 from app.core.database_sqlite import get_db
-from app.models_sqlite import BirthData
+from app.models import BirthData
 from app.services.human_design_calculator import HumanDesignCalculator
-from app.schemas_sqlite.human_design import (
+from app.schemas.human_design import (
     HDCalculationRequest,
     HDChartResponse,
     HDInterpretationRequest,

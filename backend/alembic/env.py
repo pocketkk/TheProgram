@@ -13,10 +13,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 # Import settings and Base for SQLite (single-user mode)
 from app.core.config_sqlite import sqlite_settings as settings
-from app.models_sqlite.base import Base
+from app.models.base import Base
 
 # Import all SQLite models so Alembic can detect them
-from app.models_sqlite import (
+from app.models import (
     BirthData,
     Chart,
     ChartInterpretation,

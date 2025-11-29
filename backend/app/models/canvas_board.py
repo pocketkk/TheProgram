@@ -7,7 +7,7 @@ Part of Phase 2: Canvas Exploration.
 from sqlalchemy import Column, String, ForeignKey, Index, Text, Float, Integer
 from sqlalchemy.orm import relationship
 
-from app.models_sqlite.base import BaseModel
+from app.models.base import BaseModel
 from app.core.json_helpers import JSONEncodedDict
 
 

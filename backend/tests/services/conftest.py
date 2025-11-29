@@ -9,7 +9,7 @@ from sqlalchemy import create_engine, event
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.pool import StaticPool
 
-from app.models_sqlite import Base
+from app.models import Base
 
 
 @pytest.fixture(scope="function")
