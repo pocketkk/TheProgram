@@ -28,6 +28,11 @@ pyinstaller --clean --noconfirm main.spec 2>&1 | grep -E "(INFO: Build|ERROR|WAR
 echo "      Backend build complete."
 cd "$PROJECT_ROOT"
 
+# Copy backend dist to project root for electron-builder
+rm -rf dist/backend
+cp -r backend/dist/backend dist/backend
+echo "      Backend copied to dist/backend."
+
 # Step 2: Build frontend (Vite)
 echo "[2/3] Building frontend..."
 cd frontend
