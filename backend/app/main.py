@@ -59,7 +59,7 @@ async def health_check():
     # Check database connection
     try:
         with db_engine.connect() as conn:
-            conn.execute("SELECT 1")
+            conn.execute(text("SELECT 1"))
         db_status = "connected"
     except:
         db_status = "disconnected"

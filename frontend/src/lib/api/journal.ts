@@ -90,7 +90,7 @@ export interface JournalListParams {
  */
 export async function createJournalEntry(data: JournalEntryCreate): Promise<JournalEntry> {
   try {
-    const response = await apiClient.post<JournalEntry>('/journal', data)
+    const response = await apiClient.post<JournalEntry>('/journal/', data)
     return response.data
   } catch (error) {
     throw new Error(getErrorMessage(error))
@@ -102,7 +102,7 @@ export async function createJournalEntry(data: JournalEntryCreate): Promise<Jour
  */
 export async function listJournalEntries(params?: JournalListParams): Promise<JournalEntry[]> {
   try {
-    const response = await apiClient.get<JournalEntry[]>('/journal', { params })
+    const response = await apiClient.get<JournalEntry[]>('/journal/', { params })
     return response.data
   } catch (error) {
     throw new Error(getErrorMessage(error))

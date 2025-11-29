@@ -12,6 +12,7 @@ import {
   Sparkles,
   Hexagon,
   Hash,
+  User,
   type LucideIcon
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -42,6 +43,8 @@ const navigation: NavigationItem[] = [
   { name: 'Tarot', icon: Sparkles, page: 'tarot', section: 'exploration' },
   { name: 'I-Ching', icon: Hexagon, page: 'iching', section: 'exploration' },
   { name: 'Numerology', icon: Hash, page: 'numerology', section: 'exploration' },
+  // Phase 4: Human Design
+  { name: 'Human Design', icon: User, page: 'humandesign', section: 'exploration' },
   // System section
   { name: 'Settings', icon: Settings, page: 'settings', section: 'system' },
   { name: 'Help', icon: HelpCircle, page: 'help', section: 'system' },

@@ -99,12 +99,17 @@ export const BirthChartWheel = forwardRef<HTMLDivElement, BirthChartWheelProps>(
   const planetRadius = outerRadius * 0.65
   const _houseRadius = outerRadius * 0.6
 
+  // Safe ascendant and midheaven values to prevent NaN in calculations during chart loading
+  const safeAscendant = chart?.ascendant ?? 0
+  const safeMidheaven = chart?.midheaven ?? 0
+
   // Define major and minor aspect types
   const majorAspects: AspectType[] = ['Conjunction', 'Sextile', 'Square', 'Trine', 'Opposition']
   const minorAspects: AspectType[] = ['Quincunx', 'Semisextile', 'Semisquare', 'Sesquiquadrate']
 
   // Filter aspects based on visibility settings
   const filteredAspects = useMemo(() => {
+    if (!chart?.aspects) return []
     return chart.aspects.filter(aspect => {
       // Filter by orb
       if (aspect.orb > visibility.maxOrb) return false
@@ -118,12 +123,26 @@ export const BirthChartWheel = forwardRef<HTMLDivElement, BirthChartWheelProps>(
 
       return true
     })
-  }, [chart.aspects, visibility.maxOrb, visibility.aspectTypes.major, visibility.aspectTypes.minor])
+  }, [chart?.aspects, visibility.maxOrb, visibility.aspectTypes.major, visibility.aspectTypes.minor])
 
   // Apply planet clustering to prevent overlaps
   const clusteredPlanets: ClusteredPlanet[] = useMemo(() => {
+    if (!chart?.planets) return []
     return clusterPlanets(chart.planets)
-  }, [chart.planets])
+  }, [chart?.planets])
+
+  /**
+   * Get color for zodiac element
+   */
+  const getElementColor = (element: string) => {
+    const colors = {
+      Fire: '#FF6B6B',
+      Earth: '#8B7355',
+      Air: '#4ECDC4',
+      Water: '#4169E1',
+    }
+    return colors[element as keyof typeof colors] || '#888'
+  }
 
   // Memoized degree ruler elements (360 tick marks + 36 labels)
   // Only recalculates when size or orientation changes
@@ -138,7 +157,7 @@ export const BirthChartWheel = forwardRef<HTMLDivElement, BirthChartWheelProps>(
       if (visibility.orientation === 'natural') {
         rotatedAngle = angle + 180
       } else {
-        rotatedAngle = angle - chart.ascendant + 180
+        rotatedAngle = angle - safeAscendant + 180
       }
       const adjustedAngle = (360 - rotatedAngle) * (Math.PI / 180)
       return {
@@ -212,7 +231,7 @@ export const BirthChartWheel = forwardRef<HTMLDivElement, BirthChartWheelProps>(
     }
 
     return { tickMarks, degreeLabels, degreeRingRadius }
-  }, [size, visibility.orientation, chart.ascendant])
+  }, [size, visibility.orientation, safeAscendant])
 
   // Memoized HD gates ruler elements (static elements that don't depend on chart data)
   // Only recalculates when size or orientation changes
@@ -227,7 +246,7 @@ export const BirthChartWheel = forwardRef<HTMLDivElement, BirthChartWheelProps>(
       if (visibility.orientation === 'natural') {
         rotatedAngle = angle + 180
       } else {
-        rotatedAngle = angle - chart.ascendant + 180
+        rotatedAngle = angle - safeAscendant + 180
       }
       const adjustedAngle = (360 - rotatedAngle) * (Math.PI / 180)
       return {
@@ -302,7 +321,7 @@ export const BirthChartWheel = forwardRef<HTMLDivElement, BirthChartWheelProps>(
     })
 
     return { tickMarks, gateLabels, gatesRingRadius }
-  }, [size, visibility.orientation, chart.ascendant])
+  }, [size, visibility.orientation, safeAscendant])
 
   // Memoized planet indicators on HD ring (depends on chart data)
   // Uses Set-based lookup for O(1) aspect checking
@@ -316,7 +335,7 @@ export const BirthChartWheel = forwardRef<HTMLDivElement, BirthChartWheelProps>(
       if (visibility.orientation === 'natural') {
         rotatedAngle = angle + 180
       } else {
-        rotatedAngle = angle - chart.ascendant + 180
+        rotatedAngle = angle - safeAscendant + 180
       }
       const adjustedAngle = (360 - rotatedAngle) * (Math.PI / 180)
       return {
@@ -327,12 +346,16 @@ export const BirthChartWheel = forwardRef<HTMLDivElement, BirthChartWheelProps>(
 
     // Build a Set for O(1) lookup of planets with aspects
     const planetsWithAspects = new Set<string>()
-    for (const aspect of chart.aspects) {
-      if (['Conjunction', 'Trine', 'Square', 'Opposition', 'Sextile'].includes(aspect.type)) {
-        planetsWithAspects.add(aspect.planet1)
-        planetsWithAspects.add(aspect.planet2)
+    if (chart?.aspects) {
+      for (const aspect of chart.aspects) {
+        if (['Conjunction', 'Trine', 'Square', 'Opposition', 'Sextile'].includes(aspect.type)) {
+          planetsWithAspects.add(aspect.planet1)
+          planetsWithAspects.add(aspect.planet2)
+        }
       }
     }
+
+    if (!chart?.planets) return indicators
 
     for (const planet of chart.planets) {
       const planetConfig = PLANETS.find(p => p.name === planet.name)
@@ -385,27 +408,31 @@ export const BirthChartWheel = forwardRef<HTMLDivElement, BirthChartWheelProps>(
     }
 
     return indicators
-  }, [chart.planets, chart.aspects, size, visibility.orientation, chart.ascendant])
+  }, [chart.planets, chart.aspects, size, visibility.orientation, safeAscendant])
 
   /**
    * Convert longitude to SVG coordinates
    * Supports both natural (Aries at 9 o'clock) and natal (Ascendant at 9 o'clock) orientations
    */
   const polarToCartesian = (angle: number, radius: number) => {
+    // Guard against NaN - return center point if angle is invalid
+    const safeAngle = typeof angle === 'number' && !isNaN(angle) ? angle : 0
+    const safeRadius = typeof radius === 'number' && !isNaN(radius) ? radius : 0
+
     let rotatedAngle: number
 
     if (visibility.orientation === 'natural') {
       // Natural wheel: Aries (0°) at 9 o'clock (180° in SVG), counterclockwise
-      rotatedAngle = angle + 180
+      rotatedAngle = safeAngle + 180
     } else {
       // Natal wheel: Ascendant at 9 o'clock (180° in SVG), counterclockwise
-      rotatedAngle = angle - chart.ascendant + 180
+      rotatedAngle = safeAngle - safeAscendant + 180
     }
 
     const adjustedAngle = (360 - rotatedAngle) * (Math.PI / 180)
     return {
-      x: center + radius * Math.cos(adjustedAngle),
-      y: center - radius * Math.sin(adjustedAngle),
+      x: center + safeRadius * Math.cos(adjustedAngle),
+      y: center - safeRadius * Math.sin(adjustedAngle),
     }
   }
 
@@ -443,19 +470,6 @@ export const BirthChartWheel = forwardRef<HTMLDivElement, BirthChartWheelProps>(
       A ${innerRadius} ${innerRadius} 0 ${largeArc} 0 ${innerStart.x} ${innerStart.y}
       Z
     `
-  }
-
-  /**
-   * Get color for zodiac element
-   */
-  const getElementColor = (element: string) => {
-    const colors = {
-      Fire: '#FF6B6B',
-      Earth: '#8B7355',
-      Air: '#4ECDC4',
-      Water: '#4169E1',
-    }
-    return colors[element as keyof typeof colors] || '#888'
   }
 
   return (
@@ -563,7 +577,7 @@ export const BirthChartWheel = forwardRef<HTMLDivElement, BirthChartWheelProps>(
             const nextCenterDegree = (nextGate.startDegree + nextGate.endDegree) / 2
 
             // Calculate the arc between this gate and the next
-            let startAngle = centerDegree
+            const startAngle = centerDegree
             let endAngle = nextCenterDegree
             if (endAngle < startAngle) endAngle += 360
 
@@ -669,15 +683,18 @@ export const BirthChartWheel = forwardRef<HTMLDivElement, BirthChartWheelProps>(
         {/* Degree markers - removed to avoid interference with planet labels */}
 
         {/* House cusps */}
-        {chart.houses.map((house, index) => {
-          const angle = house.cusp
+        {(chart?.houses ?? []).map((house, index) => {
+          const angle = house?.cusp ?? 0
+          if (typeof house?.cusp !== 'number') return null
           const start = polarToCartesian(angle, innerRadius)
           const end = polarToCartesian(angle, 0) // Extend to center
           const labelPos = polarToCartesian(angle + 15, outerRadius * 0.2)
           const selected = isSelected('house', String(house.number))
 
           // Calculate house segment for overlay
-          const nextHouse = chart.houses[(index + 1) % chart.houses.length]
+          const houses = chart?.houses ?? []
+          const nextHouse = houses[(index + 1) % houses.length]
+          if (!nextHouse || typeof nextHouse?.cusp !== 'number') return null
           let nextAngle = nextHouse.cusp
           if (nextAngle < angle) nextAngle += 360
 
@@ -725,10 +742,13 @@ export const BirthChartWheel = forwardRef<HTMLDivElement, BirthChartWheelProps>(
         {/* Aspect lines */}
         {showAspects &&
           filteredAspects.map((aspect, index) => {
-            const planet1 = chart.planets.find(p => p.name === aspect.planet1)
-            const planet2 = chart.planets.find(p => p.name === aspect.planet2)
+            const planets = chart?.planets ?? []
+            const planet1 = planets.find(p => p.name === aspect.planet1)
+            const planet2 = planets.find(p => p.name === aspect.planet2)
 
             if (!planet1 || !planet2) return null
+            // Skip aspects with invalid planet longitudes to prevent NaN
+            if (typeof planet1.longitude !== 'number' || typeof planet2.longitude !== 'number') return null
 
             const pos1 = polarToCartesian(planet1.longitude, planetRadius - 40)
             const pos2 = polarToCartesian(planet2.longitude, planetRadius - 40)
@@ -770,6 +790,8 @@ export const BirthChartWheel = forwardRef<HTMLDivElement, BirthChartWheelProps>(
 
         {/* Planets (with clustering) */}
         {clusteredPlanets.map((planet, index) => {
+          // Skip planets with invalid longitude to prevent NaN
+          if (typeof planet?.longitude !== 'number') return null
           // Use actual longitude instead of displayAngle to fix positioning
           const displayPos = polarToCartesian(planet.longitude, planetRadius)
           const actualPos = polarToCartesian(planet.longitude, planetRadius - 40)
@@ -941,7 +963,7 @@ export const BirthChartWheel = forwardRef<HTMLDivElement, BirthChartWheelProps>(
         {/* Ascendant marker */}
         <g>
           {(() => {
-            const ascPos = polarToCartesian(chart.ascendant, outerRadius + 10)
+            const ascPos = polarToCartesian(safeAscendant, outerRadius + 10)
             return (
               <>
                 <circle cx={ascPos.x} cy={ascPos.y} r={8} fill="#FFD700" />
@@ -964,7 +986,7 @@ export const BirthChartWheel = forwardRef<HTMLDivElement, BirthChartWheelProps>(
         {/* Midheaven marker */}
         <g>
           {(() => {
-            const mcPos = polarToCartesian(chart.midheaven, outerRadius + 10)
+            const mcPos = polarToCartesian(safeMidheaven, outerRadius + 10)
             return (
               <>
                 <circle cx={mcPos.x} cy={mcPos.y} r={8} fill="#87CEEB" />

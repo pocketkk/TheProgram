@@ -33,7 +33,7 @@ export interface ListChartsParams {
  */
 export async function listCharts(params?: ListChartsParams): Promise<ChartResponse[]> {
   try {
-    const response = await apiClient.get<ChartResponse[]>('/charts', { params })
+    const response = await apiClient.get<ChartResponse[]>('/charts/', { params })
     return response.data
   } catch (error) {
     throw new Error(getErrorMessage(error))
@@ -43,11 +43,13 @@ export async function listCharts(params?: ListChartsParams): Promise<ChartRespon
 /**
  * Get a specific chart by ID
  */
-export async function getChart(chartId: string): Promise<ChartResponse> {
+export async function getChart(chartId: string, signal?: AbortSignal): Promise<ChartResponse> {
   try {
-    const response = await apiClient.get<ChartResponse>(`/charts/${chartId}`)
+    const response = await apiClient.get<ChartResponse>(`/charts/${chartId}`, { signal })
     return response.data
   } catch (error) {
+    // Re-throw abort errors without wrapping
+    if (error instanceof Error && error.name === 'AbortError') throw error
     throw new Error(getErrorMessage(error))
   }
 }
@@ -68,7 +70,7 @@ export async function createChart(data: {
   chart_data: Record<string, any>
 }): Promise<ChartResponse> {
   try {
-    const response = await apiClient.post<ChartResponse>('/charts', data)
+    const response = await apiClient.post<ChartResponse>('/charts/', data)
     return response.data
   } catch (error) {
     throw new Error(getErrorMessage(error))
@@ -136,11 +138,32 @@ export interface ChartCalculationResponse extends ChartResponse {
 /**
  * Calculate a new chart from birth data
  */
-export async function calculateChart(data: ChartCalculationRequest): Promise<ChartCalculationResponse> {
+export async function calculateChart(data: ChartCalculationRequest, signal?: AbortSignal): Promise<ChartCalculationResponse> {
   try {
-    const response = await apiClient.post<ChartCalculationResponse>('/charts/calculate', data)
+    const response = await apiClient.post<ChartCalculationResponse>('/charts/calculate', data, { signal })
     return response.data
   } catch (error) {
+    // Re-throw abort errors without wrapping
+    if (error instanceof Error && error.name === 'AbortError') throw error
+    throw new Error(getErrorMessage(error))
+  }
+}
+
+/**
+ * Get an existing chart or create a new one if not found.
+ * For transit charts: defaults to current UTC time, looks for existing chart on same day (caching)
+ * For natal charts: finds any existing natal chart with matching parameters
+ *
+ * This is useful for chart type switching - it ensures each chart type has its own
+ * chart_id that can be associated with interpretations.
+ */
+export async function getOrCreateChart(data: ChartCalculationRequest, signal?: AbortSignal): Promise<ChartCalculationResponse> {
+  try {
+    const response = await apiClient.post<ChartCalculationResponse>('/charts/get-or-create', data, { signal })
+    return response.data
+  } catch (error) {
+    // Re-throw abort errors without wrapping
+    if (error instanceof Error && error.name === 'AbortError') throw error
     throw new Error(getErrorMessage(error))
   }
 }

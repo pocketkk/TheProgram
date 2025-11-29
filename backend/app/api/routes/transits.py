@@ -82,8 +82,8 @@ def get_natal_chart_data(birth_data_id: str, db: Session, zodiac: str = "tropica
 
     # Parse birth datetime
     birth_dt = datetime.strptime(
-        f"{birth_data.birth_date} {birth_data.birth_time or '12:00'}",
-        "%Y-%m-%d %H:%M"
+        f"{birth_data.birth_date} {birth_data.birth_time or '12:00:00'}",
+        "%Y-%m-%d %H:%M:%S"
     )
 
     # Calculate natal chart
@@ -91,7 +91,7 @@ def get_natal_chart_data(birth_data_id: str, db: Session, zodiac: str = "tropica
         birth_datetime=birth_dt,
         latitude=birth_data.latitude,
         longitude=birth_data.longitude,
-        timezone_offset_minutes=birth_data.timezone_offset or 0,
+        timezone_offset_minutes=birth_data.utc_offset or 0,
         zodiac=zodiac
     )
 

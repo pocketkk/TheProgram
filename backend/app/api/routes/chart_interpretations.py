@@ -34,6 +34,7 @@ logger = logging.getLogger(__name__)
 async def get_chart_interpretations(
     chart_id: UUID,
     element_type: Optional[str] = Query(None, description="Filter by element type"),
+    astro_system: Optional[str] = Query(None, description="Filter by astro system (western, vedic, human_design)"),
     db: Session = Depends(get_db)
 ):
     """
@@ -44,6 +45,7 @@ async def get_chart_interpretations(
     Args:
         chart_id: Chart ID
         element_type: Optional filter by element type (planet, house, aspect, pattern)
+        astro_system: Optional filter by astro system (western, vedic, human_design)
         db: Database session
 
     Returns:
@@ -65,6 +67,9 @@ async def get_chart_interpretations(
 
     if element_type:
         query = query.filter(ChartInterpretation.element_type == element_type.lower())
+
+    if astro_system:
+        query = query.filter(ChartInterpretation.astro_system == astro_system.lower())
 
     interpretations = query.order_by(
         ChartInterpretation.element_type,
@@ -125,9 +130,12 @@ async def generate_chart_interpretations(
     skipped_count = 0
     created_interpretations = []
 
+    # Get astro_system from parent chart for storing with interpretations
+    chart_astro_system = chart.astro_system or 'western'
+
     try:
         # Generate batch interpretations with async/parallel processing
-        logger.info(f"Starting parallel interpretation generation for {len(element_types)} element types")
+        logger.info(f"Starting parallel interpretation generation for {len(element_types)} element types (astro_system={chart_astro_system})")
 
         results = await ai_interpreter.generate_batch_interpretations_async(
             chart.chart_data,
@@ -141,10 +149,12 @@ async def generate_chart_interpretations(
             for interp in interpretations:
                 element_key = interp["element_key"]
 
-                # Check if interpretation already exists (convert UUID to string for SQLite)
+                # Check if interpretation already exists for this chart + astro_system combination
+                # This allows separate interpretations for Western vs Vedic on the same chart
                 existing = db.query(ChartInterpretation).filter(
                     and_(
                         ChartInterpretation.chart_id == str(chart_id),
+                        ChartInterpretation.astro_system == chart_astro_system,
                         ChartInterpretation.element_type == element_type,
                         ChartInterpretation.element_key == element_key
                     )
@@ -169,6 +179,7 @@ async def generate_chart_interpretations(
                         chart_id=str(chart_id),
                         element_type=element_type,
                         element_key=element_key,
+                        astro_system=chart_astro_system,  # Set from parent chart
                         ai_description=interp["description"],
                         ai_model=request.ai_model or "claude-3-5-sonnet-20241022",
                         ai_prompt_version="v1.0",

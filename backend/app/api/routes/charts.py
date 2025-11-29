@@ -443,6 +443,164 @@ async def _calculate_natal_chart(
     return chart_data
 
 
+# =============================================================================
+# Get or Create Chart (for caching transit/progressed charts)
+# =============================================================================
+
+@router.post("/get-or-create", response_model=ChartCalculationResponse)
+async def get_or_create_chart(
+    calc_request: ChartCalculationRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    Get an existing chart or create a new one if not found.
+
+    This is useful for transit charts - it will find an existing transit chart
+    for today, or create a new one. This enables caching and allows
+    interpretations to be associated with specific chart instances.
+
+    For transit charts:
+    - If transit_date is not provided, uses current UTC time
+    - Looks for existing chart calculated on the same day
+    - Returns existing chart if found, otherwise calculates new one
+
+    For natal charts:
+    - Looks for existing natal chart with matching parameters
+    - Returns existing if found, otherwise calculates new one
+    """
+    from datetime import datetime, date
+    import time
+
+    start_time = time.time()
+
+    # Verify birth data exists
+    birth_data = db.query(BirthData).filter(
+        BirthData.id == str(calc_request.birth_data_id)
+    ).first()
+
+    if not birth_data:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Birth data not found"
+        )
+
+    # For transit charts, default to current time if not provided
+    if calc_request.chart_type == "transit" and not calc_request.transit_date:
+        calc_request.transit_date = datetime.utcnow()
+
+    # Try to find existing chart
+    query = db.query(Chart).filter(
+        Chart.birth_data_id == str(calc_request.birth_data_id),
+        Chart.chart_type == calc_request.chart_type,
+        Chart.astro_system == calc_request.astro_system
+    )
+
+    existing_chart = None
+
+    if calc_request.chart_type == "transit" and calc_request.transit_date:
+        # For transit charts, look for one calculated on the same day
+        transit_date_str = calc_request.transit_date.date().isoformat()
+        charts = query.all()
+
+        for chart in charts:
+            if chart.chart_data and "transit_date" in chart.chart_data:
+                # Parse the stored transit date
+                stored_date_str = chart.chart_data["transit_date"][:10]  # Get YYYY-MM-DD
+                if stored_date_str == transit_date_str:
+                    existing_chart = chart
+                    break
+    elif calc_request.chart_type == "natal":
+        # For natal charts, just find any existing natal chart
+        existing_chart = query.first()
+
+    if existing_chart:
+        # Return existing chart
+        existing_chart.update_last_viewed()
+        db.commit()
+
+        end_time = time.time()
+        calculation_time_ms = (end_time - start_time) * 1000
+
+        return {
+            "id": existing_chart.id,
+            "birth_data_id": existing_chart.birth_data_id,
+            "chart_name": existing_chart.chart_name,
+            "chart_type": existing_chart.chart_type,
+            "astro_system": existing_chart.astro_system,
+            "house_system": existing_chart.house_system,
+            "ayanamsa": existing_chart.ayanamsa,
+            "zodiac_type": existing_chart.zodiac_type,
+            "calculation_params": existing_chart.calculation_params,
+            "chart_data": existing_chart.chart_data,
+            "last_viewed": existing_chart.last_viewed,
+            "created_at": existing_chart.created_at,
+            "updated_at": existing_chart.updated_at,
+            "calculation_time_ms": calculation_time_ms
+        }
+
+    # No existing chart found - calculate a new one
+    try:
+        if calc_request.chart_type == "natal":
+            chart_data = await _calculate_natal_chart(birth_data, calc_request, settings)
+        elif calc_request.chart_type == "transit":
+            chart_data = await _calculate_transit_chart(birth_data, calc_request, settings)
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Chart type '{calc_request.chart_type}' not yet implemented for get-or-create"
+            )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Chart calculation failed: {str(e)}"
+        )
+
+    # Create and save the new chart
+    chart = Chart(
+        birth_data_id=birth_data.id,
+        chart_name=calc_request.chart_name or f"{calc_request.chart_type.title()} Chart",
+        chart_type=calc_request.chart_type,
+        astro_system=calc_request.astro_system,
+        house_system=calc_request.house_system or "placidus",
+        ayanamsa=calc_request.ayanamsa,
+        zodiac_type=calc_request.zodiac_type,
+        calculation_params={
+            "include_asteroids": calc_request.include_asteroids,
+            "include_fixed_stars": calc_request.include_fixed_stars,
+            "include_arabic_parts": calc_request.include_arabic_parts,
+            "custom_orbs": calc_request.custom_orbs,
+            "include_nakshatras": calc_request.include_nakshatras,
+            "include_western_aspects": calc_request.include_western_aspects,
+            "include_minor_aspects": calc_request.include_minor_aspects
+        },
+        chart_data=chart_data
+    )
+
+    db.add(chart)
+    db.commit()
+    db.refresh(chart)
+
+    end_time = time.time()
+    calculation_time_ms = (end_time - start_time) * 1000
+
+    return {
+        "id": chart.id,
+        "birth_data_id": chart.birth_data_id,
+        "chart_name": chart.chart_name,
+        "chart_type": chart.chart_type,
+        "astro_system": chart.astro_system,
+        "house_system": chart.house_system,
+        "ayanamsa": chart.ayanamsa,
+        "zodiac_type": chart.zodiac_type,
+        "calculation_params": chart.calculation_params,
+        "chart_data": chart.chart_data,
+        "last_viewed": chart.last_viewed,
+        "created_at": chart.created_at,
+        "updated_at": chart.updated_at,
+        "calculation_time_ms": calculation_time_ms
+    }
+
+
 async def _calculate_transit_chart(
     birth_data: BirthData,
     calc_request: ChartCalculationRequest,

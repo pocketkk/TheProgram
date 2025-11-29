@@ -15,10 +15,14 @@ import type {
  */
 export async function getChartInterpretations(
   chartId: string,
-  elementType?: ElementType
+  elementType?: ElementType,
+  signal?: AbortSignal,
+  astroSystem?: string
 ): Promise<ChartInterpretation[]> {
-  const params = elementType ? { element_type: elementType } : {}
-  const response = await apiClient.get(`/charts/${chartId}/interpretations`, { params })
+  const params: Record<string, string> = {}
+  if (elementType) params.element_type = elementType
+  if (astroSystem) params.astro_system = astroSystem
+  const response = await apiClient.get(`/charts/${chartId}/interpretations`, { params, signal })
   return response.data
 }
 

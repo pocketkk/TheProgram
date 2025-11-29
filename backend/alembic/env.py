@@ -11,22 +11,20 @@ from alembic import context
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-# Import settings and Base
-from app.core.config import settings
-from app.core.database import Base
+# Import settings and Base for SQLite (single-user mode)
+from app.core.config_sqlite import sqlite_settings as settings
+from app.models_sqlite.base import Base
 
-# Import all models so Alembic can detect them
-from app.models import (
-    User,
-    Client,
+# Import all SQLite models so Alembic can detect them
+from app.models_sqlite import (
     BirthData,
     Chart,
-    Interpretation,
-    SessionNote,
+    ChartInterpretation,
     UserPreferences,
-    LocationCache,
-    AspectPattern,
-    TransitEvent,
+    JournalEntry,
+    CanvasBoard,
+    TransitContext,
+    UserEvent,
 )
 
 # this is the Alembic Config object
@@ -36,8 +34,8 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# Set SQLAlchemy URL from settings
-config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
+# Set SQLAlchemy URL from settings (SQLite single-user mode)
+config.set_main_option("sqlalchemy.url", settings.database_url)
 
 # Add your model's MetaData object here for 'autogenerate' support
 target_metadata = Base.metadata

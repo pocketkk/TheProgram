@@ -19,6 +19,7 @@ class ChartInterpretationBase(BaseModel):
     """Base chart interpretation schema with common fields"""
     element_type: str = Field(..., max_length=50, description="Element type (planet, house, aspect, pattern)")
     element_key: str = Field(..., max_length=255, description="Element identifier")
+    astro_system: Optional[str] = Field("western", max_length=50, description="Astrological system (western, vedic, human_design)")
     ai_description: str = Field(..., description="AI-generated description text")
     ai_model: Optional[str] = Field(None, max_length=100, description="AI model used for generation")
     ai_prompt_version: Optional[str] = Field(None, max_length=50, description="Prompt template version")
@@ -30,6 +31,16 @@ class ChartInterpretationBase(BaseModel):
         valid_types = ["planet", "house", "aspect", "pattern"]
         if v.lower() not in valid_types:
             raise ValueError(f"Element type must be one of: {', '.join(valid_types)}")
+        return v.lower()
+
+    @validator("astro_system")
+    def validate_astro_system(cls, v):
+        """Validate astro system"""
+        if v is None:
+            return "western"
+        valid_systems = ["western", "vedic", "human_design"]
+        if v.lower() not in valid_systems:
+            raise ValueError(f"Astro system must be one of: {', '.join(valid_systems)}")
         return v.lower()
 
     @validator("is_approved")

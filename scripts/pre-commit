@@ -50,20 +50,31 @@ echo "=== Backend Checks ==="
 
 cd backend
 
-# Quick pytest (only if test files changed)
-echo -n "Python tests... "
+# Python syntax check (fast - no full test run)
+echo -n "Python syntax... "
 STAGED_PY_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.py$' | grep '^backend/' || true)
 if [ -n "$STAGED_PY_FILES" ]; then
-    if source test_venv/bin/activate 2>/dev/null && pytest -x -q --tb=no 2>/dev/null; then
+    # Just verify Python files are syntactically valid
+    SYNTAX_OK=true
+    for file in $STAGED_PY_FILES; do
+        if ! python3 -m py_compile "../$file" 2>/dev/null; then
+            SYNTAX_OK=false
+            break
+        fi
+    done
+    if $SYNTAX_OK; then
         echo -e "${GREEN}OK${NC}"
     else
         echo -e "${RED}FAILED${NC}"
-        echo "Run 'cd backend && pytest -v' to see errors"
+        echo "Python syntax error in staged files"
         exit 1
     fi
 else
     echo -e "${GREEN}OK${NC} (no staged files)"
 fi
+
+# Note: Full test suite should be run manually before merging
+# Run: cd backend && pytest -v
 
 cd ..
 

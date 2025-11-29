@@ -22,6 +22,7 @@ class ChartInterpretation(BaseModel):
         chart_id: Foreign key to Chart
         element_type: Type of element (planet, house, aspect, pattern)
         element_key: Unique identifier for element
+        astro_system: Astrological system (western, vedic, human_design)
         ai_description: AI-generated interpretation text
         ai_model: AI model used (e.g., "gpt-4", "claude-3-opus")
         ai_prompt_version: Prompt template version used
@@ -76,6 +77,15 @@ class ChartInterpretation(BaseModel):
         comment="Element identifier: 'sun', 'house_1', 'sun_trine_moon', etc."
     )
 
+    # Astrological system - for separating Western vs Vedic interpretations
+    astro_system = Column(
+        String,
+        nullable=False,
+        default='western',
+        index=True,
+        comment="Astrological system: western, vedic, human_design"
+    )
+
     # AI-generated content
     ai_description = Column(
         String,
@@ -121,7 +131,9 @@ class ChartInterpretation(BaseModel):
     __table_args__ = (
         Index('idx_chart_interpretations_chart_id', 'chart_id'),
         Index('idx_chart_interpretations_element_type', 'element_type'),
-        Index('idx_chart_interpretations_lookup', 'chart_id', 'element_type', 'element_key'),
+        Index('idx_chart_interpretations_astro_system', 'astro_system'),
+        # Updated lookup index to include astro_system for efficient queries
+        Index('idx_chart_interpretations_lookup_v2', 'chart_id', 'astro_system', 'element_type', 'element_key'),
     )
 
     def __repr__(self):

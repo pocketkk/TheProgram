@@ -93,10 +93,21 @@ class TransitCalculator:
         for transit_planet, transit_data in current_planets.items():
             if transit_planet in ['Ascendant', 'Midheaven', 'Lilith']:
                 continue  # Skip points that don't transit
+            if transit_data is None:
+                continue  # Skip planets that failed to calculate
 
             transit_lon = transit_data.get('longitude', 0)
 
             for natal_planet, natal_data in natal_planets.items():
+                if natal_data is None:
+                    continue  # Skip planets that failed to calculate
+
+                # Skip same-planet comparisons (e.g., transiting Sun to natal Sun)
+                # While technically valid, these are confusing to display
+                # Exception: Moon transits to natal Moon are fast enough to be useful
+                if transit_planet == natal_planet and transit_planet != 'Moon':
+                    continue
+
                 natal_lon = natal_data.get('longitude', 0)
 
                 # Check each aspect type
@@ -181,10 +192,10 @@ class TransitCalculator:
                 natal_planets, current_date, zodiac, orb_multiplier=0.8
             )
 
-            # Only include significant transits in timeline
+            # Include major, significant, and moderate transits in timeline
             significant = [
                 t for t in transits['transits']
-                if t['significance'] in ['major', 'significant']
+                if t['significance'] in ['major', 'significant', 'moderate']
             ]
 
             if significant:

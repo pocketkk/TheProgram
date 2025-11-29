@@ -129,11 +129,13 @@ export function TarotPage() {
                       {formatCardName(dailyCard.card)}
                     </h3>
                     <p className="text-sm text-gray-400 mt-2">
-                      {dailyCard.card.keywords.slice(0, 3).join(' • ')}
+                      {dailyCard.card.keywords?.slice(0, 3).join(' • ') || ''}
                     </p>
-                    <p className="text-sm text-gray-300 mt-3 italic">
-                      "{dailyCard.daily_guidance.slice(0, 100)}..."
-                    </p>
+                    {dailyCard.daily_guidance && (
+                      <p className="text-sm text-gray-300 mt-3 italic">
+                        "{dailyCard.daily_guidance.slice(0, 100)}..."
+                      </p>
+                    )}
                   </div>
                 </CardContent>
               </Card>

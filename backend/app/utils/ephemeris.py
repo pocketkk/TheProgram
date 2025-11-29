@@ -298,6 +298,22 @@ class EphemerisCalculator:
         return signs[sign_number % 12]
 
     @staticmethod
+    def get_calc_flags(zodiac_type: str = 'tropical') -> int:
+        """
+        Get Swiss Ephemeris calculation flags based on zodiac type
+
+        Args:
+            zodiac_type: 'tropical' or 'sidereal'
+
+        Returns:
+            Swiss Ephemeris flags integer
+        """
+        flags = swe.FLG_SWIEPH
+        if zodiac_type == 'sidereal':
+            flags |= swe.FLG_SIDEREAL
+        return flags
+
+    @staticmethod
     def format_degree(longitude: float) -> str:
         """
         Format longitude as degree string (e.g., "15°23' Aries")
@@ -354,6 +370,69 @@ class EphemerisCalculator:
                 'orb_abs': aspect_diff,
                 'applying': None,  # Requires speed calculation
             }
+
+        return None
+
+    @staticmethod
+    def calculate_aspect_between_planets(
+        long1: float,
+        long2: float,
+        custom_orbs: Optional[Dict[str, float]] = None
+    ) -> Optional[Dict]:
+        """
+        Check if two positions form any major aspect
+
+        Args:
+            long1: Longitude of first point
+            long2: Longitude of second point
+            custom_orbs: Optional dictionary with custom orbs for each aspect type
+
+        Returns:
+            Dictionary with aspect info if any aspect found, None otherwise:
+            - type: Aspect name (conjunction, sextile, square, trine, opposition)
+            - angle: Actual angle between points
+            - orb: Orb from exact
+            - exact: Boolean, True if exact (within 1 degree)
+        """
+        # Default orbs for each aspect
+        default_orbs = {
+            'conjunction': 8.0,
+            'sextile': 6.0,
+            'square': 8.0,
+            'trine': 8.0,
+            'opposition': 8.0,
+        }
+
+        # Aspect angles
+        aspects = {
+            'conjunction': 0,
+            'sextile': 60,
+            'square': 90,
+            'trine': 120,
+            'opposition': 180,
+        }
+
+        # Use custom orbs if provided, otherwise default
+        orbs = custom_orbs if custom_orbs else default_orbs
+
+        # Calculate shortest arc between two longitudes
+        diff = (long2 - long1) % 360
+        if diff > 180:
+            diff = 360 - diff
+        angle = diff
+
+        # Check each aspect
+        for aspect_name, aspect_angle in aspects.items():
+            orb = orbs.get(aspect_name, default_orbs[aspect_name])
+            aspect_diff = abs(angle - aspect_angle)
+
+            if aspect_diff <= orb:
+                return {
+                    'type': aspect_name,
+                    'angle': angle,
+                    'orb': aspect_diff,
+                    'exact': aspect_diff <= 1.0
+                }
 
         return None
 

@@ -6,13 +6,16 @@
 import { useCallback, useEffect, useRef } from 'react'
 import { useCompanionStore } from '../stores/companionStore'
 import { useChartStore } from '@/features/birthchart/stores/chartStore'
+import { useTransitStore } from '@/store/transitStore'
 import type { AspectPattern } from '@/lib/astrology/patterns'
 
-// Navigation event for the app to listen to
-// The app uses state-based navigation, so we dispatch custom events
+// Custom events for the app to listen to
+// These dispatch state changes that specific pages handle
 declare global {
   interface WindowEventMap {
     'companion-navigate': CustomEvent<{ page: string }>
+    'companion-recalculate-chart': CustomEvent<void>
+    'companion-set-transit-date': CustomEvent<{ date: string | null }>
   }
 }
 
@@ -64,6 +67,15 @@ interface ChartContext {
   patterns: AspectPattern[]
 }
 
+// App context for AI - includes page and state info
+interface AppContext {
+  current_page: string
+  active_chart_id: string | null
+  chart_data: ChartContext | null
+  zodiac_system: string
+  house_system: string
+}
+
 export function useCompanionActions() {
   const wsRef = useRef<WebSocket | null>(null)
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null)
@@ -88,6 +100,9 @@ export function useCompanionActions() {
 
   // Chart store for tool execution
   const chartStore = useChartStore()
+
+  // Transit store for transit date control
+  const transitStore = useTransitStore()
 
   // Get current chart context for AI
   const getChartContext = useCallback((): ChartContext | null => {
@@ -121,6 +136,21 @@ export function useCompanionActions() {
       patterns: [], // Would come from pattern detection
     }
   }, [chartStore])
+
+  // Get full app context for AI - includes page, chart state, etc.
+  const getAppContext = useCallback((): AppContext => {
+    // Get current page from App.tsx's broadcast (window.__currentPage)
+    // This is set by App.tsx useEffect whenever currentPage changes
+    const currentPage = (window as any).__currentPage || 'dashboard'
+
+    return {
+      current_page: currentPage,
+      active_chart_id: chartStore.activeChartId,
+      chart_data: getChartContext(),
+      zodiac_system: chartStore.zodiacSystem,
+      house_system: chartStore.houseSystem,
+    }
+  }, [chartStore, getChartContext])
 
   // Execute frontend tool call
   const executeToolCall = useCallback(
@@ -283,6 +313,35 @@ export function useCompanionActions() {
             break
           }
 
+          case 'recalculate_chart': {
+            // Dispatch event to BirthChartPage to recalculate with current settings
+            // This applies any pending zodiac system, house system, or ayanamsa changes
+            window.dispatchEvent(new CustomEvent('companion-recalculate-chart'))
+            break
+          }
+
+          case 'set_transit_date': {
+            // Set the transit date to show transits for a specific date
+            // Use null or empty string to reset to current date
+            console.log('[useCompanionActions] set_transit_date tool called with input:', JSON.stringify(input))
+            const date = input.date as string | null
+            console.log('[useCompanionActions] Extracted date value:', date, 'type:', typeof date)
+            const transitDate = date && date.trim() ? date : null
+            console.log('[useCompanionActions] Final transitDate:', transitDate)
+            transitStore.setTransitDate(transitDate)
+            // Dispatch event so chart pages can switch to transit view with the specified date
+            // The BirthChartPage listens for this and switches to transit chart type
+            window.dispatchEvent(
+              new CustomEvent('companion-set-transit-date', { detail: { date: transitDate } })
+            )
+            // NOTE: We don't auto-navigate anymore because:
+            // 1. window.location.pathname doesn't reflect SPA page state
+            // 2. BirthChartPage already listens for the event and switches to transit view
+            // 3. Auto-navigation can cause the page to unmount and lose state
+            // If navigation is needed, the Guide can use navigate_to_page tool separately
+            break
+          }
+
           // Phase 2: Canvas tools that execute on frontend
           case 'arrange_canvas': {
             // Dispatch event to canvas store to arrange items
@@ -310,7 +369,7 @@ export function useCompanionActions() {
         setCurrentAction(null)
       }, 500)
     },
-    [chartStore, setCurrentAction, updateToolCallStatus]
+    [chartStore, transitStore, setCurrentAction, updateToolCallStatus]
   )
 
   // Handle incoming WebSocket messages
@@ -506,14 +565,15 @@ export function useCompanionActions() {
       setIsGenerating(true)
       setAvatarState('listening')
 
-      const chartContext = getChartContext()
+      const appContext = getAppContext()
 
       wsRef.current.send(
         JSON.stringify({
           type: 'chat_message',
           content,
           session_id: sessionId,
-          chart_context: chartContext,
+          app_context: appContext,
+          chart_context: appContext.chart_data,
           user_preferences: {
             enabled_paradigms: preferences.enabledParadigms,
             synthesis_depth: preferences.synthesisDepth,
@@ -527,7 +587,7 @@ export function useCompanionActions() {
       addMessage,
       setIsGenerating,
       setAvatarState,
-      getChartContext,
+      getAppContext,
     ]
   )
 

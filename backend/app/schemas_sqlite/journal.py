@@ -5,6 +5,7 @@ Schemas for journal entries with tags, mood, and AI context.
 Part of Phase 2: Journal System.
 """
 from typing import Optional, List, Dict, Any
+import json
 from pydantic import BaseModel, Field, validator
 from datetime import datetime, date
 from uuid import UUID
@@ -71,6 +72,30 @@ class JournalEntryResponse(JournalEntryBase):
     preview: str = Field(..., description="Content preview (first 150 chars)")
     created_at: datetime = Field(..., description="Creation timestamp")
     updated_at: datetime = Field(..., description="Last update timestamp")
+
+    @validator("tags", pre=True, always=True)
+    def parse_tags_json(cls, v):
+        """Parse tags from JSON string if needed (SQLite stores as TEXT)"""
+        if v is None:
+            return []
+        if isinstance(v, str):
+            try:
+                return json.loads(v)
+            except (json.JSONDecodeError, TypeError):
+                return []
+        return v
+
+    @validator("transit_context", pre=True, always=True)
+    def parse_transit_context_json(cls, v):
+        """Parse transit_context from JSON string if needed"""
+        if v is None:
+            return None
+        if isinstance(v, str):
+            try:
+                return json.loads(v)
+            except (json.JSONDecodeError, TypeError):
+                return None
+        return v
 
     class Config:
         from_attributes = True
