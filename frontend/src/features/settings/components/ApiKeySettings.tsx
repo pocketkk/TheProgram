@@ -42,7 +42,16 @@ export function ApiKeySettings() {
     }
   }
 
+  // Clear all feedback messages
+  const clearFeedback = () => {
+    setError(null)
+    setSuccessMessage(null)
+    setValidationResult(null)
+  }
+
   const handleSaveApiKey = async () => {
+    clearFeedback()
+
     if (!apiKey.trim()) {
       setError('Please enter an API key')
       return
@@ -54,9 +63,6 @@ export function ApiKeySettings() {
     }
 
     setIsSaving(true)
-    setError(null)
-    setSuccessMessage(null)
-    setValidationResult(null)
 
     try {
       const response = await authApi.setApiKey(apiKey)
@@ -72,16 +78,13 @@ export function ApiKeySettings() {
   }
 
   const handleValidateApiKey = async () => {
+    clearFeedback()
     setIsValidating(true)
-    setError(null)
-    setValidationResult(null)
 
     try {
       const result = await authApi.validateApiKey()
       setValidationResult(result)
-      if (!result.valid) {
-        setError(result.message)
-      }
+      // Don't set error separately - validationResult handles the message
     } catch (err: any) {
       setError(err?.response?.data?.detail || 'Failed to validate API key')
       console.error('Failed to validate API key:', err)
@@ -95,10 +98,8 @@ export function ApiKeySettings() {
       return
     }
 
+    clearFeedback()
     setIsLoading(true)
-    setError(null)
-    setSuccessMessage(null)
-    setValidationResult(null)
 
     try {
       const response = await authApi.clearApiKey()
