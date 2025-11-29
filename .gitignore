@@ -56,6 +56,7 @@ temp/
 
 # Electron
 dist-electron/
+squashfs-root/
 
 # Test artifacts
 .vitest/
