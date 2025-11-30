@@ -1,5 +1,15 @@
-
 # Backup encryption keys (NEVER commit these)
 *.key
 data/backup.key
 backup_*.key
+
+# Database
+*.db
+
+# Coverage
+.coverage
+coverage.xml
+htmlcov/
+
+# Generated images
+data/images/

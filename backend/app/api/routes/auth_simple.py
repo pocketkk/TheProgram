@@ -29,6 +29,7 @@ from app.schemas.auth import (
     ApiKeySetRequest,
     ApiKeyStatusResponse,
     ApiKeyValidateResponse,
+    GoogleApiKeySetRequest,
 )
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
@@ -67,6 +68,7 @@ async def get_auth_status(db: Session = Depends(get_db)):
         password_set=password_set,
         require_password=require_password,
         has_api_key=config.has_api_key,
+        has_google_api_key=config.has_google_api_key,
         message=message,
     )
 
@@ -537,6 +539,209 @@ async def validate_api_key(db: Session = Depends(get_db)):
             message = "API key is valid but rate limited. Try again later."
         elif "insufficient" in error_msg.lower():
             message = "API key is valid but has insufficient credits."
+        else:
+            message = f"API key validation failed: {error_msg}"
+
+        return ApiKeyValidateResponse(
+            valid=False,
+            message=message,
+            model_access=None,
+        )
+
+
+# =============================================================================
+# Google API Key Management Endpoints (for Gemini Image Generation)
+# =============================================================================
+
+
+@router.get("/api-key/google/status", response_model=ApiKeyStatusResponse)
+async def get_google_api_key_status(db: Session = Depends(get_db)):
+    """
+    Get Google API key configuration status
+
+    Returns whether a Google API key is configured for Gemini image generation.
+    Used by frontend to show/hide image generation features.
+
+    Returns:
+        ApiKeyStatusResponse with has_api_key flag and message
+    """
+    config = db.query(AppConfig).filter_by(id=1).first()
+
+    if not config:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Application not initialized",
+        )
+
+    has_api_key = config.has_google_api_key
+    message = (
+        "Google API key is configured. Image generation is available."
+        if has_api_key
+        else "No Google API key configured. Set your API key to enable image generation."
+    )
+
+    return ApiKeyStatusResponse(
+        has_api_key=has_api_key,
+        message=message,
+    )
+
+
+@router.post("/api-key/google", response_model=MessageResponse)
+async def set_google_api_key(
+    request: GoogleApiKeySetRequest,
+    db: Session = Depends(get_db),
+):
+    """
+    Set or update Google API key
+
+    Stores the API key in the database for Gemini image generation features.
+    Use /api-key/google/validate to test the key.
+
+    Args:
+        request: ApiKeySetRequest with api_key field
+
+    Returns:
+        Success message
+
+    Raises:
+        500: If database error occurs
+    """
+    config = db.query(AppConfig).filter_by(id=1).first()
+
+    if not config:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Application not initialized",
+        )
+
+    # Store API key
+    config.google_api_key = request.api_key
+
+    try:
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to save API key: {str(e)}",
+        )
+
+    return MessageResponse(
+        message="Google API key saved successfully. Image generation is now available.",
+        success=True,
+    )
+
+
+@router.delete("/api-key/google", response_model=MessageResponse)
+async def clear_google_api_key(db: Session = Depends(get_db)):
+    """
+    Clear Google API key
+
+    Removes the stored API key from the database.
+    Image generation features will be disabled.
+
+    Returns:
+        Success message
+
+    Raises:
+        400: If no API key is set
+        500: If database error occurs
+    """
+    config = db.query(AppConfig).filter_by(id=1).first()
+
+    if not config:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Application not initialized",
+        )
+
+    if not config.has_google_api_key:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No Google API key is currently set",
+        )
+
+    # Clear API key
+    config.google_api_key = None
+
+    try:
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to clear API key: {str(e)}",
+        )
+
+    return MessageResponse(
+        message="Google API key cleared successfully. Image generation is now disabled.",
+        success=True,
+    )
+
+
+@router.post("/api-key/google/validate", response_model=ApiKeyValidateResponse)
+async def validate_google_api_key(db: Session = Depends(get_db)):
+    """
+    Validate Google API key
+
+    Tests the stored API key by making a minimal request to Google Gemini API.
+    Returns validation status and accessible models if valid.
+
+    Returns:
+        ApiKeyValidateResponse with validation status
+
+    Raises:
+        400: If no API key is configured
+    """
+    config = db.query(AppConfig).filter_by(id=1).first()
+
+    if not config:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Application not initialized",
+        )
+
+    if not config.has_google_api_key:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No Google API key configured. Please set an API key first.",
+        )
+
+    # Test API key with Google Gemini
+    try:
+        from google import genai
+
+        client = genai.Client(api_key=config.google_api_key)
+
+        # Make a minimal test request
+        response = client.models.generate_content(
+            model="gemini-2.0-flash-exp",
+            contents="test",
+            config={"max_output_tokens": 10},
+        )
+
+        # If we get here, the API key is valid
+        return ApiKeyValidateResponse(
+            valid=True,
+            message="Google API key is valid and working correctly.",
+            model_access=["gemini-2.0-flash-exp", "gemini-2.5-flash-image"],
+        )
+
+    except ImportError:
+        return ApiKeyValidateResponse(
+            valid=False,
+            message="google-genai package not installed. Install with: pip install google-genai",
+            model_access=None,
+        )
+
+    except Exception as e:
+        error_msg = str(e)
+
+        # Parse common error messages
+        if "api key" in error_msg.lower() or "invalid" in error_msg.lower():
+            message = "Invalid API key. Please check your key and try again."
+        elif "quota" in error_msg.lower() or "rate" in error_msg.lower():
+            message = "API key is valid but quota exceeded. Try again later."
         else:
             message = f"API key validation failed: {error_msg}"
 

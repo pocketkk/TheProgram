@@ -93,6 +93,10 @@ class AuthStatus(BaseModel):
         default=False,
         description="Whether Anthropic API key is configured"
     )
+    has_google_api_key: bool = Field(
+        default=False,
+        description="Whether Google API key is configured for image generation"
+    )
     message: str | None = Field(
         default=None,
         description="Optional status message"
@@ -142,3 +146,20 @@ class ApiKeyValidateResponse(BaseModel):
         default=None,
         description="List of accessible models if valid"
     )
+
+
+class GoogleApiKeySetRequest(BaseModel):
+    """Request to set or update Google API key for Gemini"""
+    api_key: str = Field(
+        ...,
+        min_length=10,
+        description="Google API key"
+    )
+
+    @field_validator("api_key")
+    @classmethod
+    def validate_api_key_format(cls, v: str) -> str:
+        """Ensure API key is not just whitespace"""
+        if not v or not v.strip():
+            raise ValueError("API key cannot be empty or whitespace")
+        return v.strip()

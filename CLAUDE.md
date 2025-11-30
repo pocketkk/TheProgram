@@ -28,7 +28,7 @@ Instructions for Claude Code when working on this project.
 | Backend | Python 3.10+, FastAPI, SQLAlchemy |
 | Database | SQLite (local file) |
 | Calculations | Swiss Ephemeris (pyswisseph) |
-| AI | Anthropic Claude |
+| AI | Anthropic Claude, Google Gemini (image generation) |
 
 ## Project Structure
 
@@ -166,6 +166,22 @@ alembic upgrade head
 | Human Design | Complete | `human_design_calculator.py`, `HumanDesignPage.tsx` |
 | Transits | Complete | `transit_calculator.py`, `TransitDashboard.tsx` |
 | AI Interpret | Complete | `ai_interpreter.py`, `useChartInterpretations.ts` |
+| Studio | Complete | `gemini_image_service.py`, `StudioPage.tsx` |
+
+## Studio Feature
+
+The Studio provides AI-powered image generation for custom tarot decks and planet sets using Google Gemini.
+
+**Architecture:**
+- **Prompt Domains**: Subject (what), Style (art rendering), Frame (border/composition) - assembled at generation time
+- **Collections**: Decks (78 tarot cards) and Sets (15 celestial bodies) with shared style settings
+- **Generation**: WebSocket-based batch generation with real-time progress
+- **Refinement**: Individual image regeneration with prompt editing
+
+**Key Files:**
+- Backend: `gemini_image_service.py`, `image_storage_service.py`, `images.py`, `image_ws.py`
+- Frontend: `features/tarot-generator/`, `features/planet-generator/`, `features/studio/`
+- API: `lib/api/images.ts`
 
 ## Current Focus
 

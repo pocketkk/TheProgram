@@ -66,6 +66,12 @@ class AppConfig(SingletonModel):
         comment="Anthropic API key for AI interpretations (encrypted)"
     )
 
+    google_api_key = Column(
+        String,
+        nullable=True,
+        comment="Google API key for Gemini image generation"
+    )
+
     def __repr__(self):
         """String representation"""
         has_password = "with password" if self.password_hash else "no password"
@@ -81,17 +87,24 @@ class AppConfig(SingletonModel):
         """Check if Anthropic API key is set"""
         return self.anthropic_api_key is not None and len(self.anthropic_api_key.strip()) > 0
 
+    @property
+    def has_google_api_key(self) -> bool:
+        """Check if Google API key is set"""
+        return self.google_api_key is not None and len(self.google_api_key.strip()) > 0
+
     def to_dict(self):
         """
         Convert to dictionary (excludes sensitive fields for security)
 
         Returns:
-            Dictionary with all fields except password_hash and API key
+            Dictionary with all fields except password_hash and API keys
         """
         result = super().to_dict()
         # Remove sensitive fields for security
         result.pop('password_hash', None)
         result.pop('anthropic_api_key', None)
+        result.pop('google_api_key', None)
         result['has_password'] = self.has_password
         result['has_api_key'] = self.has_api_key
+        result['has_google_api_key'] = self.has_google_api_key
         return result

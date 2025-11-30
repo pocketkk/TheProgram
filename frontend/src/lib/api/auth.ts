@@ -204,4 +204,66 @@ export const authApi = {
     const response = await apiClient.post<ApiKeyValidateResponse>('/auth/api-key/validate')
     return response.data
   },
+
+  // ==========================================================================
+  // Google API Key Management
+  // ==========================================================================
+
+  /**
+   * Get Google API key configuration status
+   *
+   * Returns whether a Google API key is configured.
+   * Used to show/hide Google-based features in the UI.
+   *
+   * @returns ApiKeyStatusResponse with has_api_key flag and message
+   */
+  getGoogleApiKeyStatus: async (): Promise<ApiKeyStatusResponse> => {
+    const response = await apiClient.get<ApiKeyStatusResponse>('/auth/api-key/google/status')
+    return response.data
+  },
+
+  /**
+   * Set or update Google API key
+   *
+   * Stores the API key for Google-based features (Gemini, etc).
+   * The key is validated for format but not tested against Google API.
+   * Use validateGoogleApiKey() to test the key.
+   *
+   * @param apiKey - The Google API key
+   * @returns Success message
+   * @throws Error if API key format is invalid or operation fails
+   */
+  setGoogleApiKey: async (apiKey: string): Promise<MessageResponse> => {
+    const request: ApiKeySetRequest = { api_key: apiKey }
+    const response = await apiClient.post<MessageResponse>('/auth/api-key/google', request)
+    return response.data
+  },
+
+  /**
+   * Clear Google API key
+   *
+   * Removes the stored API key from the database.
+   * Google-based features will be disabled after clearing.
+   *
+   * @returns Success message
+   * @throws Error if no API key is set or operation fails
+   */
+  clearGoogleApiKey: async (): Promise<MessageResponse> => {
+    const response = await apiClient.delete<MessageResponse>('/auth/api-key/google')
+    return response.data
+  },
+
+  /**
+   * Validate Google API key
+   *
+   * Tests the stored API key by making a minimal request to Google API.
+   * Returns validation status and accessible models if valid.
+   *
+   * @returns ApiKeyValidateResponse with validation status and model list
+   * @throws Error if no API key is configured
+   */
+  validateGoogleApiKey: async (): Promise<ApiKeyValidateResponse> => {
+    const response = await apiClient.post<ApiKeyValidateResponse>('/auth/api-key/google/validate')
+    return response.data
+  },
 }

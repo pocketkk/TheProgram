@@ -37,6 +37,9 @@ from app.models.transit_context import TransitContext
 # Phase 2: Canvas Exploration
 from app.models.canvas_board import CanvasBoard, CanvasItem
 
+# Phase 5: Image Generation
+from app.models.generated_image import GeneratedImage, ImageCollection
+
 __all__ = [
     # Base classes
     'Base',
@@ -74,4 +77,8 @@ __all__ = [
     # Phase 2: Canvas Exploration
     'CanvasBoard',
     'CanvasItem',
+
+    # Phase 5: Image Generation
+    'GeneratedImage',
+    'ImageCollection',
 ]

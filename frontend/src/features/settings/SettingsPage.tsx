@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
 import { ApiKeySettings } from './components/ApiKeySettings'
+import { GoogleApiKeySettings } from './components/GoogleApiKeySettings'
 
 export function SettingsPage() {
   return (
@@ -31,7 +32,7 @@ export function SettingsPage() {
       </motion.div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        {/* AI Configuration */}
+        {/* Anthropic AI Configuration */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -42,10 +43,10 @@ export function SettingsPage() {
             <CardHeader>
               <div className="flex items-center gap-3 mb-2">
                 <Sparkles className="h-5 w-5 text-cosmic-400" />
-                <CardTitle>AI Configuration</CardTitle>
+                <CardTitle>Anthropic AI Configuration</CardTitle>
               </div>
               <CardDescription>
-                Configure your Anthropic API key to enable AI-powered chart interpretations.
+                Configure your Anthropic API key to enable Claude AI-powered chart interpretations.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -54,11 +55,34 @@ export function SettingsPage() {
           </Card>
         </motion.div>
 
+        {/* Google AI Configuration */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="lg:col-span-2"
+        >
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-3 mb-2">
+                <Sparkles className="h-5 w-5 text-cosmic-400" />
+                <CardTitle>Google AI Configuration</CardTitle>
+              </div>
+              <CardDescription>
+                Configure your Google API key to enable Gemini AI-powered features.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <GoogleApiKeySettings />
+            </CardContent>
+          </Card>
+        </motion.div>
+
         {/* Security & Privacy */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
+          transition={{ delay: 0.4 }}
         >
           <Card>
             <CardHeader>
@@ -83,7 +107,7 @@ export function SettingsPage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
+          transition={{ delay: 0.5 }}
         >
           <Card>
             <CardHeader>
@@ -108,7 +132,7 @@ export function SettingsPage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
+          transition={{ delay: 0.6 }}
         >
           <Card>
             <CardHeader>
@@ -134,7 +158,7 @@ export function SettingsPage() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.6 }}
+        transition={{ delay: 0.7 }}
       >
         <Card className="border-cosmic-600">
           <CardContent className="p-6">

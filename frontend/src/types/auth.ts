@@ -74,6 +74,7 @@ export interface AuthStatus {
   password_set: boolean
   require_password: boolean
   has_api_key: boolean
+  has_google_api_key?: boolean
   message?: string
 }
 

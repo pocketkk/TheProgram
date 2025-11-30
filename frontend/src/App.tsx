@@ -35,6 +35,10 @@ import { IChingPage } from './features/iching'
 import { NumerologyPage } from './features/numerology'
 // Phase 4: Human Design
 import { HumanDesignPage } from './features/humandesign'
+// Themes
+import { ThemesPage } from './features/themes'
+// Studio (Image Generators)
+import { StudioPage } from './features/studio'
 
 function App() {
   const { isAuthenticated, needsPasswordSetup, isLoading, checkAuthStatus } = useAuthStore()
@@ -184,6 +188,16 @@ function App() {
         {currentPage === 'humandesign' && (
           <ErrorBoundary featureName="Human Design">
             <HumanDesignPage />
+          </ErrorBoundary>
+        )}
+        {currentPage === 'themes' && (
+          <ErrorBoundary featureName="Themes">
+            <ThemesPage />
+          </ErrorBoundary>
+        )}
+        {currentPage === 'studio' && (
+          <ErrorBoundary featureName="Studio">
+            <StudioPage />
           </ErrorBoundary>
         )}
         {currentPage === 'settings' && (

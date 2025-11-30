@@ -82,6 +82,24 @@ from app.schemas.canvas import (
     SuggestArrangementResponse
 )
 
+# Phase 5: Image Generation
+from app.schemas.image import (
+    ImageGenerateRequest,
+    ImageGenerateResponse,
+    ImageRefineRequest,
+    ImageInfo,
+    ImageListResponse,
+    CollectionCreate,
+    CollectionUpdate,
+    CollectionInfo,
+    CollectionWithImages,
+    CollectionListResponse,
+    BatchGenerateItem,
+    BatchGenerateRequest,
+    BatchProgressUpdate,
+    StorageStats,
+)
+
 __all__ = [
     # Common
     'Message',
@@ -178,4 +196,20 @@ __all__ = [
     'HDChannelInterpretationResponse',
     'HDGateInterpretationResponse',
     'HDFullReadingResponse',
+
+    # Phase 5: Image Generation
+    'ImageGenerateRequest',
+    'ImageGenerateResponse',
+    'ImageRefineRequest',
+    'ImageInfo',
+    'ImageListResponse',
+    'CollectionCreate',
+    'CollectionUpdate',
+    'CollectionInfo',
+    'CollectionWithImages',
+    'CollectionListResponse',
+    'BatchGenerateItem',
+    'BatchGenerateRequest',
+    'BatchProgressUpdate',
+    'StorageStats',
 ]
