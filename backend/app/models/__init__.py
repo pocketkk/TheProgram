@@ -33,6 +33,7 @@ from app.models.journal_entry import JournalEntry
 # Phase 2: Transit Timeline
 from app.models.user_event import UserEvent
 from app.models.transit_context import TransitContext
+from app.models.historical_date import HistoricalDate
 
 # Phase 2: Canvas Exploration
 from app.models.canvas_board import CanvasBoard, CanvasItem
@@ -73,6 +74,7 @@ __all__ = [
     # Phase 2: Transit Timeline
     'UserEvent',
     'TransitContext',
+    'HistoricalDate',
 
     # Phase 2: Canvas Exploration
     'CanvasBoard',

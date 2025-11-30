@@ -477,7 +477,7 @@ export const BirthChartWheel = forwardRef<HTMLDivElement, BirthChartWheelProps>(
       <ChartTooltip containerRef={chartRef} />
 
       {/* Zoom Controls */}
-      <div className="absolute top-4 right-4 z-10 flex flex-col gap-2">
+      <div className="absolute top-4 -left-12 z-10 flex flex-col gap-2">
         <button
           onClick={handleZoomIn}
           className="w-8 h-8 bg-cosmic-800/90 hover:bg-cosmic-700 border border-cosmic-600 rounded text-cosmic-200 flex items-center justify-center transition-colors"

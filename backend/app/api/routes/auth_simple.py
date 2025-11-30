@@ -30,6 +30,13 @@ from app.schemas.auth import (
     ApiKeyStatusResponse,
     ApiKeyValidateResponse,
     GoogleApiKeySetRequest,
+    NewspaperStyleSetRequest,
+    NewspaperStyleResponse,
+    GuardianApiKeySetRequest,
+    NYTApiKeySetRequest,
+    NewsApiKeySetRequest,
+    NewsSourcesStatusResponse,
+    NewsSourcesPrioritySetRequest,
 )
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
@@ -750,3 +757,425 @@ async def validate_google_api_key(db: Session = Depends(get_db)):
             message=message,
             model_access=None,
         )
+
+
+# =============================================================================
+# Preferences Endpoints
+# =============================================================================
+
+
+@router.get("/preferences/newspaper-style", response_model=NewspaperStyleResponse)
+async def get_newspaper_style(db: Session = Depends(get_db)):
+    """
+    Get current newspaper style preference
+
+    Returns the user's preferred newspaper style for the Timeline feature.
+
+    Returns:
+        NewspaperStyleResponse with current style setting
+    """
+    config = db.query(AppConfig).filter_by(id=1).first()
+
+    if not config:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Application not initialized",
+        )
+
+    return NewspaperStyleResponse(
+        style=config.newspaper_style or 'modern'
+    )
+
+
+@router.post("/preferences/newspaper-style", response_model=MessageResponse)
+async def set_newspaper_style(
+    request: NewspaperStyleSetRequest,
+    db: Session = Depends(get_db),
+):
+    """
+    Set newspaper style preference
+
+    Updates the user's preferred newspaper style for the Timeline feature.
+
+    Args:
+        request: NewspaperStyleSetRequest with style ('victorian' or 'modern')
+
+    Returns:
+        Success message
+
+    Raises:
+        400: Invalid style value
+        500: Database error
+    """
+    config = db.query(AppConfig).filter_by(id=1).first()
+
+    if not config:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Application not initialized",
+        )
+
+    # Update newspaper style
+    config.newspaper_style = request.style
+
+    try:
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to save newspaper style preference: {str(e)}",
+        )
+
+    style_name = "Victorian (Classic)" if request.style == "victorian" else "Modern"
+    return MessageResponse(
+        message=f"Newspaper style set to {style_name}",
+        success=True,
+    )
+
+
+# =============================================================================
+# News API Keys Management (Guardian, NYT, NewsAPI)
+# =============================================================================
+
+
+@router.get("/api-key/news/status", response_model=NewsSourcesStatusResponse)
+async def get_news_sources_status(db: Session = Depends(get_db)):
+    """
+    Get news sources configuration status
+
+    Returns which news API keys are configured and the source priority.
+    Used by frontend to show/hide news source features.
+
+    Returns:
+        NewsSourcesStatusResponse with status for each source
+    """
+    config = db.query(AppConfig).filter_by(id=1).first()
+
+    if not config:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Application not initialized",
+        )
+
+    configured_count = sum([
+        config.has_guardian_api_key,
+        config.has_nyt_api_key,
+        config.has_newsapi_api_key,
+    ])
+
+    if configured_count == 0:
+        message = "No news API keys configured. Wikipedia will be used as fallback."
+    else:
+        message = f"{configured_count} news source(s) configured."
+
+    return NewsSourcesStatusResponse(
+        guardian_configured=config.has_guardian_api_key,
+        nyt_configured=config.has_nyt_api_key,
+        newsapi_configured=config.has_newsapi_api_key,
+        sources_priority=config.newspaper_sources_priority or "guardian,nyt,wikipedia",
+        message=message,
+    )
+
+
+# Guardian API Key Endpoints
+@router.get("/api-key/guardian/status", response_model=ApiKeyStatusResponse)
+async def get_guardian_api_key_status(db: Session = Depends(get_db)):
+    """Get Guardian API key configuration status"""
+    config = db.query(AppConfig).filter_by(id=1).first()
+
+    if not config:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Application not initialized",
+        )
+
+    has_api_key = config.has_guardian_api_key
+    message = (
+        "Guardian API key is configured. News from 1999-present available."
+        if has_api_key
+        else "No Guardian API key configured. Get one at open-platform.theguardian.com"
+    )
+
+    return ApiKeyStatusResponse(has_api_key=has_api_key, message=message)
+
+
+@router.post("/api-key/guardian", response_model=MessageResponse)
+async def set_guardian_api_key(
+    request: GuardianApiKeySetRequest,
+    db: Session = Depends(get_db),
+):
+    """Set or update Guardian API key"""
+    config = db.query(AppConfig).filter_by(id=1).first()
+
+    if not config:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Application not initialized",
+        )
+
+    config.guardian_api_key = request.api_key
+
+    try:
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to save API key: {str(e)}",
+        )
+
+    return MessageResponse(
+        message="Guardian API key saved. News from 1999-present now available.",
+        success=True,
+    )
+
+
+@router.delete("/api-key/guardian", response_model=MessageResponse)
+async def clear_guardian_api_key(db: Session = Depends(get_db)):
+    """Clear Guardian API key"""
+    config = db.query(AppConfig).filter_by(id=1).first()
+
+    if not config:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Application not initialized",
+        )
+
+    if not config.has_guardian_api_key:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No Guardian API key is currently set",
+        )
+
+    config.guardian_api_key = None
+
+    try:
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to clear API key: {str(e)}",
+        )
+
+    return MessageResponse(
+        message="Guardian API key cleared.",
+        success=True,
+    )
+
+
+# NYT API Key Endpoints
+@router.get("/api-key/nyt/status", response_model=ApiKeyStatusResponse)
+async def get_nyt_api_key_status(db: Session = Depends(get_db)):
+    """Get NYT API key configuration status"""
+    config = db.query(AppConfig).filter_by(id=1).first()
+
+    if not config:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Application not initialized",
+        )
+
+    has_api_key = config.has_nyt_api_key
+    message = (
+        "NYT API key is configured. News from 1851-present available."
+        if has_api_key
+        else "No NYT API key configured. Get one at developer.nytimes.com"
+    )
+
+    return ApiKeyStatusResponse(has_api_key=has_api_key, message=message)
+
+
+@router.post("/api-key/nyt", response_model=MessageResponse)
+async def set_nyt_api_key(
+    request: NYTApiKeySetRequest,
+    db: Session = Depends(get_db),
+):
+    """Set or update NYT API key"""
+    config = db.query(AppConfig).filter_by(id=1).first()
+
+    if not config:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Application not initialized",
+        )
+
+    config.nyt_api_key = request.api_key
+
+    try:
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to save API key: {str(e)}",
+        )
+
+    return MessageResponse(
+        message="NYT API key saved. News from 1851-present now available.",
+        success=True,
+    )
+
+
+@router.delete("/api-key/nyt", response_model=MessageResponse)
+async def clear_nyt_api_key(db: Session = Depends(get_db)):
+    """Clear NYT API key"""
+    config = db.query(AppConfig).filter_by(id=1).first()
+
+    if not config:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Application not initialized",
+        )
+
+    if not config.has_nyt_api_key:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No NYT API key is currently set",
+        )
+
+    config.nyt_api_key = None
+
+    try:
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to clear API key: {str(e)}",
+        )
+
+    return MessageResponse(
+        message="NYT API key cleared.",
+        success=True,
+    )
+
+
+# NewsAPI.org Key Endpoints (for future use)
+@router.get("/api-key/newsapi/status", response_model=ApiKeyStatusResponse)
+async def get_newsapi_api_key_status(db: Session = Depends(get_db)):
+    """Get NewsAPI.org API key configuration status"""
+    config = db.query(AppConfig).filter_by(id=1).first()
+
+    if not config:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Application not initialized",
+        )
+
+    has_api_key = config.has_newsapi_api_key
+    message = (
+        "NewsAPI.org API key is configured."
+        if has_api_key
+        else "No NewsAPI.org API key configured."
+    )
+
+    return ApiKeyStatusResponse(has_api_key=has_api_key, message=message)
+
+
+@router.post("/api-key/newsapi", response_model=MessageResponse)
+async def set_newsapi_api_key(
+    request: NewsApiKeySetRequest,
+    db: Session = Depends(get_db),
+):
+    """Set or update NewsAPI.org API key"""
+    config = db.query(AppConfig).filter_by(id=1).first()
+
+    if not config:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Application not initialized",
+        )
+
+    config.newsapi_api_key = request.api_key
+
+    try:
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to save API key: {str(e)}",
+        )
+
+    return MessageResponse(
+        message="NewsAPI.org API key saved.",
+        success=True,
+    )
+
+
+@router.delete("/api-key/newsapi", response_model=MessageResponse)
+async def clear_newsapi_api_key(db: Session = Depends(get_db)):
+    """Clear NewsAPI.org API key"""
+    config = db.query(AppConfig).filter_by(id=1).first()
+
+    if not config:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Application not initialized",
+        )
+
+    if not config.has_newsapi_api_key:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No NewsAPI.org API key is currently set",
+        )
+
+    config.newsapi_api_key = None
+
+    try:
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to clear API key: {str(e)}",
+        )
+
+    return MessageResponse(
+        message="NewsAPI.org API key cleared.",
+        success=True,
+    )
+
+
+# News Sources Priority Endpoint
+@router.post("/preferences/news-sources-priority", response_model=MessageResponse)
+async def set_news_sources_priority(
+    request: NewsSourcesPrioritySetRequest,
+    db: Session = Depends(get_db),
+):
+    """
+    Set news sources priority order
+
+    Determines which sources are tried first when fetching news for the timeline.
+
+    Args:
+        request: NewsSourcesPrioritySetRequest with sources_priority
+
+    Returns:
+        Success message
+    """
+    config = db.query(AppConfig).filter_by(id=1).first()
+
+    if not config:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Application not initialized",
+        )
+
+    config.newspaper_sources_priority = request.sources_priority
+
+    try:
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to save sources priority: {str(e)}",
+        )
+
+    return MessageResponse(
+        message=f"News sources priority set to: {request.sources_priority}",
+        success=True,
+    )

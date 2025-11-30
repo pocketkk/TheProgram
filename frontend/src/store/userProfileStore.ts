@@ -72,20 +72,15 @@ export const useUserProfileStore = create<UserProfileState>()(
         set({ isLoading: true, error: null })
 
         try {
-          // Check if we already have a profile in localStorage
-          if (state.profile.birthDataId && state.profile.name) {
-            set({ isLoaded: true, isLoading: false })
-            return
-          }
-
-          // Otherwise, load from API
+          // Always load from API to ensure we have the most recent birth data
           const [birthDataList, charts] = await Promise.all([
             listBirthData(),
             listCharts({ limit: 1 })
           ])
 
           if (birthDataList.length > 0) {
-            const primaryBirthData = birthDataList[0]
+            // Use the most recently created birth data as primary
+            const primaryBirthData = birthDataList[birthDataList.length - 1]
 
             // Try to get name from localStorage (set during onboarding)
             const savedName = localStorage.getItem('userName') || ''

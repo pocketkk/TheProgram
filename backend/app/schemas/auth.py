@@ -163,3 +163,111 @@ class GoogleApiKeySetRequest(BaseModel):
         if not v or not v.strip():
             raise ValueError("API key cannot be empty or whitespace")
         return v.strip()
+
+
+class NewspaperStyleSetRequest(BaseModel):
+    """Request to set newspaper style preference"""
+    style: str = Field(
+        ...,
+        description="Newspaper style: 'victorian' or 'modern'"
+    )
+
+    @field_validator("style")
+    @classmethod
+    def validate_style(cls, v: str) -> str:
+        """Ensure style is valid"""
+        v = v.strip().lower()
+        if v not in ["victorian", "modern"]:
+            raise ValueError("Style must be 'victorian' or 'modern'")
+        return v
+
+
+class NewspaperStyleResponse(BaseModel):
+    """Response for newspaper style preference"""
+    style: str = Field(..., description="Current newspaper style preference")
+
+
+# =============================================================================
+# News API Key Schemas (Guardian, NYT, NewsAPI)
+# =============================================================================
+
+
+class GuardianApiKeySetRequest(BaseModel):
+    """Request to set or update Guardian API key"""
+    api_key: str = Field(
+        ...,
+        min_length=10,
+        description="Guardian API key (get from open-platform.theguardian.com)"
+    )
+
+    @field_validator("api_key")
+    @classmethod
+    def validate_api_key_format(cls, v: str) -> str:
+        """Ensure API key is not just whitespace"""
+        if not v or not v.strip():
+            raise ValueError("API key cannot be empty or whitespace")
+        return v.strip()
+
+
+class NYTApiKeySetRequest(BaseModel):
+    """Request to set or update NYT API key"""
+    api_key: str = Field(
+        ...,
+        min_length=10,
+        description="NYT API key (get from developer.nytimes.com)"
+    )
+
+    @field_validator("api_key")
+    @classmethod
+    def validate_api_key_format(cls, v: str) -> str:
+        """Ensure API key is not just whitespace"""
+        if not v or not v.strip():
+            raise ValueError("API key cannot be empty or whitespace")
+        return v.strip()
+
+
+class NewsApiKeySetRequest(BaseModel):
+    """Request to set or update NewsAPI.org API key"""
+    api_key: str = Field(
+        ...,
+        min_length=10,
+        description="NewsAPI.org API key"
+    )
+
+    @field_validator("api_key")
+    @classmethod
+    def validate_api_key_format(cls, v: str) -> str:
+        """Ensure API key is not just whitespace"""
+        if not v or not v.strip():
+            raise ValueError("API key cannot be empty or whitespace")
+        return v.strip()
+
+
+class NewsSourcesStatusResponse(BaseModel):
+    """Response for all news sources status"""
+    guardian_configured: bool = Field(..., description="Guardian API key is configured")
+    nyt_configured: bool = Field(..., description="NYT API key is configured")
+    newsapi_configured: bool = Field(..., description="NewsAPI.org API key is configured")
+    sources_priority: str = Field(..., description="Comma-separated source priority order")
+    message: str | None = Field(default=None, description="Optional status message")
+
+
+class NewsSourcesPrioritySetRequest(BaseModel):
+    """Request to set news sources priority order"""
+    sources_priority: str = Field(
+        ...,
+        description="Comma-separated source priority (e.g., 'guardian,nyt,wikipedia')"
+    )
+
+    @field_validator("sources_priority")
+    @classmethod
+    def validate_sources(cls, v: str) -> str:
+        """Validate source list"""
+        valid_sources = {"guardian", "nyt", "newsapi", "wikipedia"}
+        sources = [s.strip().lower() for s in v.split(",") if s.strip()]
+        if not sources:
+            raise ValueError("At least one source must be specified")
+        for s in sources:
+            if s not in valid_sources:
+                raise ValueError(f"Invalid source: {s}. Valid: {', '.join(valid_sources)}")
+        return ",".join(sources)

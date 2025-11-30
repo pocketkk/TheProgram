@@ -17,6 +17,7 @@ declare global {
     'companion-navigate': CustomEvent<{ page: string }>
     'companion-recalculate-chart': CustomEvent<void>
     'companion-set-transit-date': CustomEvent<{ date: string | null }>
+    'companion-navigate-timeline': CustomEvent<{ date: string }>
   }
 }
 
@@ -418,6 +419,16 @@ export function useCompanionActions() {
                 )
               }
             })()
+            break
+          }
+
+          case 'navigate_timeline_to_date': {
+            const date = input.date as string
+            window.dispatchEvent(
+              new CustomEvent('companion-navigate-timeline', {
+                detail: { date }
+              })
+            )
             break
           }
 

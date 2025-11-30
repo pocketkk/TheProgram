@@ -266,4 +266,29 @@ export const authApi = {
     const response = await apiClient.post<ApiKeyValidateResponse>('/auth/api-key/google/validate')
     return response.data
   },
+
+  /**
+   * Get current newspaper style preference
+   *
+   * Returns the user's preferred newspaper style for the Timeline feature.
+   *
+   * @returns NewspaperStyleResponse with current style setting
+   */
+  getNewspaperStyle: async (): Promise<{ style: string }> => {
+    const response = await apiClient.get<{ style: string }>('/auth/preferences/newspaper-style')
+    return response.data
+  },
+
+  /**
+   * Set newspaper style preference
+   *
+   * Updates the user's preferred newspaper style for the Timeline feature.
+   *
+   * @param style - Newspaper style ('victorian' or 'modern')
+   * @returns Success message
+   */
+  setNewspaperStyle: async (style: string): Promise<MessageResponse> => {
+    const response = await apiClient.post<MessageResponse>('/auth/preferences/newspaper-style', { style })
+    return response.data
+  },
 }
