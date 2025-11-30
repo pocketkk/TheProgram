@@ -3,3 +3,4 @@
 *.key
 data/backup.key
 backup_*.key
+*.db
