@@ -417,6 +417,128 @@ TIMELINE_TOOLS = [
     }
 ]
 
+# Timeline Navigation Tools - Phase 3
+TIMELINE_NAVIGATION_TOOLS = [
+    {
+        "name": "navigate_timeline_to_date",
+        "description": "Navigate the timeline view to a specific date, expanding the day view to show newspaper, transits, and journal.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "date": {
+                    "type": "string",
+                    "description": "Target date in YYYY-MM-DD format"
+                }
+            },
+            "required": ["date"]
+        }
+    },
+    {
+        "name": "get_day_summary",
+        "description": "Get a comprehensive summary of a specific day including news headlines, transit aspects, journal entries, and user events.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "date": {
+                    "type": "string",
+                    "description": "Date to summarize in YYYY-MM-DD format"
+                },
+                "include_transits": {"type": "boolean", "default": True},
+                "include_news": {"type": "boolean", "default": True},
+                "include_journal": {"type": "boolean", "default": True}
+            },
+            "required": ["date"]
+        }
+    },
+    {
+        "name": "search_timeline_events",
+        "description": "Search for events, transits, or journal entries across the timeline by keywords or date range.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "query": {"type": "string", "description": "Search keywords"},
+                "date_from": {"type": "string", "description": "Start date (YYYY-MM-DD)"},
+                "date_to": {"type": "string", "description": "End date (YYYY-MM-DD)"},
+                "event_types": {
+                    "type": "array",
+                    "items": {"type": "string", "enum": ["transit", "user_event", "journal"]},
+                    "description": "Types of events to search"
+                }
+            }
+        }
+    },
+    {
+        "name": "describe_day_transits",
+        "description": "Provide an astrological interpretation of the transits for a specific day in relation to the user's natal chart.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "date": {
+                    "type": "string",
+                    "description": "Date to describe in YYYY-MM-DD format"
+                },
+                "focus_planets": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Optional specific planets to focus on"
+                }
+            },
+            "required": ["date"]
+        }
+    },
+    {
+        "name": "write_journal_for_date",
+        "description": "Create or update a journal entry for a specific date on the timeline.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "date": {"type": "string", "description": "Date for journal entry (YYYY-MM-DD)"},
+                "content": {"type": "string", "description": "Journal content to write"},
+                "title": {"type": "string", "description": "Optional title"},
+                "mood": {
+                    "type": "string",
+                    "enum": ["reflective", "anxious", "inspired", "peaceful", "curious", "joyful", "contemplative", "neutral"],
+                    "description": "Mood for the entry"
+                },
+                "append": {"type": "boolean", "default": False, "description": "Append to existing entry instead of replace"}
+            },
+            "required": ["date", "content"]
+        }
+    },
+    {
+        "name": "get_newspaper_content",
+        "description": "Get the AI-generated newspaper content for a specific date, showing what happened in history on that day.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "date": {"type": "string", "description": "Date to get newspaper for (YYYY-MM-DD)"},
+                "style": {
+                    "type": "string",
+                    "enum": ["victorian", "modern"],
+                    "description": "Newspaper style"
+                }
+            },
+            "required": ["date"]
+        }
+    },
+    {
+        "name": "correlate_life_events_with_transits",
+        "description": "Analyze correlations between the user's life events and astrological transits over a time period.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "date_from": {"type": "string", "description": "Start date (YYYY-MM-DD)"},
+                "date_to": {"type": "string", "description": "End date (YYYY-MM-DD)"},
+                "event_categories": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Event categories to analyze"
+                }
+            }
+        }
+    }
+]
+
 # Phase 2: Canvas Tools
 CANVAS_TOOLS = [
     {
@@ -633,6 +755,7 @@ ALL_TOOLS = (
     INFORMATION_TOOLS +
     JOURNAL_TOOLS +
     TIMELINE_TOOLS +
+    TIMELINE_NAVIGATION_TOOLS +
     CANVAS_TOOLS +
     SCREENSHOT_TOOLS +
     IMAGE_GENERATION_TOOLS
@@ -647,7 +770,9 @@ FRONTEND_TOOLS = {
     # Phase 2 frontend tools (trigger UI updates)
     "arrange_canvas",
     # Screenshot tool
-    "capture_screenshot"
+    "capture_screenshot",
+    # Timeline navigation tool (frontend)
+    "navigate_timeline_to_date"
 }
 
 # Frontend tools that require waiting for a response (async frontend tools)
@@ -662,6 +787,9 @@ BACKEND_TOOLS = {
     "create_journal_entry", "search_journal", "get_recent_journal_entries", "get_journal_moods",
     # Phase 2 backend tools (Timeline)
     "create_timeline_event", "get_timeline_events", "get_transit_context", "correlate_events_transits",
+    # Phase 3 backend tools (Timeline Navigation)
+    "get_day_summary", "search_timeline_events", "describe_day_transits",
+    "write_journal_for_date", "get_newspaper_content", "correlate_life_events_with_transits",
     # Phase 2 backend tools (Canvas)
     "create_canvas", "add_to_canvas", "add_chart_to_canvas", "list_canvases",
     # Phase 5 backend tools (Image Generation)
@@ -1626,6 +1754,239 @@ class AgentService:
                     "success": True,
                     "message": "Event-transit correlation analysis not yet implemented",
                     "note": "This feature will analyze astrological patterns around life events"
+                }
+
+            # ============================================
+            # Phase 3: Timeline Navigation Tools
+            # ============================================
+            elif tool_name == "get_day_summary":
+                if not db_session:
+                    return {"success": False, "error": "Database not available"}
+
+                try:
+                    from app.models.journal_entry import JournalEntry
+                    from app.models.user_event import UserEvent
+                    from datetime import datetime
+
+                    target_date = tool_input.get("date")
+                    include_transits = tool_input.get("include_transits", True)
+                    include_news = tool_input.get("include_news", True)
+                    include_journal = tool_input.get("include_journal", True)
+
+                    summary = {"success": True, "date": target_date}
+
+                    # Get journal entry for the day
+                    if include_journal:
+                        journal = db_session.query(JournalEntry).filter(
+                            JournalEntry.entry_date == target_date
+                        ).first()
+                        if journal:
+                            summary["journal"] = {
+                                "title": journal.title,
+                                "content": journal.content[:500] + "..." if len(journal.content) > 500 else journal.content,
+                                "mood": journal.mood
+                            }
+
+                    # Get user events for the day
+                    events = db_session.query(UserEvent).filter(
+                        UserEvent.event_date == target_date
+                    ).all()
+                    summary["events"] = [
+                        {
+                            "title": e.title,
+                            "category": e.category,
+                            "importance": e.importance,
+                            "description": e.description
+                        }
+                        for e in events
+                    ]
+
+                    # Placeholder for transits (would need chart calculator)
+                    if include_transits:
+                        summary["transits"] = {
+                            "note": "Transit calculation requires chart context"
+                        }
+
+                    # Placeholder for news (would need Wikipedia service)
+                    if include_news:
+                        summary["news"] = {
+                            "note": "Historical news requires Wikipedia integration"
+                        }
+
+                    return summary
+
+                except Exception as e:
+                    logger.error(f"Error getting day summary: {e}")
+                    return {"success": False, "error": str(e)}
+
+            elif tool_name == "search_timeline_events":
+                if not db_session:
+                    return {"success": False, "error": "Database not available"}
+
+                try:
+                    from app.models.journal_entry import JournalEntry
+                    from app.models.user_event import UserEvent
+                    from sqlalchemy import or_
+
+                    query = tool_input.get("query", "")
+                    date_from = tool_input.get("date_from")
+                    date_to = tool_input.get("date_to")
+                    event_types = tool_input.get("event_types", ["user_event", "journal"])
+
+                    results = {"success": True, "results": []}
+
+                    # Search user events
+                    if "user_event" in event_types:
+                        event_query = db_session.query(UserEvent)
+                        if query:
+                            event_query = event_query.filter(
+                                or_(
+                                    UserEvent.title.contains(query),
+                                    UserEvent.description.contains(query)
+                                )
+                            )
+                        if date_from:
+                            event_query = event_query.filter(UserEvent.event_date >= date_from)
+                        if date_to:
+                            event_query = event_query.filter(UserEvent.event_date <= date_to)
+
+                        events = event_query.order_by(UserEvent.event_date.desc()).limit(20).all()
+                        for e in events:
+                            results["results"].append({
+                                "type": "user_event",
+                                "date": e.event_date,
+                                "title": e.title,
+                                "preview": e.description[:100] + "..." if e.description and len(e.description) > 100 else e.description
+                            })
+
+                    # Search journal entries
+                    if "journal" in event_types:
+                        journal_query = db_session.query(JournalEntry)
+                        if query:
+                            journal_query = journal_query.filter(
+                                or_(
+                                    JournalEntry.title.contains(query),
+                                    JournalEntry.content.contains(query)
+                                )
+                            )
+                        if date_from:
+                            journal_query = journal_query.filter(JournalEntry.entry_date >= date_from)
+                        if date_to:
+                            journal_query = journal_query.filter(JournalEntry.entry_date <= date_to)
+
+                        journals = journal_query.order_by(JournalEntry.entry_date.desc()).limit(20).all()
+                        for j in journals:
+                            results["results"].append({
+                                "type": "journal",
+                                "date": j.entry_date,
+                                "title": j.title or "Journal Entry",
+                                "preview": j.content[:100] + "..." if len(j.content) > 100 else j.content
+                            })
+
+                    return results
+
+                except Exception as e:
+                    logger.error(f"Error searching timeline: {e}")
+                    return {"success": False, "error": str(e)}
+
+            elif tool_name == "describe_day_transits":
+                target_date = tool_input.get("date")
+                focus_planets = tool_input.get("focus_planets", [])
+
+                return {
+                    "success": True,
+                    "date": target_date,
+                    "message": "Transit interpretation would analyze planetary positions for this date",
+                    "note": "Full implementation requires transit calculator and natal chart context",
+                    "focus_planets": focus_planets
+                }
+
+            elif tool_name == "write_journal_for_date":
+                if not db_session:
+                    return {"success": False, "error": "Database not available"}
+
+                try:
+                    from app.models.journal_entry import JournalEntry
+                    import json as json_lib
+
+                    target_date = tool_input.get("date")
+                    content = tool_input.get("content")
+                    title = tool_input.get("title")
+                    mood = tool_input.get("mood")
+                    append = tool_input.get("append", False)
+
+                    # Check if entry exists for this date
+                    existing = db_session.query(JournalEntry).filter(
+                        JournalEntry.entry_date == target_date
+                    ).first()
+
+                    if existing and append:
+                        # Append to existing entry
+                        existing.content += "\n\n" + content
+                        if mood:
+                            existing.mood = mood
+                        db_session.commit()
+                        return {
+                            "success": True,
+                            "entry_id": str(existing.id),
+                            "message": f"Appended to journal entry for {target_date}"
+                        }
+                    elif existing:
+                        # Replace existing entry
+                        existing.content = content
+                        if title:
+                            existing.title = title
+                        if mood:
+                            existing.mood = mood
+                        db_session.commit()
+                        return {
+                            "success": True,
+                            "entry_id": str(existing.id),
+                            "message": f"Updated journal entry for {target_date}"
+                        }
+                    else:
+                        # Create new entry
+                        entry = JournalEntry(
+                            entry_date=target_date,
+                            title=title,
+                            content=content,
+                            mood=mood
+                        )
+                        db_session.add(entry)
+                        db_session.commit()
+                        return {
+                            "success": True,
+                            "entry_id": str(entry.id),
+                            "message": f"Created journal entry for {target_date}"
+                        }
+
+                except Exception as e:
+                    logger.error(f"Error writing journal: {e}")
+                    return {"success": False, "error": str(e)}
+
+            elif tool_name == "get_newspaper_content":
+                target_date = tool_input.get("date")
+                style = tool_input.get("style", "victorian")
+
+                return {
+                    "success": True,
+                    "date": target_date,
+                    "style": style,
+                    "message": "Newspaper generation would fetch Wikipedia events and format them",
+                    "note": "Full implementation requires Wikipedia service integration"
+                }
+
+            elif tool_name == "correlate_life_events_with_transits":
+                date_from = tool_input.get("date_from")
+                date_to = tool_input.get("date_to")
+                event_categories = tool_input.get("event_categories", [])
+
+                return {
+                    "success": True,
+                    "date_range": f"{date_from} to {date_to}",
+                    "message": "Correlation analysis would compare user events with transit patterns",
+                    "note": "Full implementation requires transit calculator and statistical analysis",
+                    "categories": event_categories
                 }
 
             # ============================================

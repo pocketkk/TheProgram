@@ -14,6 +14,7 @@ from . import (
     # Phase 2: New features
     journal,
     timeline,
+    timeline_historical,
     canvas,
     # Phase 3: Advanced features
     transits,
@@ -43,6 +44,7 @@ router.include_router(agent_ws.router, tags=["AI Agent"])
 # Phase 2: Journal, Timeline, and Canvas
 router.include_router(journal.router, prefix="/journal", tags=["Journal"])
 router.include_router(timeline.router, prefix="/timeline", tags=["Timeline"])
+router.include_router(timeline_historical.router, prefix="/timeline-historical", tags=["Timeline Historical"])
 router.include_router(canvas.router, prefix="/canvas", tags=["Canvas"])
 
 # Phase 3: Advanced Transit Analysis

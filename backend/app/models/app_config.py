@@ -72,6 +72,40 @@ class AppConfig(SingletonModel):
         comment="Google API key for Gemini image generation"
     )
 
+    # News API Keys (for multi-source newspaper)
+    guardian_api_key = Column(
+        String,
+        nullable=True,
+        comment="The Guardian API key for news content (free signup at open-platform.theguardian.com)"
+    )
+
+    nyt_api_key = Column(
+        String,
+        nullable=True,
+        comment="New York Times API key for Archive API (free signup at developer.nytimes.com)"
+    )
+
+    newsapi_api_key = Column(
+        String,
+        nullable=True,
+        comment="NewsAPI.org API key for recent news (free tier available)"
+    )
+
+    # User Preferences
+    newspaper_style = Column(
+        String,
+        nullable=False,
+        default='modern',
+        comment="Preferred newspaper style for Timeline feature: 'victorian' or 'modern'"
+    )
+
+    newspaper_sources_priority = Column(
+        String,
+        nullable=False,
+        default='guardian,nyt,wikipedia',
+        comment="Comma-separated priority order for news sources"
+    )
+
     def __repr__(self):
         """String representation"""
         has_password = "with password" if self.password_hash else "no password"
@@ -92,6 +126,21 @@ class AppConfig(SingletonModel):
         """Check if Google API key is set"""
         return self.google_api_key is not None and len(self.google_api_key.strip()) > 0
 
+    @property
+    def has_guardian_api_key(self) -> bool:
+        """Check if Guardian API key is set"""
+        return self.guardian_api_key is not None and len(self.guardian_api_key.strip()) > 0
+
+    @property
+    def has_nyt_api_key(self) -> bool:
+        """Check if NYT API key is set"""
+        return self.nyt_api_key is not None and len(self.nyt_api_key.strip()) > 0
+
+    @property
+    def has_newsapi_api_key(self) -> bool:
+        """Check if NewsAPI.org API key is set"""
+        return self.newsapi_api_key is not None and len(self.newsapi_api_key.strip()) > 0
+
     def to_dict(self):
         """
         Convert to dictionary (excludes sensitive fields for security)
@@ -104,7 +153,16 @@ class AppConfig(SingletonModel):
         result.pop('password_hash', None)
         result.pop('anthropic_api_key', None)
         result.pop('google_api_key', None)
+        result.pop('guardian_api_key', None)
+        result.pop('nyt_api_key', None)
+        result.pop('newsapi_api_key', None)
+        # Add has_* properties
         result['has_password'] = self.has_password
         result['has_api_key'] = self.has_api_key
         result['has_google_api_key'] = self.has_google_api_key
+        result['has_guardian_api_key'] = self.has_guardian_api_key
+        result['has_nyt_api_key'] = self.has_nyt_api_key
+        result['has_newsapi_api_key'] = self.has_newsapi_api_key
+        result['newspaper_style'] = self.newspaper_style or 'modern'
+        result['newspaper_sources_priority'] = self.newspaper_sources_priority or 'guardian,nyt,wikipedia'
         return result

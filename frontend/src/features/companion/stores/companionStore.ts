@@ -68,6 +68,8 @@ export interface CompanionPreferences {
   synthesisDepth: SynthesisDepth
   position: CompanionPosition
   proactiveInsights: boolean
+  panelWidth: number
+  panelHeight: number
 }
 
 // WebSocket connection status
@@ -141,6 +143,7 @@ interface CompanionStore {
   setPreferences: (preferences: Partial<CompanionPreferences>) => void
   toggleParadigm: (paradigm: Paradigm) => void
   setSynthesisDepth: (depth: SynthesisDepth) => void
+  setPanelSize: (width: number, height: number) => void
 }
 
 // Generate unique IDs
@@ -175,6 +178,8 @@ export const useCompanionStore = create<CompanionStore>()(
         synthesisDepth: 'balanced',
         position: 'bottom-right',
         proactiveInsights: true,
+        panelWidth: 380,
+        panelHeight: 520,
       },
 
       // UI Actions
@@ -301,6 +306,11 @@ export const useCompanionStore = create<CompanionStore>()(
       setSynthesisDepth: synthesisDepth =>
         set(state => ({
           preferences: { ...state.preferences, synthesisDepth },
+        })),
+
+      setPanelSize: (panelWidth, panelHeight) =>
+        set(state => ({
+          preferences: { ...state.preferences, panelWidth, panelHeight },
         })),
     }),
     {

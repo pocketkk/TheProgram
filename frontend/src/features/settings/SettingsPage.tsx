@@ -10,10 +10,13 @@ import {
   Palette,
   Sparkles,
   Info,
+  Newspaper,
 } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
 import { ApiKeySettings } from './components/ApiKeySettings'
 import { GoogleApiKeySettings } from './components/GoogleApiKeySettings'
+import { NewspaperStyleSettings } from './components/NewspaperStyleSettings'
+import { NewsSourcesSettings } from './components/NewsSourcesSettings'
 
 export function SettingsPage() {
   return (
@@ -78,11 +81,58 @@ export function SettingsPage() {
           </Card>
         </motion.div>
 
-        {/* Security & Privacy */}
+        {/* Timeline Settings */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="lg:col-span-2"
+        >
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-3 mb-2">
+                <Newspaper className="h-5 w-5 text-cosmic-400" />
+                <CardTitle>Timeline Settings</CardTitle>
+              </div>
+              <CardDescription>
+                Configure how the Timeline feature generates AI newspapers.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <NewspaperStyleSettings />
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* News Sources Configuration */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
+          className="lg:col-span-2"
+        >
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-3 mb-2">
+                <Newspaper className="h-5 w-5 text-cosmic-400" />
+                <CardTitle>News Sources</CardTitle>
+              </div>
+              <CardDescription>
+                Configure API keys for historical news archives. These enable year-specific
+                newspapers showing actual news from the date you're viewing.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <NewsSourcesSettings />
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Security & Privacy */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
         >
           <Card>
             <CardHeader>
@@ -107,7 +157,7 @@ export function SettingsPage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
+          transition={{ delay: 0.6 }}
         >
           <Card>
             <CardHeader>
@@ -132,7 +182,7 @@ export function SettingsPage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
+          transition={{ delay: 0.7 }}
         >
           <Card>
             <CardHeader>
@@ -158,7 +208,7 @@ export function SettingsPage() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.7 }}
+        transition={{ delay: 0.8 }}
       >
         <Card className="border-cosmic-600">
           <CardContent className="p-6">

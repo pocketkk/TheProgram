@@ -75,6 +75,13 @@ class JournalEntry(BaseModel):
         comment="Entry date in ISO 8601 format (YYYY-MM-DD)"
     )
 
+    target_date = Column(
+        String(10),
+        nullable=True,
+        index=True,
+        comment="Target date for timeline linking (YYYY-MM-DD). Null for regular journal entries."
+    )
+
     title = Column(
         String(255),
         nullable=True,
@@ -138,6 +145,7 @@ class JournalEntry(BaseModel):
     # Table indexes
     __table_args__ = (
         Index('idx_journal_entry_date', 'entry_date'),
+        Index('idx_journal_target_date', 'target_date'),
         Index('idx_journal_birth_data_id', 'birth_data_id'),
         Index('idx_journal_chart_id', 'chart_id'),
         Index('idx_journal_created_at', 'created_at'),

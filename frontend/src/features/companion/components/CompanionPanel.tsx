@@ -3,7 +3,7 @@
  * Shows messages, input, and action indicators
  */
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Send, Trash2, Loader2, Sparkles, Key, ExternalLink } from 'lucide-react'
 import { useCompanionStore } from '../stores/companionStore'
@@ -18,6 +18,9 @@ export function CompanionPanel({ onMinimize }: CompanionPanelProps) {
   const [input, setInput] = useState('')
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+  const panelRef = useRef<HTMLDivElement>(null)
+  const [isResizing, setIsResizing] = useState(false)
+  const [resizeEdge, setResizeEdge] = useState<'n' | 's' | 'e' | 'w' | 'ne' | 'nw' | 'se' | 'sw' | null>(null)
 
   const {
     messages,
@@ -27,10 +30,17 @@ export function CompanionPanel({ onMinimize }: CompanionPanelProps) {
     connectionStatus,
     pendingInsights,
     preferences,
+    setPanelSize,
   } = useCompanionStore()
 
   const { sendMessage, clearHistory, connect, isConnected } =
     useCompanionActions()
+
+  // Panel size constraints
+  const MIN_WIDTH = 320
+  const MIN_HEIGHT = 400
+  const MAX_WIDTH = 800
+  const MAX_HEIGHT = 900
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {
@@ -48,6 +58,61 @@ export function CompanionPanel({ onMinimize }: CompanionPanelProps) {
       connect()
     }
   }, [connectionStatus, connect])
+
+  // Resize handlers
+  const handleMouseDown = useCallback((edge: typeof resizeEdge) => (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsResizing(true)
+    setResizeEdge(edge)
+  }, [])
+
+  useEffect(() => {
+    if (!isResizing || !resizeEdge || !panelRef.current) return
+
+    const startWidth = preferences.panelWidth
+    const startHeight = preferences.panelHeight
+    const startX = window.event instanceof MouseEvent ? window.event.clientX : 0
+    const startY = window.event instanceof MouseEvent ? window.event.clientY : 0
+
+    const handleMouseMove = (e: MouseEvent) => {
+      let newWidth = startWidth
+      let newHeight = startHeight
+
+      // Calculate deltas
+      const deltaX = e.clientX - startX
+      const deltaY = e.clientY - startY
+
+      // Apply deltas based on edge
+      if (resizeEdge.includes('e')) {
+        newWidth = Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, startWidth + deltaX))
+      }
+      if (resizeEdge.includes('w')) {
+        newWidth = Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, startWidth - deltaX))
+      }
+      if (resizeEdge.includes('n')) {
+        newHeight = Math.max(MIN_HEIGHT, Math.min(MAX_HEIGHT, startHeight - deltaY))
+      }
+      if (resizeEdge.includes('s')) {
+        newHeight = Math.max(MIN_HEIGHT, Math.min(MAX_HEIGHT, startHeight + deltaY))
+      }
+
+      setPanelSize(newWidth, newHeight)
+    }
+
+    const handleMouseUp = () => {
+      setIsResizing(false)
+      setResizeEdge(null)
+    }
+
+    document.addEventListener('mousemove', handleMouseMove)
+    document.addEventListener('mouseup', handleMouseUp)
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+    }
+  }, [isResizing, resizeEdge, preferences.panelWidth, preferences.panelHeight, setPanelSize, MIN_WIDTH, MIN_HEIGHT, MAX_WIDTH, MAX_HEIGHT])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -68,8 +133,13 @@ export function CompanionPanel({ onMinimize }: CompanionPanelProps) {
 
   return (
     <motion.div
-      className="flex flex-col bg-slate-900/95 backdrop-blur-md rounded-2xl shadow-2xl border border-slate-700/50 overflow-hidden"
-      style={{ width: 380, height: 520 }}
+      ref={panelRef}
+      className="flex flex-col bg-slate-900/95 backdrop-blur-md rounded-2xl shadow-2xl border border-slate-700/50 overflow-hidden relative select-none"
+      style={{
+        width: preferences.panelWidth,
+        height: preferences.panelHeight,
+        cursor: isResizing ? 'grabbing' : 'default'
+      }}
       initial={{ scale: 0.9, opacity: 0, y: 20 }}
       animate={{ scale: 1, opacity: 1, y: 0 }}
       exit={{ scale: 0.9, opacity: 0, y: 20 }}
@@ -322,6 +392,43 @@ export function CompanionPanel({ onMinimize }: CompanionPanelProps) {
           <span className="capitalize">{preferences.synthesisDepth} synthesis</span>
         </div>
       </form>
+
+      {/* Resize handles */}
+      {/* Edges */}
+      <div
+        className="absolute top-0 left-0 right-0 h-1 cursor-n-resize hover:bg-indigo-500/30"
+        onMouseDown={handleMouseDown('n')}
+      />
+      <div
+        className="absolute bottom-0 left-0 right-0 h-1 cursor-s-resize hover:bg-indigo-500/30"
+        onMouseDown={handleMouseDown('s')}
+      />
+      <div
+        className="absolute top-0 bottom-0 left-0 w-1 cursor-w-resize hover:bg-indigo-500/30"
+        onMouseDown={handleMouseDown('w')}
+      />
+      <div
+        className="absolute top-0 bottom-0 right-0 w-1 cursor-e-resize hover:bg-indigo-500/30"
+        onMouseDown={handleMouseDown('e')}
+      />
+
+      {/* Corners */}
+      <div
+        className="absolute top-0 left-0 w-3 h-3 cursor-nw-resize hover:bg-indigo-500/50 rounded-tl-2xl"
+        onMouseDown={handleMouseDown('nw')}
+      />
+      <div
+        className="absolute top-0 right-0 w-3 h-3 cursor-ne-resize hover:bg-indigo-500/50 rounded-tr-2xl"
+        onMouseDown={handleMouseDown('ne')}
+      />
+      <div
+        className="absolute bottom-0 left-0 w-3 h-3 cursor-sw-resize hover:bg-indigo-500/50 rounded-bl-2xl"
+        onMouseDown={handleMouseDown('sw')}
+      />
+      <div
+        className="absolute bottom-0 right-0 w-3 h-3 cursor-se-resize hover:bg-indigo-500/50 rounded-br-2xl"
+        onMouseDown={handleMouseDown('se')}
+      />
     </motion.div>
   )
 }
