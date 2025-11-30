@@ -24,6 +24,9 @@ from . import (
     insights,
     # Phase 4: Human Design
     human_design,
+    # Phase 5: Image Generation
+    images,
+    image_ws,
 )
 
 # Create main API router
@@ -58,5 +61,9 @@ router.include_router(insights.router, prefix="/insights", tags=["Insights"])
 
 # Phase 4: Human Design
 router.include_router(human_design.router, prefix="/human-design", tags=["Human Design"])
+
+# Phase 5: Image Generation
+router.include_router(images.router, tags=["Images"])
+router.include_router(image_ws.router, tags=["Images"])
 
 __all__ = ["router"]

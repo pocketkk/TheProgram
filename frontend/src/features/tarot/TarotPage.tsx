@@ -30,6 +30,7 @@ import {
   SPREAD_TYPES,
   type SpreadType
 } from '@/lib/api/tarot'
+import { DeckSelector } from './components'
 
 export function TarotPage() {
   const {
@@ -42,6 +43,9 @@ export function TarotPage() {
     readingHistory,
     isLoading,
     error,
+    selectedDeckId,
+    availableDecks,
+    getCardImage,
     loadSpreads,
     setSelectedSpread,
     setQuestion,
@@ -49,15 +53,26 @@ export function TarotPage() {
     clearReading,
     getDailyCard,
     selectCard,
-    clearError
+    clearError,
+    loadAvailableDecks,
+    selectDeck
   } = useTarotStore()
 
   const [showHistory, setShowHistory] = useState(false)
+  const [fullscreenImage, setFullscreenImage] = useState<string | null>(null)
 
-  // Load spreads on mount
+  // Load spreads and available decks on mount
   useEffect(() => {
     loadSpreads()
-  }, [loadSpreads])
+    loadAvailableDecks()
+  }, [loadSpreads, loadAvailableDecks])
+
+  // Restore deck selection from persisted state
+  useEffect(() => {
+    if (selectedDeckId) {
+      selectDeck(selectedDeckId)
+    }
+  }, []) // Only on mount
 
   // Get daily card on mount
   useEffect(() => {
@@ -122,8 +137,20 @@ export function TarotPage() {
                     className="text-center cursor-pointer"
                     onClick={() => selectCard(dailyCard.card)}
                   >
-                    <div className="text-6xl mb-3">
-                      {getSuitSymbol(dailyCard.card.suit)}
+                    <div className="flex justify-center mb-3">
+                      {(() => {
+                        const image = getCardImage(dailyCard.card.id)
+                        return image?.url ? (
+                          <img
+                            src={image.url}
+                            alt={dailyCard.card.name}
+                            className="w-24 h-36 object-cover rounded shadow-lg"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <span className="text-6xl">{getSuitSymbol(dailyCard.card.suit)}</span>
+                        )
+                      })()}
                     </div>
                     <h3 className={`text-xl font-semibold ${getSuitColorClass(dailyCard.card.suit)}`}>
                       {formatCardName(dailyCard.card)}
@@ -156,6 +183,16 @@ export function TarotPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
+                {/* Deck Selection */}
+                <div>
+                  <label className="text-sm text-gray-400 block mb-2">Card Deck</label>
+                  <DeckSelector
+                    selectedDeckId={selectedDeckId}
+                    availableDecks={availableDecks}
+                    onSelectDeck={selectDeck}
+                  />
+                </div>
+
                 {/* Spread Selection */}
                 <div>
                   <label className="text-sm text-gray-400 block mb-2">Choose a Spread</label>
@@ -303,8 +340,20 @@ export function TarotPage() {
                           style={{ transformStyle: 'preserve-3d' }}
                         >
                           <div className={pos.card.reversed ? 'rotate-180' : ''}>
-                            <div className="text-center mb-2">
-                              <span className="text-3xl">{getSuitSymbol(pos.card.suit)}</span>
+                            <div className="flex justify-center mb-2">
+                              {(() => {
+                                const image = getCardImage(pos.card.id)
+                                return image?.url ? (
+                                  <img
+                                    src={image.url}
+                                    alt={pos.card.name}
+                                    className="w-16 h-24 object-cover rounded shadow"
+                                    loading="lazy"
+                                  />
+                                ) : (
+                                  <span className="text-3xl">{getSuitSymbol(pos.card.suit)}</span>
+                                )
+                              })()}
                             </div>
                             <p className="text-xs text-gray-500 text-center mb-1">
                               {pos.position_name}
@@ -386,11 +435,24 @@ export function TarotPage() {
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 20 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-cosmic-dark border border-cosmic-light/30 rounded-xl p-6 max-w-md w-full"
+              className="bg-gray-900 border border-cosmic-light/30 rounded-xl p-6 max-w-md w-full"
             >
               <div className="flex items-start justify-between mb-4">
                 <div className="text-center flex-1">
-                  <span className="text-5xl">{getSuitSymbol(selectedCard.suit)}</span>
+                  {(() => {
+                    const image = getCardImage(selectedCard.id)
+                    return image?.url ? (
+                      <img
+                        src={image.url}
+                        alt={selectedCard.name}
+                        className="w-32 h-48 object-cover rounded-lg shadow-lg mx-auto cursor-pointer hover:ring-2 hover:ring-purple-500 transition-all"
+                        onClick={() => setFullscreenImage(image.url)}
+                        title="Click to view full size"
+                      />
+                    ) : (
+                      <span className="text-5xl">{getSuitSymbol(selectedCard.suit)}</span>
+                    )
+                  })()}
                   <h3 className={`text-2xl font-heading mt-2 ${getSuitColorClass(selectedCard.suit)}`}>
                     {formatCardName(selectedCard)}
                   </h3>
@@ -428,6 +490,41 @@ export function TarotPage() {
                   <p className="text-gray-300 text-sm">{selectedCard.reversed_meaning}</p>
                 </div>
               </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Fullscreen Image Viewer */}
+      <AnimatePresence>
+        {fullscreenImage && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/90 flex items-center justify-center z-[60] p-4 cursor-pointer"
+            onClick={() => setFullscreenImage(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.8 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.8 }}
+              className="relative max-w-[90vw] max-h-[90vh]"
+            >
+              <img
+                src={fullscreenImage}
+                alt="Full size card"
+                className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
+              />
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setFullscreenImage(null)
+                }}
+                className="absolute top-2 right-2 p-2 bg-black/50 rounded-full text-white hover:bg-black/70 transition-colors"
+              >
+                <X className="h-6 w-6" />
+              </button>
             </motion.div>
           </motion.div>
         )}

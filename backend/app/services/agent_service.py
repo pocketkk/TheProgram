@@ -520,6 +520,110 @@ SCREENSHOT_TOOLS = [
     }
 ]
 
+# Phase 5: Image Generation Tools
+IMAGE_GENERATION_TOOLS = [
+    {
+        "name": "generate_image",
+        "description": "Generate an AI image using Gemini. Creates custom artwork based on your prompt with optional astrological context. Use for creating tarot cards, backgrounds, infographics, or custom art.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "prompt": {
+                    "type": "string",
+                    "description": "Description of the image to generate"
+                },
+                "purpose": {
+                    "type": "string",
+                    "enum": ["tarot_card", "background", "infographic", "custom"],
+                    "description": "Purpose affects style and aspect ratio defaults",
+                    "default": "custom"
+                },
+                "style": {
+                    "type": "string",
+                    "description": "Optional style override (e.g., 'mystical cosmic art', 'minimalist line art')"
+                },
+                "astro_context": {
+                    "type": "object",
+                    "description": "Optional astrological context for styling",
+                    "properties": {
+                        "elements": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                            "description": "Dominant elements (fire, earth, air, water)"
+                        },
+                        "signs": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                            "description": "Zodiac signs to incorporate symbolically"
+                        },
+                        "planets": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                            "description": "Planets to incorporate as motifs"
+                        }
+                    }
+                }
+            },
+            "required": ["prompt"]
+        }
+    },
+    {
+        "name": "list_image_collections",
+        "description": "Get a list of image collections (tarot decks, theme sets, etc.)",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "collection_type": {
+                    "type": "string",
+                    "enum": ["tarot_deck", "theme_set", "infographic_set"],
+                    "description": "Filter by collection type"
+                }
+            }
+        }
+    },
+    {
+        "name": "get_collection_images",
+        "description": "Get images from a specific collection",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "collection_id": {
+                    "type": "string",
+                    "description": "UUID of the collection"
+                }
+            },
+            "required": ["collection_id"]
+        }
+    },
+    {
+        "name": "create_image_collection",
+        "description": "Create a new image collection (tarot deck, theme set, etc.)",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "Name for the collection"
+                },
+                "collection_type": {
+                    "type": "string",
+                    "enum": ["tarot_deck", "theme_set", "infographic_set"],
+                    "description": "Type of collection"
+                },
+                "style_prompt": {
+                    "type": "string",
+                    "description": "Consistent style prompt for all images in the collection"
+                },
+                "total_expected": {
+                    "type": "integer",
+                    "description": "Expected number of images (78 for tarot)"
+                }
+            },
+            "required": ["name", "collection_type"]
+        }
+    }
+]
+
 # Combine all tools
 ALL_TOOLS = (
     NAVIGATION_TOOLS +
@@ -530,7 +634,8 @@ ALL_TOOLS = (
     JOURNAL_TOOLS +
     TIMELINE_TOOLS +
     CANVAS_TOOLS +
-    SCREENSHOT_TOOLS
+    SCREENSHOT_TOOLS +
+    IMAGE_GENERATION_TOOLS
 )
 
 # Tools that execute on frontend (return instruction to client)
@@ -558,7 +663,9 @@ BACKEND_TOOLS = {
     # Phase 2 backend tools (Timeline)
     "create_timeline_event", "get_timeline_events", "get_transit_context", "correlate_events_transits",
     # Phase 2 backend tools (Canvas)
-    "create_canvas", "add_to_canvas", "add_chart_to_canvas", "list_canvases"
+    "create_canvas", "add_to_canvas", "add_chart_to_canvas", "list_canvases",
+    # Phase 5 backend tools (Image Generation)
+    "generate_image", "list_image_collections", "get_collection_images", "create_image_collection"
 }
 
 
@@ -1609,6 +1716,190 @@ class AgentService:
                     }
                 except Exception as e:
                     logger.error(f"Error listing canvases: {e}")
+                    return {"success": False, "error": str(e)}
+
+            # ============================================
+            # Phase 5: Image Generation Tools
+            # ============================================
+            elif tool_name == "generate_image":
+                if not db_session:
+                    return {"success": False, "error": "Database not available"}
+
+                try:
+                    from app.models.app_config import AppConfig
+                    from app.models.generated_image import GeneratedImage
+                    from app.services.gemini_image_service import GeminiImageService
+                    from app.services.image_storage_service import get_image_storage_service
+
+                    # Get Google API key
+                    config = db_session.query(AppConfig).filter_by(id=1).first()
+                    if not config or not config.has_google_api_key:
+                        return {"success": False, "error": "Google API key not configured. Set it in settings to enable image generation."}
+
+                    # Initialize service
+                    service = GeminiImageService(api_key=config.google_api_key)
+
+                    # Generate image
+                    prompt = tool_input.get("prompt", "")
+                    purpose = tool_input.get("purpose", "custom")
+                    style = tool_input.get("style")
+                    astro_context = tool_input.get("astro_context")
+
+                    result = await service.generate_image(
+                        prompt=prompt,
+                        purpose=purpose,
+                        style=style,
+                        astro_context=astro_context,
+                    )
+
+                    if not result.success:
+                        return {"success": False, "error": result.error}
+
+                    # Save to storage
+                    storage = get_image_storage_service()
+                    filename = storage.generate_filename(purpose)
+                    category_map = {
+                        "tarot_card": "tarot",
+                        "background": "backgrounds",
+                        "infographic": "infographics",
+                        "custom": "custom",
+                    }
+                    category = category_map.get(purpose, "custom")
+
+                    file_path = storage.save_image(
+                        image_data=result.image_data,
+                        category=category,
+                        filename=filename,
+                    )
+
+                    # Save to database
+                    image = GeneratedImage(
+                        image_type=purpose,
+                        prompt=prompt,
+                        enhanced_prompt=result.enhanced_prompt,
+                        file_path=file_path,
+                        mime_type=result.mime_type,
+                        width=result.width,
+                        height=result.height,
+                        file_size=len(result.image_data),
+                    )
+                    db_session.add(image)
+                    db_session.commit()
+
+                    return {
+                        "success": True,
+                        "image_id": str(image.id),
+                        "image_url": storage.get_file_url(file_path),
+                        "width": result.width,
+                        "height": result.height,
+                        "message": f"Image generated successfully: {file_path}"
+                    }
+
+                except ImportError as e:
+                    logger.error(f"Missing dependency for image generation: {e}")
+                    return {"success": False, "error": "Image generation dependencies not installed (google-genai)"}
+                except Exception as e:
+                    logger.error(f"Error generating image: {e}")
+                    return {"success": False, "error": str(e)}
+
+            elif tool_name == "list_image_collections":
+                if not db_session:
+                    return {"success": False, "error": "Database not available"}
+
+                try:
+                    from app.models.generated_image import ImageCollection, GeneratedImage
+
+                    query = db_session.query(ImageCollection)
+                    collection_type = tool_input.get("collection_type")
+                    if collection_type:
+                        query = query.filter(ImageCollection.collection_type == collection_type)
+
+                    collections = query.order_by(ImageCollection.created_at.desc()).all()
+
+                    result = []
+                    for coll in collections:
+                        count = db_session.query(GeneratedImage).filter_by(collection_id=coll.id).count()
+                        result.append({
+                            "id": str(coll.id),
+                            "name": coll.name,
+                            "type": coll.collection_type,
+                            "is_complete": coll.is_complete,
+                            "is_active": coll.is_active,
+                            "image_count": count,
+                            "total_expected": coll.total_expected,
+                        })
+
+                    return {
+                        "success": True,
+                        "collections": result,
+                        "count": len(result)
+                    }
+                except Exception as e:
+                    logger.error(f"Error listing image collections: {e}")
+                    return {"success": False, "error": str(e)}
+
+            elif tool_name == "get_collection_images":
+                if not db_session:
+                    return {"success": False, "error": "Database not available"}
+
+                try:
+                    from app.models.generated_image import ImageCollection, GeneratedImage
+                    from app.services.image_storage_service import get_image_storage_service
+
+                    collection_id = tool_input.get("collection_id")
+                    collection = db_session.query(ImageCollection).filter_by(id=collection_id).first()
+
+                    if not collection:
+                        return {"success": False, "error": "Collection not found"}
+
+                    images = db_session.query(GeneratedImage).filter_by(collection_id=collection_id).all()
+                    storage = get_image_storage_service()
+
+                    return {
+                        "success": True,
+                        "collection": {
+                            "id": str(collection.id),
+                            "name": collection.name,
+                            "type": collection.collection_type,
+                            "style_prompt": collection.style_prompt,
+                        },
+                        "images": [
+                            {
+                                "id": str(img.id),
+                                "item_key": img.item_key,
+                                "prompt": img.prompt,
+                                "url": storage.get_file_url(img.file_path),
+                            }
+                            for img in images
+                        ]
+                    }
+                except Exception as e:
+                    logger.error(f"Error getting collection images: {e}")
+                    return {"success": False, "error": str(e)}
+
+            elif tool_name == "create_image_collection":
+                if not db_session:
+                    return {"success": False, "error": "Database not available"}
+
+                try:
+                    from app.models.generated_image import ImageCollection
+
+                    collection = ImageCollection(
+                        name=tool_input.get("name"),
+                        collection_type=tool_input.get("collection_type"),
+                        style_prompt=tool_input.get("style_prompt"),
+                        total_expected=tool_input.get("total_expected"),
+                    )
+                    db_session.add(collection)
+                    db_session.commit()
+
+                    return {
+                        "success": True,
+                        "collection_id": str(collection.id),
+                        "message": f"Collection '{tool_input.get('name')}' created"
+                    }
+                except Exception as e:
+                    logger.error(f"Error creating image collection: {e}")
                     return {"success": False, "error": str(e)}
 
             else:

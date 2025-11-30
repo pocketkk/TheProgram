@@ -5,6 +5,7 @@
  * Part of Phase 3: Multi-Paradigm Integration
  */
 import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
 import * as tarotApi from '@/lib/api/tarot'
 import type {
   TarotCard,
@@ -13,11 +14,17 @@ import type {
   DailyCardResponse,
   SpreadType
 } from '@/lib/api/tarot'
+import type { CollectionInfo, ImageInfo } from '@/types/image'
 
 interface TarotState {
   // Deck data
   deck: TarotCard[]
   spreads: Record<string, TarotSpread>
+
+  // Custom deck selection
+  selectedDeckId: string | null  // null = use default symbols
+  availableDecks: CollectionInfo[]
+  deckImages: Map<string, ImageInfo>  // Map of item_key -> ImageInfo
 
   // Current reading
   currentReading: TarotReading | null
@@ -43,6 +50,11 @@ interface TarotState {
   setSelectedSpread: (spread: SpreadType) => void
   setQuestion: (question: string) => void
 
+  // Custom deck actions
+  loadAvailableDecks: () => Promise<void>
+  selectDeck: (deckId: string | null) => Promise<void>
+  getCardImage: (cardId: string) => ImageInfo | undefined
+
   performReading: () => Promise<void>
   clearReading: () => void
 
@@ -53,10 +65,50 @@ interface TarotState {
   clearError: () => void
 }
 
-export const useTarotStore = create<TarotState>((set, get) => ({
+// Import image API functions
+import { listCollections, getCollection } from '@/lib/api/images'
+
+/**
+ * Convert backend card ID to image item_key format
+ * Backend uses: major_0, wands_1, wands_page
+ * Images use: major_00, wands_01, wands_11
+ */
+function cardIdToItemKey(cardId: string): string {
+  const parts = cardId.split('_')
+  if (parts.length !== 2) return cardId
+
+  const [suit, value] = parts
+
+  // Handle court cards (page, knight, queen, king)
+  const courtMap: Record<string, string> = {
+    'page': '11',
+    'knight': '12',
+    'queen': '13',
+    'king': '14',
+  }
+
+  if (courtMap[value]) {
+    return `${suit}_${courtMap[value]}`
+  }
+
+  // Handle number cards - pad to 2 digits
+  const num = parseInt(value, 10)
+  if (!isNaN(num)) {
+    return `${suit}_${num.toString().padStart(2, '0')}`
+  }
+
+  return cardId
+}
+
+export const useTarotStore = create<TarotState>()(
+  persist(
+    (set, get) => ({
   // Initial state
   deck: [],
   spreads: {},
+  selectedDeckId: null,
+  availableDecks: [],
+  deckImages: new Map(),
   currentReading: null,
   selectedSpread: 'three_card',
   question: '',
@@ -136,5 +188,61 @@ export const useTarotStore = create<TarotState>((set, get) => ({
 
   selectCard: (card) => set({ selectedCard: card }),
 
+  // Load available custom tarot decks
+  loadAvailableDecks: async () => {
+    try {
+      const decks = await listCollections({ collection_type: 'tarot_deck' })
+      // Only include decks that have at least some images
+      const decksWithImages = decks.filter(d => d.image_count > 0)
+      set({ availableDecks: decksWithImages })
+    } catch (error) {
+      console.error('Failed to load available decks:', error)
+    }
+  },
+
+  // Select a deck and load its images
+  selectDeck: async (deckId: string | null) => {
+    if (!deckId) {
+      // Clear to default symbols
+      set({ selectedDeckId: null, deckImages: new Map() })
+      return
+    }
+
+    try {
+      const collection = await getCollection(deckId)
+      // Build a map of item_key -> ImageInfo for quick lookup
+      // Use most recent image for each item_key
+      const imageMap = new Map<string, ImageInfo>()
+      const sortedImages = [...collection.images].sort(
+        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      )
+      sortedImages.forEach((img) => {
+        if (img.item_key && !imageMap.has(img.item_key)) {
+          imageMap.set(img.item_key, img)
+        }
+      })
+      set({ selectedDeckId: deckId, deckImages: imageMap })
+    } catch (error) {
+      console.error('Failed to load deck images:', error)
+      set({ selectedDeckId: null, deckImages: new Map() })
+    }
+  },
+
+  // Get image for a specific card ID
+  getCardImage: (cardId: string) => {
+    const { deckImages } = get()
+    // Convert backend card ID to image item_key format
+    const itemKey = cardIdToItemKey(cardId)
+    return deckImages.get(itemKey)
+  },
+
   clearError: () => set({ error: null })
-}))
+    }),
+    {
+      name: 'tarot-store',
+      partialize: (state) => ({
+        selectedDeckId: state.selectedDeckId,
+      }),
+    }
+  )
+)
