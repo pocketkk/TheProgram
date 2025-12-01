@@ -45,7 +45,7 @@ export function CompactChart({ date, birthDataId, onExpand }: CompactChartProps)
     return (
       <div
         ref={containerRef}
-        className="relative w-full h-full min-h-[200px] glass-strong rounded-lg flex items-center justify-center"
+        className="relative w-full h-full min-h-[200px] flex items-center justify-center"
       >
         <p className="text-sm text-gray-400 text-center px-4">
           Select a birth chart to view transits
@@ -58,7 +58,7 @@ export function CompactChart({ date, birthDataId, onExpand }: CompactChartProps)
     return (
       <div
         ref={containerRef}
-        className="relative w-full h-full min-h-[200px] glass-strong rounded-lg flex items-center justify-center"
+        className="relative w-full h-full min-h-[200px] flex items-center justify-center"
       >
         <div className="space-y-3 w-full px-6">
           <div className="h-3 bg-cosmic-700/50 rounded animate-pulse"></div>
@@ -73,7 +73,7 @@ export function CompactChart({ date, birthDataId, onExpand }: CompactChartProps)
     return (
       <div
         ref={containerRef}
-        className="relative w-full h-full min-h-[200px] glass-strong rounded-lg flex items-center justify-center"
+        className="relative w-full h-full min-h-[200px] flex items-center justify-center"
       >
         <p className="text-sm text-red-400 text-center px-4">
           {error instanceof Error ? error.message : 'Failed to load transit chart'}
@@ -85,13 +85,14 @@ export function CompactChart({ date, birthDataId, onExpand }: CompactChartProps)
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-full min-h-[200px] glass-strong rounded-lg overflow-hidden group flex items-center justify-center"
+      className="relative w-full h-full min-h-[200px] overflow-hidden group flex items-center justify-center"
     >
       {/* Chart - centered and sized to fit, showing natal houses */}
       <BirthChartWheel
         chart={data.chart}
         showAspects={false}
         showHouseNumbers={true}
+        showZoomControls={false}
         size={chartSize}
       />
 

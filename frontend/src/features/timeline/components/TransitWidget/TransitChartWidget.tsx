@@ -40,9 +40,21 @@ export function TransitChartWidget({ date, birthDataId }: TransitChartWidgetProp
   } : null
 
   return (
-    <div className="h-full flex flex-col gap-4">
+    <div className="h-full flex flex-col border border-cosmic-600/50 rounded-lg bg-cosmic-900/30 overflow-hidden">
+      {/* Header with date */}
+      <div className="flex-shrink-0 px-4 py-2 border-b border-cosmic-600/50 bg-cosmic-800/30">
+        <div className="text-sm font-medium text-cosmic-200">
+          {new Date(date).toLocaleDateString('en-US', {
+            weekday: 'long',
+            month: 'long',
+            day: 'numeric',
+            year: 'numeric'
+          })}
+        </div>
+      </div>
+
       {/* Transit chart - fills available space */}
-      <div className="flex-1 min-h-0">
+      <div className="flex-1 min-h-0 p-2">
         <CompactChart
           date={date}
           birthDataId={birthDataId}
@@ -50,12 +62,12 @@ export function TransitChartWidget({ date, birthDataId }: TransitChartWidgetProp
         />
       </div>
 
-      {/* Summary - compact, doesn't shrink */}
-      <div className="flex-shrink-0">
+      {/* Footer with summary */}
+      <div className="flex-shrink-0 px-4 py-3 border-t border-cosmic-600/50 bg-cosmic-800/30">
         <TransitSummary
-          date={date}
           summary={summary}
           isLoading={isLoading}
+          onExpand={() => setIsExpanded(true)}
         />
       </div>
 

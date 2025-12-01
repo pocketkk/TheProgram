@@ -187,7 +187,7 @@ export function JournalEditor({ date }: JournalEditorProps) {
         value={formData.title}
         onChange={e => handleChange('title', e.target.value)}
         onBlur={handleSave}
-        className="w-full px-3 py-1.5 text-sm bg-cosmic-dark/50 border border-cosmic-light/20
+        className="w-full px-3 py-1.5 text-sm bg-cosmic-900/80 border border-cosmic-light/20
                    rounded-lg text-white placeholder-gray-500 focus:outline-none
                    focus:border-celestial-gold/50"
       />
@@ -199,7 +199,7 @@ export function JournalEditor({ date }: JournalEditorProps) {
         onChange={e => handleChange('content', e.target.value)}
         onBlur={handleSave}
         rows={6}
-        className="w-full px-3 py-2 text-sm bg-cosmic-dark/50 border border-cosmic-light/20
+        className="w-full px-3 py-2 text-sm bg-cosmic-900/80 border border-cosmic-light/20
                    rounded-lg text-white placeholder-gray-500 focus:outline-none
                    focus:border-celestial-gold/50 resize-none flex-1"
       />
@@ -295,7 +295,7 @@ export function JournalEditor({ date }: JournalEditorProps) {
                 }
               }}
               placeholder="add tag"
-              className="w-16 px-2 py-0.5 text-xs bg-cosmic-dark/50 border border-cosmic-light/20
+              className="w-16 px-2 py-0.5 text-xs bg-cosmic-900/80 border border-cosmic-light/20
                        rounded text-white placeholder-gray-500 focus:outline-none"
             />
             <button

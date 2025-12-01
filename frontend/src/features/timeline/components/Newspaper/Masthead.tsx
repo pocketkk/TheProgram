@@ -21,7 +21,7 @@ export function Masthead({ dateDisplay, style }: MastheadProps) {
       transition={{ duration: 0.6, ease: 'easeOut' }}
       className={`
         border-b-4 pb-4 mb-6
-        ${isVictorian ? 'border-amber-800' : 'border-stone-700'}
+        ${isVictorian ? 'border-amber-800' : 'border-stone-600'}
       `}
     >
       {/* Ornate top border */}
@@ -40,7 +40,7 @@ export function Masthead({ dateDisplay, style }: MastheadProps) {
             font-accent tracking-wider
             ${isVictorian
               ? 'text-5xl md:text-6xl text-stone-900 drop-shadow-[0_2px_2px_rgba(217,119,6,0.3)]'
-              : 'text-4xl md:text-5xl text-stone-800'
+              : 'text-4xl md:text-5xl text-stone-900'
             }
           `}
         >
@@ -51,7 +51,7 @@ export function Masthead({ dateDisplay, style }: MastheadProps) {
         <p
           className={`
             font-accent text-sm tracking-widest mt-1
-            ${isVictorian ? 'text-amber-700' : 'text-stone-600'}
+            ${isVictorian ? 'text-amber-800' : 'text-stone-700'}
           `}
         >
           {isVictorian
@@ -62,16 +62,16 @@ export function Masthead({ dateDisplay, style }: MastheadProps) {
 
         {/* Date display */}
         <div className="mt-3 flex items-center justify-center gap-3">
-          <div className={`h-px w-12 ${isVictorian ? 'bg-amber-600' : 'bg-stone-500'}`} />
+          <div className={`h-px w-12 ${isVictorian ? 'bg-amber-700' : 'bg-stone-600'}`} />
           <p
             className={`
               font-accent text-base tracking-wide
-              ${isVictorian ? 'text-stone-800' : 'text-stone-700'}
+              ${isVictorian ? 'text-stone-800' : 'text-stone-800'}
             `}
           >
             {dateDisplay}
           </p>
-          <div className={`h-px w-12 ${isVictorian ? 'bg-amber-600' : 'bg-stone-500'}`} />
+          <div className={`h-px w-12 ${isVictorian ? 'bg-amber-700' : 'bg-stone-600'}`} />
         </div>
       </div>
 

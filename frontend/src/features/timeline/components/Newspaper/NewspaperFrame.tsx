@@ -89,14 +89,14 @@ export function NewspaperFrame({ content, isLoading }: NewspaperFrameProps) {
         className={`
           relative rounded-lg shadow-2xl overflow-hidden
           ${isVictorian
-            ? 'bg-gradient-to-br from-amber-50 via-yellow-50 to-amber-100'
-            : 'bg-gradient-to-br from-stone-50 via-white to-stone-100'
+            ? 'bg-gradient-to-br from-amber-400/70 via-amber-300/60 to-amber-400/70'
+            : 'bg-gradient-to-br from-stone-400/70 via-stone-300/60 to-stone-400/70'
           }
         `}
         style={{
           boxShadow: isVictorian
-            ? '0 20px 50px rgba(120, 53, 15, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.5)'
-            : '0 20px 50px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.5)',
+            ? '0 20px 50px rgba(120, 53, 15, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3)'
+            : '0 20px 50px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.3)',
         }}
       >
         {/* Paper texture overlay */}
