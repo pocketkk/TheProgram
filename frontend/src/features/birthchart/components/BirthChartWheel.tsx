@@ -27,11 +27,12 @@ interface BirthChartWheelProps {
   chart: BirthChart
   showAspects?: boolean
   showHouseNumbers?: boolean
+  showZoomControls?: boolean
   size?: number
 }
 
 export const BirthChartWheel = forwardRef<HTMLDivElement, BirthChartWheelProps>(
-  ({ chart, showAspects = true, showHouseNumbers = true, size = 600 }, ref) => {
+  ({ chart, showAspects = true, showHouseNumbers = true, showZoomControls = true, size = 600 }, ref) => {
   const containerRef = useRef<HTMLDivElement>(null)
   const chartRef = (ref as React.RefObject<HTMLDivElement>) || containerRef
   const visibility = useChartStore(state => state.visibility)
@@ -477,7 +478,8 @@ export const BirthChartWheel = forwardRef<HTMLDivElement, BirthChartWheelProps>(
       <ChartTooltip containerRef={chartRef} />
 
       {/* Zoom Controls */}
-      <div className="absolute top-4 -left-12 z-10 flex flex-col gap-2">
+      {showZoomControls && (
+      <div className="absolute bottom-2 left-0 z-10 flex flex-col gap-2">
         <button
           onClick={handleZoomIn}
           className="w-8 h-8 bg-cosmic-800/90 hover:bg-cosmic-700 border border-cosmic-600 rounded text-cosmic-200 flex items-center justify-center transition-colors"
@@ -500,6 +502,7 @@ export const BirthChartWheel = forwardRef<HTMLDivElement, BirthChartWheelProps>(
           ⟲
         </button>
       </div>
+      )}
 
       <div
         className="overflow-hidden select-none"
@@ -529,6 +532,8 @@ export const BirthChartWheel = forwardRef<HTMLDivElement, BirthChartWheelProps>(
             ref={svgRef}
             width={size}
             height={size}
+            viewBox={`0 0 ${size} ${size}`}
+            overflow="visible"
             className="drop-shadow-2xl"
             variants={withReducedMotion(wheelVariants)}
             initial="initial"
@@ -550,25 +555,7 @@ export const BirthChartWheel = forwardRef<HTMLDivElement, BirthChartWheelProps>(
             </feMerge>
           </filter>
 
-          {/* Circular paths for curved zodiac labels */}
-          {ZODIAC_SIGNS.map((sign, index) => {
-            const startAngle = index * 30
-            const endAngle = (index + 1) * 30
-            const labelRadius = outerRadius * 0.79
-
-            // Create arc path for this zodiac sign segment (clockwise to curve outward)
-            const startPos = polarToCartesian(startAngle, labelRadius)
-            const endPos = polarToCartesian(endAngle, labelRadius)
-
-            return (
-              <path
-                key={`label-path-${sign.name}`}
-                id={`label-path-${sign.name}`}
-                d={`M ${startPos.x} ${startPos.y} A ${labelRadius} ${labelRadius} 0 0 1 ${endPos.x} ${endPos.y}`}
-                fill="none"
-              />
-            )
-          })}
+          {/* Zodiac label paths removed - using simple centered text instead */}
 
           {/* Circular paths for curved HD gate name labels */}
           {HUMAN_DESIGN_GATES.map((gate, index) => {
@@ -607,7 +594,14 @@ export const BirthChartWheel = forwardRef<HTMLDivElement, BirthChartWheelProps>(
           const midAngle = startAngle + 15
           const color = getElementColor(sign.element)
 
-          const _labelPos = polarToCartesian(midAngle, outerRadius - 30)
+          // Position label inside the zodiac background, near inner edge
+          const labelRadius = innerRadius + 12
+          const labelPos = polarToCartesian(midAngle, labelRadius)
+
+          // Calculate rotation to face center (top of text points toward center)
+          // Use atan2 to get angle from center to label position, then add 90° to face inward
+          const angleFromCenter = Math.atan2(labelPos.y - center, labelPos.x - center) * (180 / Math.PI)
+          const textRotation = angleFromCenter + 90
 
           return (
             <motion.g
@@ -627,21 +621,19 @@ export const BirthChartWheel = forwardRef<HTMLDivElement, BirthChartWheelProps>(
                 strokeOpacity={0.3}
               />
 
-              {/* Sign symbol and name (curved label) */}
+              {/* Sign symbol and name - rotated to face center */}
               <text
+                x={labelPos.x}
+                y={labelPos.y}
                 fill={color}
-                fontSize={12}
-                fontWeight="400"
-                letterSpacing="0.5"
+                fontSize={11}
+                fontWeight="500"
+                textAnchor="middle"
+                dominantBaseline="middle"
+                transform={`rotate(${textRotation}, ${labelPos.x}, ${labelPos.y})`}
                 className="pointer-events-none"
               >
-                <textPath
-                  href={`#label-path-${sign.name}`}
-                  startOffset="50%"
-                  textAnchor="middle"
-                >
-                  {sign.symbol} {sign.name.toUpperCase()}
-                </textPath>
+                {sign.symbol} {sign.name.toUpperCase()}
               </text>
             </motion.g>
           )

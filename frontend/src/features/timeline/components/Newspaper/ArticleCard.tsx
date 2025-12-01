@@ -28,8 +28,8 @@ export function ArticleCard({ article, style, index }: ArticleCardProps) {
       className={`
         p-4 rounded-lg
         ${isVictorian
-          ? 'bg-amber-50/30 border-2 border-amber-700/20'
-          : 'bg-white/50 border border-stone-300'
+          ? 'bg-amber-400/30 border-2 border-amber-700/20'
+          : 'bg-stone-400/30 border border-stone-500/30'
         }
       `}
     >
@@ -73,8 +73,8 @@ export function ArticleCard({ article, style, index }: ArticleCardProps) {
         className={`
           font-accent font-bold mb-3 leading-tight
           ${isVictorian
-            ? 'text-xl text-stone-900 border-b-2 border-amber-700/30 pb-2'
-            : 'text-lg text-stone-800 border-b border-stone-300 pb-2'
+            ? 'text-xl text-stone-900 border-b-2 border-amber-700/40 pb-2'
+            : 'text-lg text-stone-900 border-b border-stone-600/50 pb-2'
           }
         `}
       >
@@ -87,7 +87,7 @@ export function ArticleCard({ article, style, index }: ArticleCardProps) {
           leading-relaxed mb-3
           ${isVictorian
             ? 'text-stone-800 font-serif text-sm'
-            : 'text-stone-700 text-sm'
+            : 'text-stone-800 text-sm'
           }
         `}
       >
@@ -100,8 +100,8 @@ export function ArticleCard({ article, style, index }: ArticleCardProps) {
           className={`
             mt-3 pt-3 border-t italic text-xs leading-relaxed
             ${isVictorian
-              ? 'border-amber-700/30 text-amber-900'
-              : 'border-stone-300 text-stone-600'
+              ? 'border-amber-700/40 text-stone-700'
+              : 'border-stone-500/50 text-stone-600'
             }
           `}
         >

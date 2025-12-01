@@ -25,7 +25,7 @@ export function SectionTabs({
     <div
       className={`
         flex gap-1 mb-6 border-b-2
-        ${isVictorian ? 'border-amber-800' : 'border-stone-300'}
+        ${isVictorian ? 'border-amber-700' : 'border-stone-600'}
       `}
     >
       {sections.map((section) => {
@@ -40,11 +40,11 @@ export function SectionTabs({
               transition-all duration-200
               ${isActive
                 ? isVictorian
-                  ? 'text-amber-900 font-bold'
+                  ? 'text-stone-900 font-bold'
                   : 'text-stone-900 font-bold'
                 : isVictorian
-                  ? 'text-stone-600 hover:text-amber-800'
-                  : 'text-stone-500 hover:text-stone-700'
+                  ? 'text-stone-600 hover:text-stone-800'
+                  : 'text-stone-600 hover:text-stone-800'
               }
             `}
           >

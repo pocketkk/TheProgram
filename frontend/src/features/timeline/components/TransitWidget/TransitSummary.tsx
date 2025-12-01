@@ -1,23 +1,23 @@
 /**
  * Transit Summary Component
- * Displays summary text below compact chart
+ * Displays compact summary in footer of transit widget
  */
 import type { TransitSummary as TransitSummaryType } from './types'
 import { getPlanetSymbol } from '@/lib/api/transits'
+import { Maximize2 } from 'lucide-react'
 
 interface TransitSummaryProps {
-  date: string
   summary: TransitSummaryType | null
   isLoading: boolean
+  onExpand: () => void
 }
 
-export function TransitSummary({ date, summary, isLoading }: TransitSummaryProps) {
+export function TransitSummary({ summary, isLoading, onExpand }: TransitSummaryProps) {
   if (isLoading) {
     return (
-      <div className="space-y-2 animate-pulse">
-        <div className="h-4 bg-cosmic-700/50 rounded w-3/4"></div>
-        <div className="h-4 bg-cosmic-700/50 rounded w-1/2"></div>
-        <div className="h-4 bg-cosmic-700/50 rounded w-2/3"></div>
+      <div className="flex items-center justify-between animate-pulse">
+        <div className="h-4 bg-cosmic-700/50 rounded w-1/3"></div>
+        <div className="h-4 bg-cosmic-700/50 rounded w-1/4"></div>
       </div>
     )
   }
@@ -31,50 +31,29 @@ export function TransitSummary({ date, summary, isLoading }: TransitSummaryProps
   }
 
   return (
-    <div className="space-y-2 text-sm">
-      {/* Date */}
-      <div className="text-cosmic-200 font-medium">
-        {new Date(date).toLocaleDateString('en-US', {
-          weekday: 'long',
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric'
-        })}
-      </div>
-
+    <div className="flex items-center justify-between gap-4">
       {/* Moon and Sun signs */}
-      <div className="flex items-center gap-4 text-cosmic-300">
+      <div className="flex items-center gap-3 text-sm text-cosmic-300">
         <div className="flex items-center gap-1">
-          <span className="text-lg">{getPlanetSymbol('Moon')}</span>
-          <span>in {summary.moonSign}</span>
+          <span>{getPlanetSymbol('Moon')}</span>
+          <span>{summary.moonSign}</span>
         </div>
         <div className="flex items-center gap-1">
-          <span className="text-lg">{getPlanetSymbol('Sun')}</span>
-          <span>in {summary.sunSign}</span>
+          <span>{getPlanetSymbol('Sun')}</span>
+          <span>{summary.sunSign}</span>
         </div>
       </div>
 
-      {/* Active transits count */}
-      <div className="text-celestial-gold">
-        {summary.activeTransits} active transit{summary.activeTransits !== 1 ? 's' : ''}
-      </div>
-
-      {/* Significant transits */}
-      {summary.significantTransits.length > 0 && (
-        <div className="space-y-1">
-          <div className="text-cosmic-400 text-xs uppercase tracking-wide">
-            Significant Aspects
-          </div>
-          <ul className="space-y-1">
-            {summary.significantTransits.map((transit, index) => (
-              <li key={index} className="text-cosmic-200 text-xs flex items-center gap-1">
-                <span className="text-celestial-pink">•</span>
-                <span>{transit}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+      {/* Active transits - clickable */}
+      <button
+        onClick={onExpand}
+        className="flex items-center gap-2 px-3 py-1 rounded-full bg-celestial-gold/10 border border-celestial-gold/30 hover:bg-celestial-gold/20 hover:border-celestial-gold/50 transition-colors"
+      >
+        <span className="text-sm font-medium text-celestial-gold">
+          {summary.activeTransits} transits
+        </span>
+        <Maximize2 className="w-3 h-3 text-celestial-gold" />
+      </button>
     </div>
   )
 }

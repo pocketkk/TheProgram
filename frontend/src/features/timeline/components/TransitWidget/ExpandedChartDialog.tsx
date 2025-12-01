@@ -72,7 +72,7 @@ export function ExpandedChartDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-[70vw] max-h-[90vh] overflow-auto">
+      <DialogContent className="max-w-[90vw] w-fit max-h-[90vh] overflow-auto">
         <DialogHeader>
           <DialogTitle>
             Transit Chart - {new Date(date).toLocaleDateString('en-US', {
@@ -96,13 +96,13 @@ export function ExpandedChartDialog({
             </div>
           </div>
         ) : data ? (
-          <div className="flex flex-col gap-4">
-            {/* Chart - centered with resizable container */}
-            <div className="flex justify-center">
+          <div className="flex gap-6">
+            {/* Chart - left side with resizable container */}
+            <div className="flex-shrink-0">
               <div
                 ref={resizeRef}
-                className="relative border border-cosmic-600/50 rounded-lg pl-16 pr-4 py-4 bg-cosmic-900/30 overflow-hidden"
-                style={{ width: chartSize + 80, height: chartSize + 48 }}
+                className="relative border border-cosmic-600/50 rounded-lg bg-cosmic-900/30 overflow-visible flex items-center justify-center p-4"
+                style={{ width: chartSize + 32, height: chartSize + 32 }}
               >
                 <BirthChartWheel
                   chart={data.chart}
@@ -120,103 +120,90 @@ export function ExpandedChartDialog({
               </div>
             </div>
 
-            {/* Transit list */}
-            <div className="space-y-4 overflow-auto max-h-[300px]">
-              {/* Planet positions */}
-              <div>
-                <h3 className="text-lg font-semibold text-cosmic-200 mb-3">
-                  Planet Positions
-                </h3>
-                <div className="space-y-2">
-                  {data.chart.planets.map((planet) => (
-                    <div
-                      key={planet.name}
-                      className="flex items-center justify-between px-3 py-2 glass-subtle rounded"
-                    >
-                      <div className="flex items-center gap-3">
-                        <span className="text-xl">{planet.symbol}</span>
-                        <span className="text-cosmic-200 font-medium">
-                          {planet.name}
-                        </span>
-                        {planet.isRetrograde && (
-                          <span className="text-red-400 text-xs">℞</span>
-                        )}
-                      </div>
-                      <div className="text-cosmic-300 text-sm">
-                        {planet.degree}° {planet.sign}
-                      </div>
+            {/* Planet Positions panel */}
+            <div className="w-[180px] flex-shrink-0 overflow-auto max-h-[600px] border border-cosmic-600/50 rounded-lg bg-cosmic-900/30 p-4">
+              <h3 className="text-base font-semibold text-cosmic-200 mb-3">
+                Planet Positions
+              </h3>
+              <div className="space-y-1.5">
+                {data.chart.planets.map((planet) => (
+                  <div
+                    key={planet.name}
+                    className="px-2 py-1.5 glass-subtle rounded"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="text-base">{planet.symbol}</span>
+                      <span className="text-cosmic-200 text-sm font-medium">{planet.name}</span>
+                      {planet.isRetrograde && (
+                        <span className="text-red-400 text-xs">℞</span>
+                      )}
                     </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Active transits (if available) */}
-              {data.raw.transits.length > 0 && (
-                <div>
-                  <h3 className="text-lg font-semibold text-cosmic-200 mb-3">
-                    Active Transits
-                  </h3>
-                  <div className="space-y-2">
-                    {data.raw.transits.map((transit, index) => (
-                      <div
-                        key={index}
-                        className="px-3 py-2 glass-subtle rounded"
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className={`font-medium ${getSignificanceColor(transit.significance)}`}>
-                            {formatTransit(transit)}
-                          </div>
-                          <div className="text-xs text-cosmic-400">
-                            {transit.significance}
-                          </div>
-                        </div>
-                        {transit.estimated_duration && (
-                          <div className="text-xs text-cosmic-400 mt-1">
-                            Duration: {transit.estimated_duration}
-                          </div>
-                        )}
-                      </div>
-                    ))}
+                    <div className="text-xs text-cosmic-400 whitespace-nowrap ml-1">
+                      {planet.degree}° {planet.sign}
+                    </div>
                   </div>
-                </div>
-              )}
+                ))}
+              </div>
+            </div>
 
-              {/* Summary */}
+            {/* Active Transits panel */}
+            <div className="w-[260px] flex-shrink-0 overflow-auto max-h-[600px] border border-cosmic-600/50 rounded-lg bg-cosmic-900/30 p-4">
+              <h3 className="text-base font-semibold text-cosmic-200 mb-3">
+                Active Transits
+              </h3>
+
+              {/* Summary at top */}
               {data.raw.summary && (
-                <div className="glass-subtle rounded-lg p-4 space-y-3">
-                  <h3 className="text-lg font-semibold text-cosmic-200">
-                    Summary
-                  </h3>
-                  <div className="grid grid-cols-2 gap-3 text-sm">
+                <div className="mb-3 pb-3 border-b border-cosmic-600/50">
+                  <div className="flex items-center gap-4 text-sm">
                     <div>
-                      <div className="text-cosmic-400">Total Transits</div>
-                      <div className="text-cosmic-200 font-medium">
-                        {data.raw.summary.total_transits}
-                      </div>
+                      <span className="text-cosmic-400">Total: </span>
+                      <span className="text-cosmic-200 font-medium">{data.raw.summary.total_transits}</span>
                     </div>
                     <div>
-                      <div className="text-cosmic-400">Major Aspects</div>
-                      <div className="text-celestial-pink font-medium">
-                        {data.raw.summary.major_count}
-                      </div>
+                      <span className="text-cosmic-400">Major: </span>
+                      <span className="text-celestial-pink font-medium">{data.raw.summary.major_count}</span>
                     </div>
                   </div>
                   {data.raw.summary.themes.length > 0 && (
-                    <div>
-                      <div className="text-cosmic-400 text-sm mb-2">Themes</div>
-                      <div className="flex flex-wrap gap-2">
-                        {data.raw.summary.themes.map((theme, index) => (
-                          <span
-                            key={index}
-                            className="px-2 py-1 bg-celestial-gold/10 border border-celestial-gold/30 rounded text-celestial-gold text-xs"
-                          >
-                            {theme}
-                          </span>
-                        ))}
-                      </div>
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {data.raw.summary.themes.map((theme, index) => (
+                        <span
+                          key={index}
+                          className="px-1.5 py-0.5 bg-celestial-gold/10 border border-celestial-gold/30 rounded text-celestial-gold text-xs"
+                        >
+                          {theme}
+                        </span>
+                      ))}
                     </div>
                   )}
                 </div>
+              )}
+
+              {data.raw.transits.length > 0 ? (
+                <div className="space-y-2">
+                  {data.raw.transits.map((transit, index) => (
+                    <div
+                      key={index}
+                      className="px-2 py-2 glass-subtle rounded space-y-1"
+                    >
+                      <div className={`text-sm font-medium ${getSignificanceColor(transit.significance)}`}>
+                        {getPlanetSymbol(transit.transit_planet)} {transit.aspect} {getPlanetSymbol(transit.natal_planet)}
+                      </div>
+                      <div className="flex items-center justify-between text-xs text-cosmic-400">
+                        <span className="tabular-nums">{transit.orb.toFixed(1)}° orb</span>
+                        <span className="capitalize">{transit.significance}</span>
+                      </div>
+                      {transit.estimated_duration && (
+                        <div className="text-xs text-cosmic-500">
+                          {transit.estimated_duration}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-cosmic-400 text-sm">No active transits</p>
               )}
             </div>
           </div>

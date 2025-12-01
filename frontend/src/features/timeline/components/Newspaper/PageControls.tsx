@@ -52,7 +52,7 @@ export function PageControls({
       transition={{ delay: 0.3, duration: 0.4 }}
       className={`
         flex items-center justify-between pt-4 border-t-2
-        ${isVictorian ? 'border-amber-800' : 'border-stone-300'}
+        ${isVictorian ? 'border-amber-700' : 'border-stone-600'}
       `}
     >
       {/* Previous button */}
@@ -69,11 +69,11 @@ export function PageControls({
       <div
         className={`
           font-accent tracking-wide
-          ${isVictorian ? 'text-stone-800' : 'text-stone-700'}
+          ${isVictorian ? 'text-stone-900' : 'text-stone-800'}
         `}
       >
         <span className="font-bold">{currentPage}</span>
-        <span className="mx-2 text-stone-500">/</span>
+        <span className="mx-2 text-stone-600">/</span>
         <span>{totalPages}</span>
       </div>
 
