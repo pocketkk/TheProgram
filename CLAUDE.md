@@ -149,6 +149,15 @@ alembic revision --autogenerate -m "Description"
 alembic upgrade head
 ```
 
+### GitHub CLI
+
+When using `gh` commands (e.g., creating PRs), unset GITHUB_TOKEN first:
+```bash
+unset GITHUB_TOKEN && gh pr create --title "..." --body "..." --base main
+```
+
+The GITHUB_TOKEN environment variable interferes with gh's own authentication.
+
 ## What NOT To Do
 
 - **Don't add user_id** - This is a single-user app
