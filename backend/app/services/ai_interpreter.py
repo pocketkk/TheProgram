@@ -7,10 +7,54 @@ import os
 import asyncio
 from typing import Dict, List, Optional, Any
 import anthropic
-from anthropic import Anthropic, AsyncAnthropic
+from anthropic import Anthropic, AsyncAnthropic, AuthenticationError, APIError
 import logging
 
 logger = logging.getLogger(__name__)
+
+
+class AIServiceError(Exception):
+    """User-friendly AI service errors"""
+    def __init__(self, message: str, user_message: str, error_code: str = "AI_ERROR"):
+        super().__init__(message)
+        self.user_message = user_message
+        self.error_code = error_code
+
+
+def handle_anthropic_error(e: Exception) -> AIServiceError:
+    """Convert Anthropic API errors to user-friendly messages"""
+    error_str = str(e).lower()
+
+    if isinstance(e, AuthenticationError) or "authentication" in error_str or "401" in error_str or "invalid" in error_str and "api" in error_str:
+        return AIServiceError(
+            message=str(e),
+            user_message="Your Anthropic API key is invalid or expired. Please update it in Settings → API Keys.",
+            error_code="INVALID_API_KEY"
+        )
+    elif "rate" in error_str and "limit" in error_str:
+        return AIServiceError(
+            message=str(e),
+            user_message="API rate limit reached. Please wait a moment and try again.",
+            error_code="RATE_LIMIT"
+        )
+    elif "insufficient" in error_str or "credit" in error_str or "quota" in error_str:
+        return AIServiceError(
+            message=str(e),
+            user_message="Your Anthropic API account has insufficient credits. Please add credits at console.anthropic.com.",
+            error_code="INSUFFICIENT_CREDITS"
+        )
+    elif "timeout" in error_str or "timed out" in error_str:
+        return AIServiceError(
+            message=str(e),
+            user_message="The AI service timed out. Please try again.",
+            error_code="TIMEOUT"
+        )
+    else:
+        return AIServiceError(
+            message=str(e),
+            user_message=f"AI service error: {str(e)[:100]}",
+            error_code="AI_ERROR"
+        )
 
 
 class AIInterpreter:
@@ -478,11 +522,20 @@ IMPORTANT: Output only plain text, NO markdown formatting. Be specific and insig
                 planet_keys.append(planet_name.lower())
 
             # Process 10 planets at a time
+            auth_error_detected = False
             for i in range(0, len(tasks), 10):
                 batch_tasks = tasks[i:i+10]
                 batch_keys = planet_keys[i:i+10]
 
                 descriptions = await asyncio.gather(*batch_tasks, return_exceptions=True)
+
+                # Check if ALL results are auth errors (first batch only)
+                if i == 0:
+                    auth_errors = [d for d in descriptions if isinstance(d, Exception) and
+                                   ("authentication" in str(d).lower() or "401" in str(d) or "invalid" in str(d).lower() and "api" in str(d).lower())]
+                    if len(auth_errors) == len(descriptions):
+                        # All failed with auth errors - raise user-friendly error
+                        raise handle_anthropic_error(auth_errors[0])
 
                 for key, description in zip(batch_keys, descriptions):
                     if isinstance(description, Exception):

@@ -15,6 +15,7 @@ import asyncio
 from app.services.agent_service import AgentService
 from app.core.websocket import manager
 from app.core.database_sqlite import SessionLocal
+from app.models.app_config import AppConfig
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -110,9 +111,25 @@ async def agent_conversation(websocket: WebSocket):
         # Accept WebSocket connection
         await manager.connect(websocket, connection_id)
 
-        # Initialize agent service
+        # Initialize agent service with API key from database
         try:
-            agent_service = AgentService()
+            # Get API key from database
+            db = SessionLocal()
+            try:
+                config = db.query(AppConfig).filter_by(id="1").first()
+                api_key = config.anthropic_api_key if config else None
+            finally:
+                db.close()
+
+            if not api_key:
+                await manager.send_message(connection_id, {
+                    "type": "error",
+                    "error": "Anthropic API key not configured. Please add your API key in Settings.",
+                    "code": "api_key_missing"
+                })
+                return
+
+            agent_service = AgentService(api_key=api_key)
         except ValueError as e:
             await manager.send_message(connection_id, {
                 "type": "error",
@@ -349,8 +366,23 @@ async def proactive_insights(websocket: WebSocket):
     try:
         await manager.connect(websocket, connection_id)
 
+        # Get API key from database
         try:
-            agent_service = AgentService()
+            db = SessionLocal()
+            try:
+                config = db.query(AppConfig).filter_by(id="1").first()
+                api_key = config.anthropic_api_key if config else None
+            finally:
+                db.close()
+
+            if not api_key:
+                await manager.send_message(connection_id, {
+                    "type": "error",
+                    "error": "Anthropic API key not configured"
+                })
+                return
+
+            agent_service = AgentService(api_key=api_key)
         except ValueError as e:
             await manager.send_message(connection_id, {
                 "type": "error",

@@ -82,6 +82,7 @@ export function useCompanionActions() {
   const wsRef = useRef<WebSocket | null>(null)
   const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const reconnectAttemptsRef = useRef(0)
+  const isConnectingRef = useRef(false)
 
   // Companion store
   const {
@@ -565,10 +566,16 @@ export function useCompanionActions() {
 
   // Connect to WebSocket
   const connect = useCallback(async () => {
-    if (wsRef.current?.readyState === WebSocket.OPEN) {
+    // Prevent multiple concurrent connection attempts
+    if (isConnectingRef.current) {
+      return
+    }
+    if (wsRef.current?.readyState === WebSocket.OPEN ||
+        wsRef.current?.readyState === WebSocket.CONNECTING) {
       return
     }
 
+    isConnectingRef.current = true
     setConnectionStatus('connecting')
 
     // Get API base URL - use env var or default to localhost for Electron
@@ -583,6 +590,7 @@ export function useCompanionActions() {
         if (!status.has_api_key) {
           console.log('No API key configured')
           setConnectionStatus('no_api_key')
+          isConnectingRef.current = false
           return
         }
       }
@@ -602,6 +610,7 @@ export function useCompanionActions() {
       ws.onopen = () => {
         console.log('WebSocket connected')
         wsRef.current = ws
+        isConnectingRef.current = false
       }
 
       ws.onmessage = handleMessage
@@ -610,6 +619,7 @@ export function useCompanionActions() {
         console.log('WebSocket closed')
         setConnectionStatus('disconnected')
         wsRef.current = null
+        isConnectingRef.current = false
 
         // Attempt reconnect with exponential backoff (but not if no API key)
         const currentStatus = useCompanionStore.getState().connectionStatus
@@ -628,10 +638,12 @@ export function useCompanionActions() {
       ws.onerror = error => {
         console.error('WebSocket error:', error)
         setConnectionStatus('error')
+        isConnectingRef.current = false
       }
     } catch (error) {
       console.error('Failed to create WebSocket:', error)
       setConnectionStatus('error')
+      isConnectingRef.current = false
     }
   }, [handleMessage, setConnectionStatus])
 
@@ -644,6 +656,7 @@ export function useCompanionActions() {
       wsRef.current.close()
       wsRef.current = null
     }
+    isConnectingRef.current = false
     setConnectionStatus('disconnected')
   }, [setConnectionStatus])
 

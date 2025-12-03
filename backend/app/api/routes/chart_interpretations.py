@@ -20,7 +20,7 @@ from app.schemas import (
     GenerateInterpretationResponse,
     Message,
 )
-from app.services.ai_interpreter import AIInterpreter
+from app.services.ai_interpreter import AIInterpreter, AIServiceError, handle_anthropic_error
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -192,9 +192,14 @@ async def generate_chart_interpretations(
                     created_interpretations.append(new_interp)
                     generated_count += 1
 
+    except AIServiceError as e:
+        logger.error(f"AI service error: {e}")
+        errors.append(e.user_message)
     except Exception as e:
         logger.error(f"Error generating interpretations: {e}")
-        errors.append(str(e))
+        # Convert to user-friendly message
+        ai_error = handle_anthropic_error(e)
+        errors.append(ai_error.user_message)
 
     return GenerateInterpretationResponse(
         chart_id=chart_id,
