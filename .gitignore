@@ -9,7 +9,12 @@ test_venv/
 .env
 *.egg-info/
 dist/
-build/
+# Build directories (Python/general)
+build/*
+!build/entitlements.mac.plist
+!build/icon.png
+!build/icon.icns
+!build/icon.ico
 .eggs/
 .pytest_cache/
 .coverage

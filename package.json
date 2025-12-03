@@ -18,8 +18,11 @@
     "build:all": "npm run build:frontend && npm run build:backend && npm run build:electron",
     "package": "electron-builder",
     "dist:linux": "electron-builder --linux",
+    "dist:mac": "electron-builder --mac",
     "dist": "npm run build:all && npm run package",
-    "release": "./scripts/build-release.sh"
+    "release": "./scripts/build-release.sh",
+    "release:mac": "./scripts/build-mac.sh",
+    "release:linux": "./scripts/build-release.sh --linux"
   },
   "keywords": [
     "astrology",
@@ -72,6 +75,43 @@
       "category": "Office",
       "icon": "build/icon.png",
       "publish": null
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": ["x64", "arm64"]
+        },
+        {
+          "target": "zip",
+          "arch": ["x64", "arm64"]
+        }
+      ],
+      "category": "public.app-category.lifestyle",
+      "icon": "build/icon.icns",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist",
+      "publish": null
+    },
+    "dmg": {
+      "contents": [
+        {
+          "x": 130,
+          "y": 220
+        },
+        {
+          "x": 410,
+          "y": 220,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ],
+      "window": {
+        "width": 540,
+        "height": 380
+      }
     }
   },
   "repository": {
