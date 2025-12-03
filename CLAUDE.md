@@ -124,15 +124,29 @@ npm run electron:start
 ### Build for Distribution
 
 ```bash
-# Manual build
-npm run dist          # Full build + package
-npm run dist:linux    # Linux only (AppImage, deb)
+# Automated build (recommended) - auto-detects OS
+./scripts/build-release.sh              # Builds for current platform
+./scripts/build-release.sh --linux      # Force Linux build
+./scripts/build-release.sh --mac        # macOS build (requires macOS)
 
-# Automated build (recommended)
-./scripts/build-release.sh   # Full pipeline: PyInstaller → Vite → Electron
+# Platform-specific builds
+npm run release:mac                     # macOS: DMG + ZIP (requires macOS)
+npm run release:linux                   # Linux: AppImage + deb
+
+# macOS options
+./scripts/build-mac.sh --no-sign        # Skip code signing
+./scripts/build-mac.sh --arch arm64     # Build for Apple Silicon only
+./scripts/build-mac.sh --universal      # Build universal binary
 
 # Auto-build on commit: Add [build] tag to commit message
-git commit -m "Your message [build]"  # Triggers post-commit hook
+git commit -m "Your message [build]"    # Triggers post-commit hook
+```
+
+**macOS Code Signing** (optional, recommended for distribution):
+```bash
+export CSC_LINK=/path/to/certificate.p12
+export CSC_KEY_PASSWORD=your-password
+./scripts/build-mac.sh
 ```
 
 ### Reset for Testing
