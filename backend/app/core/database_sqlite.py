@@ -4,14 +4,17 @@ SQLite database connection and session management
 Handles SQLite-specific configuration including foreign keys,
 WAL mode, and proper session management for FastAPI.
 """
-from typing import Generator
-from sqlalchemy import create_engine, event
+from typing import Generator, List
+from sqlalchemy import create_engine, event, inspect, text
 from sqlalchemy.engine import Engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.pool import StaticPool
+import logging
 
 from app.core.config_sqlite import sqlite_settings
+
+logger = logging.getLogger(__name__)
 
 # Ensure database directory exists
 sqlite_settings.ensure_database_dir()
@@ -139,6 +142,124 @@ def init_db(drop_existing: bool = False) -> None:
         raise
     finally:
         db.close()
+
+
+def sync_schema() -> List[str]:
+    """
+    Auto-sync database schema with SQLAlchemy models.
+
+    Creates missing tables and adds missing columns to existing tables.
+    This replaces Alembic migrations for this single-user desktop app.
+
+    Returns:
+        List of changes made (for logging)
+
+    Example:
+        changes = sync_schema()
+        for change in changes:
+            print(f"Schema change: {change}")
+    """
+    from app.models import Base as ModelsBase
+
+    # Import all models to ensure they're registered
+    import app.models  # noqa: F401
+
+    changes = []
+    inspector = inspect(engine)
+    existing_tables = set(inspector.get_table_names())
+
+    with engine.begin() as conn:
+        # First pass: create any missing tables
+        for table_name, table in ModelsBase.metadata.tables.items():
+            if table_name not in existing_tables:
+                table.create(bind=engine)
+                changes.append(f"Created table: {table_name}")
+                logger.info(f"Created table: {table_name}")
+
+        # Refresh inspector after creating tables
+        inspector = inspect(engine)
+
+        # Second pass: add missing columns to existing tables
+        for table_name, table in ModelsBase.metadata.tables.items():
+            if table_name not in inspector.get_table_names():
+                continue
+
+            # Get existing columns
+            existing_cols = {col['name'] for col in inspector.get_columns(table_name)}
+
+            # Check each model column
+            for column in table.columns:
+                if column.name not in existing_cols:
+                    # Build column type for SQLite
+                    col_type = _get_sqlite_type(column)
+                    default = _get_default_clause(column)
+
+                    # SQLite ALTER TABLE only supports adding columns
+                    sql = f'ALTER TABLE {table_name} ADD COLUMN {column.name} {col_type}'
+                    if default:
+                        sql += f' DEFAULT {default}'
+
+                    try:
+                        conn.execute(text(sql))
+                        changes.append(f"Added column: {table_name}.{column.name} ({col_type})")
+                        logger.info(f"Added column: {table_name}.{column.name} ({col_type})")
+                    except Exception as e:
+                        logger.warning(f"Could not add column {table_name}.{column.name}: {e}")
+
+    if not changes:
+        logger.info("Schema is up to date - no changes needed")
+    else:
+        logger.info(f"Schema sync complete: {len(changes)} changes made")
+
+    return changes
+
+
+def _get_sqlite_type(column) -> str:
+    """Convert SQLAlchemy column type to SQLite type string."""
+    type_name = column.type.__class__.__name__.upper()
+
+    type_map = {
+        'STRING': 'TEXT',
+        'VARCHAR': 'TEXT',
+        'TEXT': 'TEXT',
+        'INTEGER': 'INTEGER',
+        'BIGINTEGER': 'INTEGER',
+        'SMALLINTEGER': 'INTEGER',
+        'FLOAT': 'REAL',
+        'NUMERIC': 'REAL',
+        'BOOLEAN': 'INTEGER',
+        'DATETIME': 'TEXT',
+        'DATE': 'TEXT',
+        'TIME': 'TEXT',
+        'BLOB': 'BLOB',
+        'JSON': 'TEXT',
+        'JSONENCODEDDICT': 'TEXT',
+        'JSONENCODEDLIST': 'TEXT',
+    }
+
+    return type_map.get(type_name, 'TEXT')
+
+
+def _get_default_clause(column) -> str:
+    """Get SQL default clause for a column, or empty string if none."""
+    if column.default is not None:
+        if column.default.is_scalar:
+            val = column.default.arg
+            if isinstance(val, str):
+                return f"'{val}'"
+            elif isinstance(val, bool):
+                return '1' if val else '0'
+            elif val is None:
+                return 'NULL'
+            else:
+                return str(val)
+        elif column.default.is_callable:
+            # For callable defaults like list, dict, uuid
+            # SQLite can't handle these, use NULL
+            return 'NULL'
+    elif column.nullable:
+        return 'NULL'
+    return ''
 
 
 def drop_db() -> None:

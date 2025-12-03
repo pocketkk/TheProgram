@@ -120,55 +120,39 @@ async def startup_event():
     """Initialize services on startup"""
     logger.info(f"Starting {settings.APP_NAME} in {settings.APP_ENV} mode")
 
-    # Initialize database connection and ensure tables exist
+    # Initialize database connection and sync schema
     try:
         # Test database connection
         with db_engine.connect() as conn:
             conn.execute(text("SELECT 1"))
         logger.info("Database connection established")
 
-        # Auto-initialize database tables if they don't exist
-        from app.core.database_sqlite import engine, Base
+        # Auto-sync schema: creates missing tables and adds missing columns
+        from app.core.database_sqlite import sync_schema, SessionLocal
         from app.models.app_config import AppConfig
-        from app.core.database_sqlite import SessionLocal
-        from sqlalchemy import inspect
 
-        # Check if tables exist
-        inspector = inspect(engine)
-        existing_tables = inspector.get_table_names()
+        changes = sync_schema()
+        if changes:
+            logger.info(f"Schema sync made {len(changes)} changes")
 
-        if not existing_tables or 'app_config' not in existing_tables:
-            logger.info("Database tables not found - initializing database...")
+        # Ensure AppConfig singleton exists
+        db = SessionLocal()
+        try:
+            config = db.query(AppConfig).filter_by(id=1).first()
+            if not config:
+                config = AppConfig(
+                    id=1,
+                    password_hash=None,
+                    app_version='1.0.0',
+                    database_version=1
+                )
+                db.add(config)
+                db.commit()
+                logger.info("Created initial application configuration")
+        finally:
+            db.close()
 
-            # Import all models so they're registered with Base
-            import app.models  # This imports all models
-
-            # Create all tables
-            Base.metadata.create_all(bind=engine)
-            logger.info(f"Created {len(Base.metadata.tables)} database tables")
-
-            # Create initial AppConfig if it doesn't exist
-            db = SessionLocal()
-            try:
-                config = db.query(AppConfig).filter_by(id=1).first()
-                if not config:
-                    config = AppConfig(
-                        id=1,
-                        password_hash=None,  # No password initially
-                        app_version='1.0.0',
-                        database_version=1
-                    )
-                    db.add(config)
-                    db.commit()
-                    logger.info("Created initial application configuration")
-                else:
-                    logger.info("Application configuration already exists")
-            finally:
-                db.close()
-
-            logger.info("Database initialization complete")
-        else:
-            logger.info(f"Database ready ({len(existing_tables)} tables found)")
+        logger.info("Database ready")
     except Exception as e:
         logger.error(f"Database initialization error: {e}", exc_info=True)
 

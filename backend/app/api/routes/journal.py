@@ -129,10 +129,11 @@ async def list_journal_entries(
     if date_to:
         query = query.filter(JournalEntry.entry_date <= str(date_to))
 
-    # Tag filtering (JSON contains)
+    # Tag filtering (JSON array stored as TEXT in SQLite)
     if tag:
-        # SQLite JSON filtering - check if tag is in the tags array
-        query = query.filter(JournalEntry.tags.contains(tag))
+        # SQLite stores JSON arrays as strings like '["tag1","tag2"]'
+        # Search for the quoted tag within the JSON string
+        query = query.filter(JournalEntry.tags.like(f'%"{tag}"%'))
 
     # Order by date descending
     query = query.order_by(JournalEntry.entry_date.desc(), JournalEntry.created_at.desc())
@@ -309,10 +310,10 @@ async def search_journal_entries(
     if search.mood_score_max:
         query = query.filter(JournalEntry.mood_score <= str(search.mood_score_max))
 
-    # Tag filtering
+    # Tag filtering (JSON array stored as TEXT in SQLite)
     if search.tags:
         for tag in search.tags:
-            query = query.filter(JournalEntry.tags.contains(tag))
+            query = query.filter(JournalEntry.tags.like(f'%"{tag}"%'))
 
     # Get total count
     total = query.count()
