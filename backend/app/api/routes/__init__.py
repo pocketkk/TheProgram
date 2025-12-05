@@ -28,6 +28,8 @@ from . import (
     # Phase 5: Image Generation
     images,
     image_ws,
+    # Phase 6: Myers-Briggs
+    myers_briggs,
 )
 
 # Create main API router
@@ -67,5 +69,8 @@ router.include_router(human_design.router, prefix="/human-design", tags=["Human 
 # Phase 5: Image Generation
 router.include_router(images.router, tags=["Images"])
 router.include_router(image_ws.router, tags=["Images"])
+
+# Phase 6: Myers-Briggs
+router.include_router(myers_briggs.router, prefix="/myers-briggs", tags=["Myers-Briggs"])
 
 __all__ = ["router"]

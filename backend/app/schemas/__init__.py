@@ -100,6 +100,23 @@ from app.schemas.image import (
     StorageStats,
 )
 
+# Phase 6: Myers-Briggs
+from app.schemas.myers_briggs import (
+    MBCalculationRequest,
+    MBTypeResponse,
+    MBInterpretationRequest,
+    DichotomyScore,
+    CognitiveFunction,
+    TypeProfile,
+    AstrologicalCorrelation,
+    MBTypeInfo,
+    MBTypesListResponse,
+    MBDichotomyInfo,
+    MBDichotomiesListResponse,
+    MBTypeInterpretationResponse,
+    MBFullReadingResponse,
+)
+
 __all__ = [
     # Common
     'Message',
@@ -212,4 +229,19 @@ __all__ = [
     'BatchGenerateRequest',
     'BatchProgressUpdate',
     'StorageStats',
+
+    # Phase 6: Myers-Briggs
+    'MBCalculationRequest',
+    'MBTypeResponse',
+    'MBInterpretationRequest',
+    'DichotomyScore',
+    'CognitiveFunction',
+    'TypeProfile',
+    'AstrologicalCorrelation',
+    'MBTypeInfo',
+    'MBTypesListResponse',
+    'MBDichotomyInfo',
+    'MBDichotomiesListResponse',
+    'MBTypeInterpretationResponse',
+    'MBFullReadingResponse',
 ]

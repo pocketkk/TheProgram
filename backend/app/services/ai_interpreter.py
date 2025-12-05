@@ -1493,3 +1493,168 @@ IMPORTANT: Output only plain text, NO markdown formatting whatsoever. Be warm, i
         except Exception as e:
             logger.error(f"Error generating HD full reading: {e}")
             raise
+
+    # ==================== Myers-Briggs Interpretation Methods ====================
+
+    @staticmethod
+    async def generate_mb_type_interpretation_async(
+        type_code: str,
+        type_name: str,
+        temperament: str,
+        description: str,
+        strengths: list,
+        challenges: list
+    ) -> str:
+        """
+        Generate AI interpretation for Myers-Briggs type.
+
+        Args:
+            type_code: 4-letter type code (e.g., "INTJ")
+            type_name: Type nickname (e.g., "The Architect")
+            temperament: Keirsey temperament
+            description: Type description
+            strengths: List of type strengths
+            challenges: List of type challenges
+
+        Returns:
+            AI-generated interpretation
+        """
+        import os
+        api_key = os.getenv("ANTHROPIC_API_KEY")
+        if not api_key:
+            raise ValueError("Anthropic API key required")
+
+        client = AsyncAnthropic(api_key=api_key)
+
+        strengths_str = ", ".join(strengths) if strengths else "Various strengths"
+        challenges_str = ", ".join(challenges) if challenges else "Various growth areas"
+
+        prompt = f"""You are an expert personality type analyst. Generate an insightful interpretation for this Myers-Briggs personality type:
+
+Type: {type_code} - {type_name}
+Temperament: {temperament}
+Description: {description}
+
+Key Strengths: {strengths_str}
+Growth Areas: {challenges_str}
+
+Provide a comprehensive 4-5 paragraph interpretation that covers:
+1. What this type code means - the essence of being {type_code}
+2. How the cognitive functions work together to create this personality
+3. Natural strengths and gifts that come with this type
+4. Common challenges and blind spots to be aware of
+5. How to leverage this type for personal growth and fulfillment
+
+IMPORTANT: Output only plain text, NO markdown formatting. Be warm, insightful, and empowering. Speak directly to the reader as "you". Focus on helping them understand and embrace their personality type."""
+
+        try:
+            message = await client.messages.create(
+                model="claude-haiku-4-5-20251001",
+                max_tokens=800,
+                temperature=0.7,
+                messages=[{"role": "user", "content": prompt}]
+            )
+            return message.content[0].text.strip()
+        except Exception as e:
+            logger.error(f"Error generating MB type interpretation: {e}")
+            raise
+
+    @staticmethod
+    async def generate_mb_full_reading_async(
+        type_data: dict
+    ) -> tuple[str, Dict[str, str]]:
+        """
+        Generate a comprehensive Myers-Briggs reading.
+
+        Args:
+            type_data: Complete MB type data from calculator
+
+        Returns:
+            Tuple of (full_reading_text, sections_dict)
+        """
+        import os
+        api_key = os.getenv("ANTHROPIC_API_KEY")
+        if not api_key:
+            raise ValueError("Anthropic API key required")
+
+        client = AsyncAnthropic(api_key=api_key)
+
+        # Extract key data
+        type_code = type_data.get('type_code', '')
+        type_name = type_data.get('type_name', '')
+        temperament = type_data.get('temperament', '')
+        description = type_data.get('description', '')
+        strengths = type_data.get('strengths', [])
+        challenges = type_data.get('challenges', [])
+        cognitive_stack = type_data.get('cognitive_stack', [])
+        dichotomies = type_data.get('dichotomies', [])
+
+        # Format cognitive stack
+        cog_str = ""
+        if cognitive_stack:
+            cog_names = [f"{c.get('function', '')} ({c.get('name', '')})" for c in cognitive_stack]
+            cog_str = ", ".join(cog_names)
+
+        # Format dichotomy preferences
+        pref_str = ""
+        if dichotomies:
+            prefs = [f"{d.get('preference', '')} ({d.get('strength', 0):.0f}%)" for d in dichotomies]
+            pref_str = ", ".join(prefs)
+
+        prompt = f"""You are an expert personality analyst creating a comprehensive Myers-Briggs reading. Generate a complete reading based on this analysis:
+
+TYPE: {type_code} - {type_name}
+TEMPERAMENT: {temperament}
+DESCRIPTION: {description}
+
+PREFERENCE STRENGTHS: {pref_str}
+
+COGNITIVE FUNCTION STACK: {cog_str}
+
+KEY STRENGTHS: {', '.join(strengths) if strengths else 'Various strengths'}
+GROWTH AREAS: {', '.join(challenges) if challenges else 'Various growth areas'}
+
+Write a comprehensive reading (6-8 paragraphs) that:
+
+1. INTRODUCTION: Welcome them to understanding their type and give an overview of what makes {type_code} unique
+
+2. TYPE OVERVIEW: Explain what it means to be {type_code} - the core essence and how others typically experience this type
+
+3. COGNITIVE FUNCTIONS: Detail how their cognitive function stack works, especially the dominant and auxiliary functions
+
+4. STRENGTHS: Explore their natural gifts and how to leverage them for success
+
+5. CHALLENGES: Discuss growth areas with compassion and practical advice
+
+6. RELATIONSHIPS: How this type typically approaches relationships and what they need from partners/friends
+
+7. CAREER & PURPOSE: Natural career inclinations and how to find fulfilling work
+
+8. GROWTH PATH: Actionable advice for personal development and self-improvement
+
+IMPORTANT: Output only plain text, NO markdown formatting whatsoever. Be warm, insightful, and deeply personal. Speak directly as "you". This should feel like receiving wisdom from a trusted counselor who sees the reader's unique gifts and potential."""
+
+        try:
+            message = await client.messages.create(
+                model="claude-haiku-4-5-20251001",
+                max_tokens=1500,
+                temperature=0.8,
+                messages=[{"role": "user", "content": prompt}]
+            )
+
+            full_reading = message.content[0].text.strip()
+
+            # Create sections dict
+            sections = {
+                "overview": f"{type_code} - {type_name}",
+                "strengths": ", ".join(strengths) if strengths else "",
+                "challenges": ", ".join(challenges) if challenges else "",
+                "cognitive_stack": cog_str,
+                "temperament": temperament
+            }
+
+            return full_reading, sections
+
+        except Exception as e:
+            logger.error(f"Error generating MB full reading: {e}")
+            raise

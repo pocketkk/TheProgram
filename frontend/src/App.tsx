@@ -35,6 +35,8 @@ import { IChingPage } from './features/iching'
 import { NumerologyPage } from './features/numerology'
 // Phase 4: Human Design
 import { HumanDesignPage } from './features/humandesign'
+// Phase 6: Myers-Briggs
+import { MyersBriggsPage } from './features/myers-briggs'
 // Themes
 import { ThemesPage } from './features/themes'
 // Studio (Image Generators)
@@ -198,6 +200,11 @@ function App() {
         {currentPage === 'humandesign' && (
           <ErrorBoundary featureName="Human Design">
             <HumanDesignPage />
+          </ErrorBoundary>
+        )}
+        {currentPage === 'myersbriggs' && (
+          <ErrorBoundary featureName="Myers-Briggs">
+            <MyersBriggsPage />
           </ErrorBoundary>
         )}
         {currentPage === 'themes' && (
