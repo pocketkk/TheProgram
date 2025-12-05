@@ -11,6 +11,7 @@ interface BatchProgressProps {
   generatedImages: Array<{ key: string; url: string }>
   isPaused: boolean
   isGenerating: boolean
+  error?: string | null
   onPause: () => void
   onResume: () => void
   onCancel: () => void
@@ -21,10 +22,28 @@ export function BatchProgress({
   generatedImages,
   isPaused,
   isGenerating,
+  error,
   onPause,
   onResume,
   onCancel,
 }: BatchProgressProps) {
+  // Show error state
+  if (error && !isGenerating) {
+    return (
+      <Card className="border-red-500/50">
+        <CardContent className="p-6">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="w-6 h-6 text-red-500 flex-shrink-0" />
+            <div>
+              <h3 className="font-semibold text-red-400 mb-1">Generation Failed</h3>
+              <p className="text-sm text-gray-400">{error}</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
   if (!isGenerating && !progress) {
     return null
   }

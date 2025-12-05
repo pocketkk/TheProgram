@@ -334,8 +334,42 @@ class GeminiImageService:
             (image_bytes, mime_type, width, height)
         """
         try:
+            # Defensive checks for response structure
+            if not response:
+                logger.error("Empty response from Gemini API")
+                return None, "", 0, 0
+
+            if not hasattr(response, 'candidates') or not response.candidates:
+                logger.error("No candidates in Gemini response")
+                # Check for prompt feedback (content filtering)
+                if hasattr(response, 'prompt_feedback'):
+                    logger.error(f"Prompt feedback: {response.prompt_feedback}")
+                return None, "", 0, 0
+
+            candidate = response.candidates[0]
+
+            # Check finish reason for issues
+            if hasattr(candidate, 'finish_reason'):
+                finish_reason = str(candidate.finish_reason)
+                if 'SAFETY' in finish_reason or 'BLOCKED' in finish_reason:
+                    logger.error(f"Content blocked by safety filters: {finish_reason}")
+                    return None, "", 0, 0
+
+            if not hasattr(candidate, 'content') or candidate.content is None:
+                logger.error("No content in Gemini response candidate")
+                # Log any available info about why
+                if hasattr(candidate, 'finish_reason'):
+                    logger.error(f"Finish reason: {candidate.finish_reason}")
+                if hasattr(candidate, 'safety_ratings'):
+                    logger.error(f"Safety ratings: {candidate.safety_ratings}")
+                return None, "", 0, 0
+
+            if not hasattr(candidate.content, 'parts') or not candidate.content.parts:
+                logger.error("No parts in Gemini response content")
+                return None, "", 0, 0
+
             # Iterate through response parts to find image
-            for part in response.candidates[0].content.parts:
+            for part in candidate.content.parts:
                 if hasattr(part, 'inline_data') and part.inline_data:
                     image_data = part.inline_data.data
                     mime_type = part.inline_data.mime_type or "image/png"
@@ -349,10 +383,11 @@ class GeminiImageService:
 
                     return image_data, mime_type, width, height
 
+            logger.warning("No inline_data found in any response parts")
             return None, "", 0, 0
 
         except Exception as e:
-            logger.error(f"Error extracting image: {e}")
+            logger.error(f"Error extracting image: {e}", exc_info=True)
             return None, "", 0, 0
 
     def _get_image_dimensions(self, image_data: bytes) -> tuple:

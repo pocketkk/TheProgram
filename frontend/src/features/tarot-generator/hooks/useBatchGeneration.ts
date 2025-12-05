@@ -63,7 +63,41 @@ export function useBatchGeneration({
 
       ws.onmessage = (event) => {
         try {
-          const update: BatchProgressUpdate = JSON.parse(event.data)
+          const data = JSON.parse(event.data)
+
+          // Handle different message types from the backend
+          if (data.type === 'error') {
+            // Backend sent an error message
+            console.error('Batch generation error from server:', data.message)
+            setState(prev => ({
+              ...prev,
+              isGenerating: false,
+              error: data.message,
+            }))
+            onError?.(data.message)
+            return
+          }
+
+          if (data.type === 'paused') {
+            console.log('Generation paused by server')
+            return
+          }
+
+          if (data.type === 'resumed') {
+            console.log('Generation resumed by server')
+            return
+          }
+
+          if (data.type === 'complete') {
+            // Batch generation finished
+            console.log(`Batch complete: ${data.success_count} succeeded, ${data.error_count} failed`)
+            setState(prev => ({ ...prev, isGenerating: false }))
+            onComplete?.()
+            return
+          }
+
+          // Progress update (type === 'progress')
+          const update: BatchProgressUpdate = data
 
           setState(prev => {
             const newState = {
@@ -71,11 +105,11 @@ export function useBatchGeneration({
               currentProgress: update,
             }
 
-            // Add completed image to list
+            // Add completed image to list - use item_key for proper matching
             if (update.status === 'complete' && update.image_url) {
               newState.generatedImages = [
                 ...prev.generatedImages,
-                { key: update.item_name, url: update.image_url, id: update.image_id },
+                { key: update.item_key || update.item_name, url: update.image_url, id: update.image_id },
               ]
             }
 
@@ -85,7 +119,7 @@ export function useBatchGeneration({
           // Call progress callback
           onProgress?.(update)
 
-          // Check if generation is complete
+          // Check if generation is complete (all items processed)
           if (update.status === 'complete' && update.current === update.total) {
             setState(prev => ({ ...prev, isGenerating: false }))
             onComplete?.()

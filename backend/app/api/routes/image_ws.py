@@ -38,6 +38,7 @@ class BatchGenerationManager:
         image_url: Optional[str] = None,
         image_id: Optional[str] = None,
         error: Optional[str] = None,
+        item_key: Optional[str] = None,
     ):
         """Send progress update to client"""
         await self.websocket.send_json({
@@ -45,6 +46,7 @@ class BatchGenerationManager:
             "current": current,
             "total": total,
             "item_name": item_name,
+            "item_key": item_key,
             "status": status,
             "image_url": image_url,
             "image_id": image_id,
@@ -297,6 +299,7 @@ async def run_batch_generation(
                 current=idx,
                 total=total,
                 item_name=item_name,
+                item_key=item_key,
                 status="generating",
             )
 
@@ -343,6 +346,7 @@ async def run_batch_generation(
                         current=idx + 1,
                         total=total,
                         item_name=item_name,
+                        item_key=item_key,
                         status="failed",
                         error=result.error,
                     )
@@ -397,6 +401,7 @@ async def run_batch_generation(
                     current=idx + 1,
                     total=total,
                     item_name=item_name,
+                    item_key=item_key,
                     status="complete",
                     image_url=image_url,
                     image_id=image.id,
@@ -412,6 +417,7 @@ async def run_batch_generation(
                     current=idx + 1,
                     total=total,
                     item_name=item_name,
+                    item_key=item_key,
                     status="failed",
                     error=str(e),
                 )

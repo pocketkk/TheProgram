@@ -534,6 +534,10 @@ async def get_collection(
     images = db.query(GeneratedImage).filter_by(collection_id=collection_id).all()
     storage = get_image_storage_service()
 
+    # Count unique item_keys to avoid counting regenerations multiple times
+    unique_item_keys = set(img.item_key for img in images if img.item_key)
+    unique_count = len(unique_item_keys)
+
     return CollectionWithImages(
         id=collection.id,
         name=collection.name,
@@ -544,7 +548,7 @@ async def get_collection(
         total_expected=collection.total_expected,
         include_card_labels=collection.include_card_labels,
         reference_image_id=collection.reference_image_id,
-        image_count=len(images),
+        image_count=unique_count,
         metadata=None,  # Model doesn't have metadata field
         created_at=collection.created_at,
         updated_at=collection.updated_at,
