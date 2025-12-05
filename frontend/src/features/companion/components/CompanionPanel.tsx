@@ -5,10 +5,11 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Send, Trash2, Loader2, Sparkles, Key, ExternalLink } from 'lucide-react'
+import { X, Send, Trash2, Loader2, Sparkles, Key, ExternalLink, Mic, MessageSquare } from 'lucide-react'
 import { useCompanionStore } from '../stores/companionStore'
 import { useCompanionActions } from '../hooks/useCompanionActions'
 import { CompanionAvatar } from './CompanionAvatar'
+import { VoiceControls } from './VoiceControls'
 
 interface CompanionPanelProps {
   onMinimize: () => void
@@ -31,6 +32,8 @@ export function CompanionPanel({ onMinimize }: CompanionPanelProps) {
     pendingInsights,
     preferences,
     setPanelSize,
+    chatMode,
+    setChatMode,
   } = useCompanionStore()
 
   const { sendMessage, clearHistory, connect, isConnected } =
@@ -154,8 +157,8 @@ export function CompanionPanel({ onMinimize }: CompanionPanelProps) {
             <p className="text-slate-400 text-xs">
               {isGenerating
                 ? 'Thinking...'
-                : isConnected
-                  ? 'Ready to explore'
+                : isConnected || chatMode === 'voice'
+                  ? chatMode === 'voice' ? 'Voice mode' : 'Ready to explore'
                   : connectionStatus === 'no_api_key'
                     ? 'API key needed'
                     : 'Connecting...'}
@@ -163,6 +166,31 @@ export function CompanionPanel({ onMinimize }: CompanionPanelProps) {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          {/* Mode Toggle */}
+          <div className="flex items-center bg-slate-700/50 rounded-lg p-0.5">
+            <button
+              onClick={() => setChatMode('text')}
+              className={`p-1.5 rounded-md transition-colors ${
+                chatMode === 'text'
+                  ? 'bg-indigo-600 text-white'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+              title="Text chat"
+            >
+              <MessageSquare size={14} />
+            </button>
+            <button
+              onClick={() => setChatMode('voice')}
+              className={`p-1.5 rounded-md transition-colors ${
+                chatMode === 'voice'
+                  ? 'bg-indigo-600 text-white'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+              title="Voice chat"
+            >
+              <Mic size={14} />
+            </button>
+          </div>
           <button
             onClick={clearHistory}
             className="p-2 text-slate-400 hover:text-slate-200 hover:bg-slate-700/50 rounded-lg transition-colors"
@@ -225,173 +253,183 @@ export function CompanionPanel({ onMinimize }: CompanionPanelProps) {
         )}
       </AnimatePresence>
 
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4">
-        {connectionStatus === 'no_api_key' ? (
-          <div className="flex flex-col items-center justify-center h-full text-center px-6">
-            <div className="w-16 h-16 rounded-full bg-amber-500/20 flex items-center justify-center mb-4">
-              <Key className="w-8 h-8 text-amber-400" />
-            </div>
-            <h4 className="text-white font-medium mb-2">API Key Required</h4>
-            <p className="text-sm text-slate-400 mb-4">
-              The Guide uses Claude AI to provide personalized insights about your chart.
-              To enable this feature, add your Anthropic API key in Settings.
-            </p>
-
-            {/* BYOT Benefits */}
-            <div className="bg-slate-800/50 rounded-lg p-4 mb-4 text-left w-full">
-              <h5 className="text-xs font-medium text-amber-400 mb-2 flex items-center gap-1">
-                <Sparkles size={12} />
-                Why Bring Your Own Key?
-              </h5>
-              <ul className="text-xs text-slate-400 space-y-1.5">
-                <li>• <span className="text-slate-300">No middleman</span> – Connect directly to Anthropic</li>
-                <li>• <span className="text-slate-300">Pay only for what you use</span> – No subscription fees</li>
-                <li>• <span className="text-slate-300">Full control</span> – Your data stays between you and Claude</li>
-                <li>• <span className="text-slate-300">$5 free credit</span> – New accounts get free usage</li>
-              </ul>
-            </div>
-
-            <button
-              onClick={() => {
-                window.dispatchEvent(
-                  new CustomEvent('companion-navigate', { detail: { page: 'settings' } })
-                )
-                onMinimize()
-              }}
-              className="flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-900 font-medium rounded-lg transition-colors"
-            >
-              <Key size={16} />
-              Configure API Key
-            </button>
-
-            <a
-              href="https://console.anthropic.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1 mt-3 text-xs text-slate-500 hover:text-slate-300 transition-colors"
-            >
-              Get your key at console.anthropic.com
-              <ExternalLink size={12} />
-            </a>
-          </div>
-        ) : messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-center text-slate-400 px-6">
-            <CompanionAvatar state="curious" size={64} className="mb-4" />
-            <p className="text-sm">
-              Hello! I'm your guide to consciousness exploration.
-            </p>
-            <p className="text-xs mt-2 text-slate-500">
-              Ask me about your chart, tarot correspondences, Jungian archetypes,
-              or any wisdom tradition you'd like to explore.
-            </p>
-            <div className="flex flex-wrap gap-2 mt-4 justify-center">
-              {['Tell me about my Sun', 'What patterns do you see?', 'Explain my Moon'].map(
-                suggestion => (
-                  <button
-                    key={suggestion}
-                    onClick={() => setInput(suggestion)}
-                    className="px-3 py-1.5 text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-full transition-colors"
-                  >
-                    {suggestion}
-                  </button>
-                )
-              )}
-            </div>
-          </div>
-        ) : (
-          messages.map(message => (
-            <motion.div
-              key={message.id}
-              className={`flex ${
-                message.role === 'user' ? 'justify-end' : 'justify-start'
-              }`}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.2 }}
-            >
-              <div
-                className={`max-w-[85%] px-4 py-2.5 rounded-2xl ${
-                  message.role === 'user'
-                    ? 'bg-indigo-600 text-white rounded-br-md'
-                    : 'bg-slate-800 text-slate-100 rounded-bl-md'
-                }`}
-              >
-                <p className="text-sm whitespace-pre-wrap leading-relaxed">
-                  {message.content || (
-                    <span className="inline-flex items-center gap-1 text-slate-400">
-                      <Loader2 size={12} className="animate-spin" />
-                      Thinking...
-                    </span>
-                  )}
+      {/* Voice Mode */}
+      {chatMode === 'voice' ? (
+        <VoiceControls
+          onSwitchToText={() => setChatMode('text')}
+          textMessages={messages.map(m => ({ role: m.role, content: m.content }))}
+        />
+      ) : (
+        <>
+          {/* Messages */}
+          <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4">
+            {connectionStatus === 'no_api_key' ? (
+              <div className="flex flex-col items-center justify-center h-full text-center px-6">
+                <div className="w-16 h-16 rounded-full bg-amber-500/20 flex items-center justify-center mb-4">
+                  <Key className="w-8 h-8 text-amber-400" />
+                </div>
+                <h4 className="text-white font-medium mb-2">API Key Required</h4>
+                <p className="text-sm text-slate-400 mb-4">
+                  The Guide uses Claude AI to provide personalized insights about your chart.
+                  To enable this feature, add your Anthropic API key in Settings.
                 </p>
-                {message.toolCalls && message.toolCalls.length > 0 && (
-                  <div className="mt-2 pt-2 border-t border-slate-700/50">
-                    {message.toolCalls.map(tc => (
-                      <div
-                        key={tc.id}
-                        className="text-xs text-slate-400 flex items-center gap-1"
-                      >
-                        <span
-                          className={`w-2 h-2 rounded-full ${
-                            tc.status === 'completed'
-                              ? 'bg-green-500'
-                              : tc.status === 'failed'
-                                ? 'bg-red-500'
-                                : 'bg-yellow-500'
-                          }`}
-                        />
-                        {tc.name.replace(/_/g, ' ')}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </motion.div>
-          ))
-        )}
-        <div ref={messagesEndRef} />
-      </div>
 
-      {/* Input */}
-      <form
-        onSubmit={handleSubmit}
-        className="px-4 py-3 border-t border-slate-700/50 bg-slate-800/30"
-      >
-        <div className="flex items-end gap-2">
-          <textarea
-            ref={inputRef}
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder={
-              isConnected ? 'Ask your guide...' : 'Connecting...'
-            }
-            disabled={!isConnected}
-            rows={1}
-            className="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 resize-none focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 disabled:opacity-50"
-            style={{ maxHeight: 100 }}
-          />
-          <button
-            type="submit"
-            disabled={!input.trim() || isGenerating || !isConnected}
-            className="p-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded-xl transition-colors"
-          >
-            {isGenerating ? (
-              <Loader2 size={18} className="animate-spin" />
+                {/* BYOT Benefits */}
+                <div className="bg-slate-800/50 rounded-lg p-4 mb-4 text-left w-full">
+                  <h5 className="text-xs font-medium text-amber-400 mb-2 flex items-center gap-1">
+                    <Sparkles size={12} />
+                    Why Bring Your Own Key?
+                  </h5>
+                  <ul className="text-xs text-slate-400 space-y-1.5">
+                    <li>• <span className="text-slate-300">No middleman</span> – Connect directly to Anthropic</li>
+                    <li>• <span className="text-slate-300">Pay only for what you use</span> – No subscription fees</li>
+                    <li>• <span className="text-slate-300">Full control</span> – Your data stays between you and Claude</li>
+                    <li>• <span className="text-slate-300">$5 free credit</span> – New accounts get free usage</li>
+                  </ul>
+                </div>
+
+                <button
+                  onClick={() => {
+                    window.dispatchEvent(
+                      new CustomEvent('companion-navigate', { detail: { page: 'settings' } })
+                    )
+                    onMinimize()
+                  }}
+                  className="flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-900 font-medium rounded-lg transition-colors"
+                >
+                  <Key size={16} />
+                  Configure API Key
+                </button>
+
+                <a
+                  href="https://console.anthropic.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 mt-3 text-xs text-slate-500 hover:text-slate-300 transition-colors"
+                >
+                  Get your key at console.anthropic.com
+                  <ExternalLink size={12} />
+                </a>
+              </div>
+            ) : messages.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-full text-center text-slate-400 px-6">
+                <CompanionAvatar state="curious" size={64} className="mb-4" />
+                <p className="text-sm">
+                  Hello! I'm your guide to consciousness exploration.
+                </p>
+                <p className="text-xs mt-2 text-slate-500">
+                  Ask me about your chart, tarot correspondences, Jungian archetypes,
+                  or any wisdom tradition you'd like to explore.
+                </p>
+                <div className="flex flex-wrap gap-2 mt-4 justify-center">
+                  {['Tell me about my Sun', 'What patterns do you see?', 'Explain my Moon'].map(
+                    suggestion => (
+                      <button
+                        key={suggestion}
+                        onClick={() => setInput(suggestion)}
+                        className="px-3 py-1.5 text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-full transition-colors"
+                      >
+                        {suggestion}
+                      </button>
+                    )
+                  )}
+                </div>
+              </div>
             ) : (
-              <Send size={18} />
+              messages.map(message => (
+                <motion.div
+                  key={message.id}
+                  className={`flex ${
+                    message.role === 'user' ? 'justify-end' : 'justify-start'
+                  }`}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <div
+                    className={`max-w-[85%] px-4 py-2.5 rounded-2xl ${
+                      message.role === 'user'
+                        ? 'bg-indigo-600 text-white rounded-br-md'
+                        : 'bg-slate-800 text-slate-100 rounded-bl-md'
+                    }`}
+                  >
+                    <p className="text-sm whitespace-pre-wrap leading-relaxed">
+                      {message.content || (
+                        <span className="inline-flex items-center gap-1 text-slate-400">
+                          <Loader2 size={12} className="animate-spin" />
+                          Thinking...
+                        </span>
+                      )}
+                    </p>
+                    {message.toolCalls && message.toolCalls.length > 0 && (
+                      <div className="mt-2 pt-2 border-t border-slate-700/50">
+                        {message.toolCalls.map(tc => (
+                          <div
+                            key={tc.id}
+                            className="text-xs text-slate-400 flex items-center gap-1"
+                          >
+                            <span
+                              className={`w-2 h-2 rounded-full ${
+                                tc.status === 'completed'
+                                  ? 'bg-green-500'
+                                  : tc.status === 'failed'
+                                    ? 'bg-red-500'
+                                    : 'bg-yellow-500'
+                              }`}
+                            />
+                            {tc.name.replace(/_/g, ' ')}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              ))
             )}
-          </button>
-        </div>
-        <div className="flex items-center justify-between mt-2 text-xs text-slate-500">
-          <span>
-            Paradigms: {preferences.enabledParadigms.slice(0, 2).join(', ')}
-            {preferences.enabledParadigms.length > 2 && '...'}
-          </span>
-          <span className="capitalize">{preferences.synthesisDepth} synthesis</span>
-        </div>
-      </form>
+            <div ref={messagesEndRef} />
+          </div>
+
+          {/* Input */}
+          <form
+            onSubmit={handleSubmit}
+            className="px-4 py-3 border-t border-slate-700/50 bg-slate-800/30"
+          >
+            <div className="flex items-end gap-2">
+              <textarea
+                ref={inputRef}
+                value={input}
+                onChange={e => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder={
+                  isConnected ? 'Ask your guide...' : 'Connecting...'
+                }
+                disabled={!isConnected}
+                rows={1}
+                className="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 resize-none focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 disabled:opacity-50"
+                style={{ maxHeight: 100 }}
+              />
+              <button
+                type="submit"
+                disabled={!input.trim() || isGenerating || !isConnected}
+                className="p-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded-xl transition-colors"
+              >
+                {isGenerating ? (
+                  <Loader2 size={18} className="animate-spin" />
+                ) : (
+                  <Send size={18} />
+                )}
+              </button>
+            </div>
+            <div className="flex items-center justify-between mt-2 text-xs text-slate-500">
+              <span>
+                Paradigms: {preferences.enabledParadigms.slice(0, 2).join(', ')}
+                {preferences.enabledParadigms.length > 2 && '...'}
+              </span>
+              <span className="capitalize">{preferences.synthesisDepth} synthesis</span>
+            </div>
+          </form>
+        </>
+      )}
 
       {/* Resize handles */}
       {/* Edges */}
