@@ -4,7 +4,7 @@ Tests for meditation API routes
 Tests for presets, sessions, stats, and audio generation.
 """
 import pytest
-from datetime import datetime
+from datetime import datetime, timedelta
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -540,6 +540,169 @@ class TestStatsEndpoints:
         assert response.status_code == 200
         data = response.json()
         assert data["favorite_preset"] == "Favorite Preset"
+
+
+# =============================================================================
+# Streak Edge Case Tests
+# =============================================================================
+
+class TestStreakCalculation:
+    """Test streak calculation edge cases"""
+
+    def test_streak_no_sessions(self, client_with_db):
+        """Streak should be 0 with no sessions"""
+        response = client_with_db.get("/api/meditation/stats")
+        assert response.json()["streak_days"] == 0
+
+    def test_streak_session_today(self, client_with_db):
+        """Streak should be 1 with only today's session"""
+        today = datetime.now().strftime("%Y-%m-%d")
+        client_with_db.post(
+            "/api/meditation/sessions",
+            json={
+                "planned_duration_minutes": 10,
+                "actual_duration_seconds": 600,
+                "completed": True,
+                "session_date": today,
+            }
+        )
+
+        response = client_with_db.get("/api/meditation/stats")
+        assert response.json()["streak_days"] == 1
+
+    def test_streak_session_yesterday(self, client_with_db):
+        """Streak should be 1 with only yesterday's session (haven't meditated today yet)"""
+        yesterday = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
+        client_with_db.post(
+            "/api/meditation/sessions",
+            json={
+                "planned_duration_minutes": 10,
+                "actual_duration_seconds": 600,
+                "completed": True,
+                "session_date": yesterday,
+            }
+        )
+
+        response = client_with_db.get("/api/meditation/stats")
+        assert response.json()["streak_days"] == 1
+
+    def test_streak_session_two_days_ago(self, client_with_db):
+        """Streak should be 0 if most recent session is 2+ days ago"""
+        two_days_ago = (datetime.now() - timedelta(days=2)).strftime("%Y-%m-%d")
+        client_with_db.post(
+            "/api/meditation/sessions",
+            json={
+                "planned_duration_minutes": 10,
+                "actual_duration_seconds": 600,
+                "completed": True,
+                "session_date": two_days_ago,
+            }
+        )
+
+        response = client_with_db.get("/api/meditation/stats")
+        assert response.json()["streak_days"] == 0
+
+    def test_streak_consecutive_days(self, client_with_db):
+        """Streak should count consecutive days"""
+        today = datetime.now()
+
+        # Create sessions for today and the past 4 days (5 day streak)
+        for i in range(5):
+            session_date = (today - timedelta(days=i)).strftime("%Y-%m-%d")
+            client_with_db.post(
+                "/api/meditation/sessions",
+                json={
+                    "planned_duration_minutes": 10,
+                    "actual_duration_seconds": 600,
+                    "completed": True,
+                    "session_date": session_date,
+                }
+            )
+
+        response = client_with_db.get("/api/meditation/stats")
+        assert response.json()["streak_days"] == 5
+
+    def test_streak_gap_breaks_streak(self, client_with_db):
+        """Gap in sessions should break the streak"""
+        today = datetime.now()
+
+        # Session today
+        client_with_db.post(
+            "/api/meditation/sessions",
+            json={
+                "planned_duration_minutes": 10,
+                "actual_duration_seconds": 600,
+                "completed": True,
+                "session_date": today.strftime("%Y-%m-%d"),
+            }
+        )
+
+        # Session yesterday
+        client_with_db.post(
+            "/api/meditation/sessions",
+            json={
+                "planned_duration_minutes": 10,
+                "actual_duration_seconds": 600,
+                "completed": True,
+                "session_date": (today - timedelta(days=1)).strftime("%Y-%m-%d"),
+            }
+        )
+
+        # Skip a day (day before yesterday)
+        # Session 3 days ago
+        client_with_db.post(
+            "/api/meditation/sessions",
+            json={
+                "planned_duration_minutes": 10,
+                "actual_duration_seconds": 600,
+                "completed": True,
+                "session_date": (today - timedelta(days=3)).strftime("%Y-%m-%d"),
+            }
+        )
+
+        response = client_with_db.get("/api/meditation/stats")
+        # Streak should be 2 (today + yesterday), not 3
+        assert response.json()["streak_days"] == 2
+
+    def test_streak_multiple_sessions_same_day(self, client_with_db):
+        """Multiple sessions on same day should count as 1 day"""
+        today = datetime.now().strftime("%Y-%m-%d")
+
+        # Create 3 sessions on the same day
+        for _ in range(3):
+            client_with_db.post(
+                "/api/meditation/sessions",
+                json={
+                    "planned_duration_minutes": 10,
+                    "actual_duration_seconds": 600,
+                    "completed": True,
+                    "session_date": today,
+                }
+            )
+
+        response = client_with_db.get("/api/meditation/stats")
+        # Should still be 1 day streak, not 3
+        assert response.json()["streak_days"] == 1
+
+    def test_streak_starting_from_yesterday(self, client_with_db):
+        """Streak starting from yesterday should still count"""
+        today = datetime.now()
+
+        # Sessions: yesterday, day before, 3 days ago (3 day streak starting yesterday)
+        for i in range(1, 4):  # 1, 2, 3 days ago
+            session_date = (today - timedelta(days=i)).strftime("%Y-%m-%d")
+            client_with_db.post(
+                "/api/meditation/sessions",
+                json={
+                    "planned_duration_minutes": 10,
+                    "actual_duration_seconds": 600,
+                    "completed": True,
+                    "session_date": session_date,
+                }
+            )
+
+        response = client_with_db.get("/api/meditation/stats")
+        assert response.json()["streak_days"] == 3
 
 
 # =============================================================================
