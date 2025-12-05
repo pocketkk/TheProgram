@@ -25,6 +25,7 @@ interface TarotState {
   selectedDeckId: string | null  // null = use default symbols
   availableDecks: CollectionInfo[]
   deckImages: Map<string, ImageInfo>  // Map of item_key -> ImageInfo
+  cardBackUrl: string | null  // URL for the card back image
 
   // Current reading
   currentReading: TarotReading | null
@@ -54,6 +55,7 @@ interface TarotState {
   loadAvailableDecks: () => Promise<void>
   selectDeck: (deckId: string | null) => Promise<void>
   getCardImage: (cardId: string) => ImageInfo | undefined
+  getCardBackUrl: () => string | null
 
   performReading: () => Promise<void>
   clearReading: () => void
@@ -109,6 +111,7 @@ export const useTarotStore = create<TarotState>()(
   selectedDeckId: null,
   availableDecks: [],
   deckImages: new Map(),
+  cardBackUrl: null,
   currentReading: null,
   selectedSpread: 'three_card',
   question: '',
@@ -204,7 +207,7 @@ export const useTarotStore = create<TarotState>()(
   selectDeck: async (deckId: string | null) => {
     if (!deckId) {
       // Clear to default symbols
-      set({ selectedDeckId: null, deckImages: new Map() })
+      set({ selectedDeckId: null, deckImages: new Map(), cardBackUrl: null })
       return
     }
 
@@ -221,10 +224,14 @@ export const useTarotStore = create<TarotState>()(
           imageMap.set(img.item_key, img)
         }
       })
-      set({ selectedDeckId: deckId, deckImages: imageMap })
+      set({
+        selectedDeckId: deckId,
+        deckImages: imageMap,
+        cardBackUrl: collection.card_back_url || null,
+      })
     } catch (error) {
       console.error('Failed to load deck images:', error)
-      set({ selectedDeckId: null, deckImages: new Map() })
+      set({ selectedDeckId: null, deckImages: new Map(), cardBackUrl: null })
     }
   },
 
@@ -234,6 +241,11 @@ export const useTarotStore = create<TarotState>()(
     // Convert backend card ID to image item_key format
     const itemKey = cardIdToItemKey(cardId)
     return deckImages.get(itemKey)
+  },
+
+  // Get card back URL
+  getCardBackUrl: () => {
+    return get().cardBackUrl
   },
 
   clearError: () => set({ error: null })

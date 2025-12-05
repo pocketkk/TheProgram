@@ -145,6 +145,10 @@ class CollectionUpdate(BaseModel):
         default=None,
         description="Approved reference image ID for style consistency"
     )
+    card_back_image_id: Optional[str] = Field(
+        default=None,
+        description="Generated card back image ID for the deck"
+    )
     prompt_tradition: Optional[str] = Field(
         default=None,
         description="Prompt tradition: rws, thoth, marseille, astronomical, mythological, custom"
@@ -164,6 +168,8 @@ class CollectionInfo(BaseModel):
     total_expected: Optional[int] = Field(default=None)
     include_card_labels: bool = Field(default=False)
     reference_image_id: Optional[str] = Field(default=None)
+    card_back_image_id: Optional[str] = Field(default=None, description="Generated card back image ID")
+    card_back_url: Optional[str] = Field(default=None, description="URL to access the card back image")
     prompt_tradition: Optional[str] = Field(default=None)
     image_count: int = Field(default=0, description="Current number of images")
     metadata: Optional[Dict[str, Any]] = Field(default=None)

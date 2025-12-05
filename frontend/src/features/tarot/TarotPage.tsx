@@ -46,6 +46,7 @@ export function TarotPage() {
     selectedDeckId,
     availableDecks,
     getCardImage,
+    getCardBackUrl,
     loadSpreads,
     setSelectedSpread,
     setQuestion,
@@ -324,46 +325,87 @@ export function TarotPage() {
                         ? 'grid-cols-2 md:grid-cols-3'
                         : 'grid-cols-2 md:grid-cols-5'
                     }`}>
-                      {currentReading.positions.map((pos, i) => (
-                        <motion.div
-                          key={pos.position}
-                          initial={{ opacity: 0, y: 20, rotateY: 180 }}
-                          animate={{ opacity: 1, y: 0, rotateY: 0 }}
-                          transition={{ delay: i * 0.15, duration: 0.5 }}
-                          onClick={() => selectCard(pos.card)}
-                          className={`p-4 rounded-lg border cursor-pointer transition-all
-                                    ${selectedCard?.id === pos.card.id
-                                      ? 'border-purple-500 bg-purple-500/10'
-                                      : 'border-cosmic-light/20 bg-cosmic-dark/30 hover:border-purple-500/50'
-                                    }
-                                    ${pos.card.reversed ? 'rotate-180' : ''}`}
-                          style={{ transformStyle: 'preserve-3d' }}
-                        >
-                          <div className={pos.card.reversed ? 'rotate-180' : ''}>
-                            <div className="flex justify-center mb-2">
-                              {(() => {
-                                const image = getCardImage(pos.card.id)
-                                return image?.url ? (
-                                  <img
-                                    src={image.url}
-                                    alt={pos.card.name}
-                                    className="w-16 h-24 object-cover rounded shadow"
-                                    loading="lazy"
-                                  />
-                                ) : (
-                                  <span className="text-3xl">{getSuitSymbol(pos.card.suit)}</span>
-                                )
-                              })()}
+                      {currentReading.positions.map((pos, i) => {
+                        const cardBackUrl = getCardBackUrl()
+                        return (
+                          <motion.div
+                            key={pos.position}
+                            initial={{ opacity: 0, y: 20, rotateY: 180 }}
+                            animate={{ opacity: 1, y: 0, rotateY: 0 }}
+                            transition={{ delay: i * 0.15, duration: 0.5 }}
+                            onClick={() => selectCard(pos.card)}
+                            className={`relative cursor-pointer transition-all
+                                      ${selectedCard?.id === pos.card.id
+                                        ? 'ring-2 ring-purple-500'
+                                        : 'hover:ring-2 hover:ring-purple-500/50'
+                                      }
+                                      ${pos.card.reversed ? '' : ''}`}
+                            style={{ transformStyle: 'preserve-3d', perspective: '1000px' }}
+                          >
+                            {/* Card Back (visible during flip) */}
+                            {cardBackUrl && (
+                              <motion.div
+                                className="absolute inset-0 w-full h-full"
+                                style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
+                                initial={{ opacity: 1 }}
+                                animate={{ opacity: 0 }}
+                                transition={{ delay: i * 0.15 + 0.25, duration: 0.01 }}
+                              >
+                                <div className="p-4 rounded-lg border border-cosmic-light/20 bg-cosmic-dark/30 h-full">
+                                  <div className="flex justify-center mb-2">
+                                    <img
+                                      src={cardBackUrl}
+                                      alt="Card Back"
+                                      className="w-16 h-24 object-cover rounded shadow"
+                                    />
+                                  </div>
+                                  <p className="text-xs text-gray-500 text-center mb-1">
+                                    {pos.position_name}
+                                  </p>
+                                  <h4 className="text-sm font-medium text-center text-gray-500">
+                                    ???
+                                  </h4>
+                                </div>
+                              </motion.div>
+                            )}
+
+                            {/* Card Front */}
+                            <div
+                              className={`p-4 rounded-lg border
+                                        ${selectedCard?.id === pos.card.id
+                                          ? 'border-purple-500 bg-purple-500/10'
+                                          : 'border-cosmic-light/20 bg-cosmic-dark/30 hover:border-purple-500/50'
+                                        }
+                                        ${pos.card.reversed ? 'rotate-180' : ''}`}
+                              style={{ backfaceVisibility: 'hidden' }}
+                            >
+                              <div className={pos.card.reversed ? 'rotate-180' : ''}>
+                                <div className="flex justify-center mb-2">
+                                  {(() => {
+                                    const image = getCardImage(pos.card.id)
+                                    return image?.url ? (
+                                      <img
+                                        src={image.url}
+                                        alt={pos.card.name}
+                                        className="w-16 h-24 object-cover rounded shadow"
+                                        loading="lazy"
+                                      />
+                                    ) : (
+                                      <span className="text-3xl">{getSuitSymbol(pos.card.suit)}</span>
+                                    )
+                                  })()}
+                                </div>
+                                <p className="text-xs text-gray-500 text-center mb-1">
+                                  {pos.position_name}
+                                </p>
+                                <h4 className={`text-sm font-medium text-center ${getSuitColorClass(pos.card.suit)}`}>
+                                  {formatCardName(pos.card)}
+                                </h4>
+                              </div>
                             </div>
-                            <p className="text-xs text-gray-500 text-center mb-1">
-                              {pos.position_name}
-                            </p>
-                            <h4 className={`text-sm font-medium text-center ${getSuitColorClass(pos.card.suit)}`}>
-                              {formatCardName(pos.card)}
-                            </h4>
-                          </div>
-                        </motion.div>
-                      ))}
+                          </motion.div>
+                        )
+                      })}
                     </div>
 
                     {/* Summary */}

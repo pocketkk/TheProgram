@@ -173,6 +173,7 @@ export interface CollectionUpdate {
   is_active?: boolean
   include_card_labels?: boolean
   reference_image_id?: string
+  card_back_image_id?: string
 }
 
 export async function updateCollection(
@@ -183,6 +184,27 @@ export async function updateCollection(
     const response = await apiClient.patch<CollectionInfo>(
       `/images/collections/${collectionId}`,
       data
+    )
+    return response.data
+  } catch (error) {
+    throw new Error(getErrorMessage(error))
+  }
+}
+
+/**
+ * Generate a card back image for a tarot deck collection
+ */
+export async function generateCardBack(
+  collectionId: string,
+  prompt?: string
+): Promise<ImageGenerateResponse> {
+  try {
+    const response = await apiClient.post<ImageGenerateResponse>(
+      '/images/generate-card-back',
+      {
+        collection_id: collectionId,
+        prompt: prompt || 'Ornate mystical card back design with symmetrical geometric patterns, sacred geometry, celestial motifs',
+      }
     )
     return response.data
   } catch (error) {
