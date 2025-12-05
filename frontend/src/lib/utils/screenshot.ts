@@ -72,6 +72,14 @@ export async function captureScreenshot(
       allowTaint: true,
       backgroundColor: '#0f0a1e', // Match app background
       logging: false,
+      // SVG handling options
+      foreignObjectRendering: true,
+      removeContainer: true,
+      // Ignore problematic elements
+      ignoreElements: (el) => {
+        // Ignore iframes that might cause issues
+        return el.tagName === 'IFRAME'
+      },
     })
 
     // Scale down if needed
@@ -112,26 +120,118 @@ export async function captureScreenshot(
 }
 
 /**
+ * Capture SVG element directly by serializing to image
+ */
+async function captureSvgElement(svg: SVGElement, maxWidth: number = 800): Promise<ScreenshotResult> {
+  try {
+    // Get SVG dimensions
+    const bbox = svg.getBoundingClientRect()
+    const width = bbox.width || 800
+    const height = bbox.height || 800
+
+    // Clone SVG and inline all styles
+    const clonedSvg = svg.cloneNode(true) as SVGElement
+    clonedSvg.setAttribute('width', String(width))
+    clonedSvg.setAttribute('height', String(height))
+
+    // Serialize SVG to string
+    const serializer = new XMLSerializer()
+    const svgString = serializer.serializeToString(clonedSvg)
+
+    // Create a blob and object URL
+    const blob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+
+    // Create an image from the SVG
+    const img = new Image()
+    img.width = width
+    img.height = height
+
+    return new Promise((resolve) => {
+      img.onload = () => {
+        // Draw to canvas
+        const canvas = document.createElement('canvas')
+        const scale = maxWidth < width ? maxWidth / width : 1
+        canvas.width = Math.round(width * scale)
+        canvas.height = Math.round(height * scale)
+
+        const ctx = canvas.getContext('2d')
+        if (ctx) {
+          ctx.fillStyle = '#0f0a1e'
+          ctx.fillRect(0, 0, canvas.width, canvas.height)
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.85)
+          const base64 = dataUrl.split(',')[1]
+
+          URL.revokeObjectURL(url)
+          resolve({
+            success: true,
+            image: base64,
+            mimeType: 'image/jpeg',
+            width: canvas.width,
+            height: canvas.height,
+          })
+        } else {
+          URL.revokeObjectURL(url)
+          resolve({ success: false, error: 'Failed to get canvas context' })
+        }
+      }
+
+      img.onerror = () => {
+        URL.revokeObjectURL(url)
+        resolve({ success: false, error: 'Failed to load SVG as image' })
+      }
+
+      img.src = url
+    })
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'SVG capture failed',
+    }
+  }
+}
+
+/**
  * Capture the birth chart wheel specifically
  */
 export async function captureChartWheel(): Promise<ScreenshotResult> {
-  // Try various selectors for the chart
+  // Try various selectors for the chart (includes Vedic charts)
   const selectors = [
     '[data-chart-container]',
+    '.vedic-chart-container',
     '.birth-chart-wheel',
     '[class*="BirthChartWheel"]',
-    'svg[class*="chart"]',
+    '.vedic-chart',
     'main > div > div:first-child', // Common layout pattern
   ]
 
   for (const selector of selectors) {
     const element = document.querySelector(selector)
     if (element) {
-      return captureScreenshot({ selector, maxWidth: 800 })
+      // First try html2canvas
+      const result = await captureScreenshot({ selector, maxWidth: 800 })
+      if (result.success) {
+        return result
+      }
+
+      // If that failed, try to find and capture SVG directly
+      const svg = element.querySelector('svg') || (element.tagName === 'SVG' ? element : null)
+      if (svg) {
+        console.log(`Trying SVG direct capture for ${selector}...`)
+        const svgResult = await captureSvgElement(svg as SVGElement, 800)
+        if (svgResult.success) {
+          return svgResult
+        }
+      }
+
+      console.log(`Chart capture failed for ${selector}, trying next...`)
     }
   }
 
-  // Fall back to capturing the main content
+  // Fall back to capturing the main content area
+  console.log('Falling back to main content capture')
   return captureScreenshot({ maxWidth: 1000 })
 }
 

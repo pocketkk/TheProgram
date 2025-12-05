@@ -10,7 +10,7 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 import io
 
-from app.core.database import get_db
+from app.core.database_sqlite import get_db
 from app.models.birth_data import BirthData
 from app.models.chart import Chart
 from app.services.report_service import get_report_service
