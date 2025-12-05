@@ -5,12 +5,15 @@ Real-time bidirectional audio streaming for voice conversations.
 Supports switching between voice and text modes while preserving context.
 """
 from typing import Dict, Any, Optional, List
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from contextlib import contextmanager
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect, HTTPException
+from pydantic import BaseModel, Field
 import logging
 import json
 import uuid
 import asyncio
 import base64
+import time
 
 from app.services.gemini_voice_service import (
     GeminiVoiceService,
@@ -31,6 +34,66 @@ voice_sessions: Dict[str, Dict[str, Any]] = {}
 # Store conversation history that can be shared between voice and text modes
 # Key: session_id, Value: list of messages (both voice and text)
 shared_conversation_history: Dict[str, List[Dict[str, Any]]] = {}
+
+# Session cleanup constants
+SESSION_TTL_SECONDS = 3600  # 1 hour
+CLEANUP_INTERVAL_SECONDS = 300  # 5 minutes
+_last_cleanup_time = 0
+
+
+# Pydantic models for input validation
+class VoiceSettingsUpdate(BaseModel):
+    """Schema for updating voice settings"""
+    voice_name: Optional[str] = Field(None, min_length=1, max_length=50)
+    personality: Optional[str] = Field(None, min_length=1, max_length=200)
+    speaking_style: Optional[str] = Field(None, min_length=1, max_length=200)
+    response_length: Optional[str] = Field(None, pattern="^(brief|medium|detailed)$")
+    custom_personality: Optional[str] = Field(None, max_length=2000)
+
+
+@contextmanager
+def get_db():
+    """Database session context manager"""
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
+def cleanup_stale_sessions():
+    """Remove stale sessions to prevent memory leaks"""
+    global _last_cleanup_time
+    current_time = time.time()
+
+    # Only run cleanup periodically
+    if current_time - _last_cleanup_time < CLEANUP_INTERVAL_SECONDS:
+        return
+
+    _last_cleanup_time = current_time
+    stale_threshold = current_time - SESSION_TTL_SECONDS
+
+    # Clean up voice sessions
+    stale_connections = [
+        conn_id for conn_id, session in voice_sessions.items()
+        if session.get("last_activity", 0) < stale_threshold
+    ]
+    for conn_id in stale_connections:
+        logger.info(f"Cleaning up stale voice session: {conn_id}")
+        del voice_sessions[conn_id]
+
+    # Clean up conversation history
+    stale_sessions = [
+        session_id for session_id, history in shared_conversation_history.items()
+        if not any(
+            conn.get("session_id") == session_id
+            for conn in voice_sessions.values()
+        )
+    ]
+    # Keep max 100 orphaned histories, remove oldest
+    if len(stale_sessions) > 100:
+        for session_id in stale_sessions[:-100]:
+            del shared_conversation_history[session_id]
 
 
 @router.websocket("/ws/voice")
@@ -104,17 +167,17 @@ async def voice_conversation(websocket: WebSocket):
     session_id: Optional[str] = None
     live_session = None
 
+    # Run cleanup on new connections
+    cleanup_stale_sessions()
+
     try:
         # Accept WebSocket connection
         await manager.connect(websocket, connection_id)
 
         # Get API key from database
-        db = SessionLocal()
-        try:
+        with get_db() as db:
             config = db.query(AppConfig).filter_by(id=1).first()
             api_key = config.google_api_key if config else None
-        finally:
-            db.close()
 
         if not api_key:
             await manager.send_message(connection_id, {
@@ -130,6 +193,7 @@ async def voice_conversation(websocket: WebSocket):
             "session_id": session_id,
             "service": None,
             "live_session": None,
+            "last_activity": time.time(),
         }
 
         await manager.send_message(connection_id, {
@@ -144,6 +208,10 @@ async def voice_conversation(websocket: WebSocket):
                 data = await websocket.receive_text()
                 request = json.loads(data)
                 message_type = request.get("type")
+
+                # Update last activity timestamp
+                if connection_id in voice_sessions:
+                    voice_sessions[connection_id]["last_activity"] = time.time()
 
                 if message_type == "start_session":
                     # Start a new voice session
@@ -403,8 +471,7 @@ async def get_available_voices():
 @router.get("/voice/settings")
 async def get_voice_settings():
     """Get current voice settings from app config"""
-    db = SessionLocal()
-    try:
+    with get_db() as db:
         config = db.query(AppConfig).filter_by(id=1).first()
         if not config:
             return {
@@ -422,29 +489,27 @@ async def get_voice_settings():
             "response_length": config.voice_response_length or "medium",
             "custom_personality": config.voice_custom_personality,
         }
-    finally:
-        db.close()
 
 
 @router.put("/voice/settings")
-async def update_voice_settings(settings: dict):
+async def update_voice_settings(settings: VoiceSettingsUpdate):
     """Update voice settings in app config"""
-    db = SessionLocal()
-    try:
+    with get_db() as db:
         config = db.query(AppConfig).filter_by(id=1).first()
         if not config:
-            return {"error": "App config not found"}, 404
+            raise HTTPException(status_code=404, detail="App config not found")
 
-        if "voice_name" in settings:
-            config.voice_name = settings["voice_name"]
-        if "personality" in settings:
-            config.voice_personality = settings["personality"]
-        if "speaking_style" in settings:
-            config.voice_speaking_style = settings["speaking_style"]
-        if "response_length" in settings:
-            config.voice_response_length = settings["response_length"]
-        if "custom_personality" in settings:
-            config.voice_custom_personality = settings["custom_personality"]
+        # Update only provided fields
+        if settings.voice_name is not None:
+            config.voice_name = settings.voice_name
+        if settings.personality is not None:
+            config.voice_personality = settings.personality
+        if settings.speaking_style is not None:
+            config.voice_speaking_style = settings.speaking_style
+        if settings.response_length is not None:
+            config.voice_response_length = settings.response_length
+        if settings.custom_personality is not None:
+            config.voice_custom_personality = settings.custom_personality
 
         db.commit()
 
@@ -455,15 +520,12 @@ async def update_voice_settings(settings: dict):
             "response_length": config.voice_response_length,
             "custom_personality": config.voice_custom_personality,
         }
-    finally:
-        db.close()
 
 
 @router.get("/voice/status")
 async def get_voice_status():
     """Check if voice chat is available (Google API key configured)"""
-    db = SessionLocal()
-    try:
+    with get_db() as db:
         config = db.query(AppConfig).filter_by(id=1).first()
         has_key = config and config.has_google_api_key
 
@@ -471,5 +533,3 @@ async def get_voice_status():
             "available": has_key,
             "message": "Voice chat ready" if has_key else "Google API key required for voice chat"
         }
-    finally:
-        db.close()

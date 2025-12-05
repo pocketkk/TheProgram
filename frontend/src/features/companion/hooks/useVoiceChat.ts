@@ -49,6 +49,11 @@ interface UseVoiceChatReturn {
   clearHistory: () => void
 }
 
+// Reconnection constants
+const MAX_RECONNECT_ATTEMPTS = 5
+const INITIAL_RECONNECT_DELAY = 1000 // 1 second
+const MAX_RECONNECT_DELAY = 30000 // 30 seconds
+
 export function useVoiceChat(voiceSettings?: VoiceSettings): UseVoiceChatReturn {
   const wsRef = useRef<WebSocket | null>(null)
   const audioContextRef = useRef<AudioContext | null>(null)
@@ -56,6 +61,9 @@ export function useVoiceChat(voiceSettings?: VoiceSettings): UseVoiceChatReturn 
   const processorRef = useRef<ScriptProcessorNode | null>(null)
   const audioQueueRef = useRef<Float32Array[]>([])
   const isPlayingRef = useRef(false)
+  const reconnectAttemptsRef = useRef(0)
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const shouldReconnectRef = useRef(true)
 
   const [voiceConnectionStatus, setVoiceConnectionStatus] = useState<VoiceConnectionStatus>('disconnected')
   const [voiceState, setVoiceState] = useState<VoiceState>('idle')
@@ -65,6 +73,15 @@ export function useVoiceChat(voiceSettings?: VoiceSettings): UseVoiceChatReturn 
 
   const { addMessage, messages } = useCompanionStore()
   const chartStore = useChartStore()
+
+  // Calculate reconnect delay with exponential backoff
+  const getReconnectDelay = useCallback(() => {
+    const delay = Math.min(
+      INITIAL_RECONNECT_DELAY * Math.pow(2, reconnectAttemptsRef.current),
+      MAX_RECONNECT_DELAY
+    )
+    return delay
+  }, [])
 
   // Get astrological context for voice session
   const getAstrologicalContext = useCallback(() => {
@@ -136,17 +153,29 @@ export function useVoiceChat(voiceSettings?: VoiceSettings): UseVoiceChatReturn 
       ws.onopen = () => {
         console.log('Voice WebSocket connected')
         wsRef.current = ws
+        reconnectAttemptsRef.current = 0 // Reset on successful connection
       }
 
       ws.onmessage = (event) => {
         handleMessage(event)
       }
 
-      ws.onclose = () => {
-        console.log('Voice WebSocket closed')
+      ws.onclose = (event) => {
+        console.log('Voice WebSocket closed', event.code, event.reason)
         setVoiceConnectionStatus('disconnected')
         setIsVoiceActive(false)
         wsRef.current = null
+
+        // Attempt reconnection if not intentionally closed
+        if (shouldReconnectRef.current && reconnectAttemptsRef.current < MAX_RECONNECT_ATTEMPTS) {
+          const delay = getReconnectDelay()
+          console.log(`Reconnecting in ${delay}ms (attempt ${reconnectAttemptsRef.current + 1}/${MAX_RECONNECT_ATTEMPTS})`)
+
+          reconnectTimeoutRef.current = setTimeout(() => {
+            reconnectAttemptsRef.current++
+            connect()
+          }, delay)
+        }
       }
 
       ws.onerror = (error) => {
@@ -156,8 +185,17 @@ export function useVoiceChat(voiceSettings?: VoiceSettings): UseVoiceChatReturn 
     } catch (error) {
       console.error('Failed to create Voice WebSocket:', error)
       setVoiceConnectionStatus('error')
+
+      // Attempt reconnection on connection failure
+      if (shouldReconnectRef.current && reconnectAttemptsRef.current < MAX_RECONNECT_ATTEMPTS) {
+        const delay = getReconnectDelay()
+        reconnectTimeoutRef.current = setTimeout(() => {
+          reconnectAttemptsRef.current++
+          connect()
+        }, delay)
+      }
     }
-  }, [])
+  }, [getReconnectDelay])
 
   // Handle incoming WebSocket messages
   const handleMessage = useCallback((event: MessageEvent) => {
@@ -427,6 +465,15 @@ export function useVoiceChat(voiceSettings?: VoiceSettings): UseVoiceChatReturn 
 
   // Disconnect
   const disconnect = useCallback(() => {
+    // Prevent automatic reconnection
+    shouldReconnectRef.current = false
+
+    // Cancel any pending reconnection
+    if (reconnectTimeoutRef.current) {
+      clearTimeout(reconnectTimeoutRef.current)
+      reconnectTimeoutRef.current = null
+    }
+
     // Stop session
     if (wsRef.current?.readyState === WebSocket.OPEN) {
       wsRef.current.send(JSON.stringify({ type: 'stop_session' }))
@@ -450,7 +497,15 @@ export function useVoiceChat(voiceSettings?: VoiceSettings): UseVoiceChatReturn 
     setVoiceConnectionStatus('disconnected')
     setIsVoiceActive(false)
     setVoiceState('idle')
+    reconnectAttemptsRef.current = 0
   }, [stopListening])
+
+  // Reset reconnection flag when connecting
+  const connectWithReconnect = useCallback(async () => {
+    shouldReconnectRef.current = true
+    reconnectAttemptsRef.current = 0
+    await connect()
+  }, [connect])
 
   // Ping to keep connection alive
   useEffect(() => {
@@ -466,6 +521,10 @@ export function useVoiceChat(voiceSettings?: VoiceSettings): UseVoiceChatReturn 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
+      shouldReconnectRef.current = false
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current)
+      }
       disconnect()
     }
   }, [disconnect])
@@ -476,7 +535,7 @@ export function useVoiceChat(voiceSettings?: VoiceSettings): UseVoiceChatReturn 
     isVoiceActive,
     sessionId,
     transcript,
-    connect,
+    connect: connectWithReconnect,
     disconnect,
     startListening,
     stopListening,
