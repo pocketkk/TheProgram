@@ -15,6 +15,7 @@ import {
   User,
   Palette,
   Wand2,
+  Grid3X3,
   type LucideIcon
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -35,6 +36,7 @@ const navigation: NavigationItem[] = [
   // Main section
   { name: 'Dashboard', icon: LayoutDashboard, page: 'dashboard', section: 'main' },
   { name: 'Birth Chart', icon: Star, page: 'birthchart', section: 'main' },
+  { name: 'Vedic', icon: Grid3X3, page: 'vedic', section: 'main' },
   { name: 'Cosmic Visualizer', icon: Calculator, page: 'charts', section: 'main' },
   // Exploration section (Phase 2)
   { name: 'Journal', icon: BookOpen, page: 'journal', section: 'exploration' },

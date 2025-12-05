@@ -9,7 +9,7 @@ from datetime import date
 from fastapi import APIRouter, HTTPException, Depends, Query
 from sqlalchemy.orm import Session
 
-from app.core.database import get_db
+from app.core.database_sqlite import get_db
 from app.models.birth_data import BirthData
 from app.models.chart import Chart
 from app.services.daily_insights_service import get_daily_insights_service

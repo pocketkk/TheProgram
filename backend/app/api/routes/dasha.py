@@ -20,7 +20,7 @@ from app.schemas.dasha import (
 )
 from app.models.birth_data import BirthData
 from app.models.chart import Chart
-from app.core.database import get_db
+from app.core.database_sqlite import get_db
 
 
 router = APIRouter()

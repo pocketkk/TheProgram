@@ -35,6 +35,8 @@ import { IChingPage } from './features/iching'
 import { NumerologyPage } from './features/numerology'
 // Phase 4: Human Design
 import { HumanDesignPage } from './features/humandesign'
+// Vedic Astrology
+import { VedicPage } from './features/vedic'
 // Themes
 import { ThemesPage } from './features/themes'
 // Studio (Image Generators)
@@ -198,6 +200,11 @@ function App() {
         {currentPage === 'humandesign' && (
           <ErrorBoundary featureName="Human Design">
             <HumanDesignPage />
+          </ErrorBoundary>
+        )}
+        {currentPage === 'vedic' && (
+          <ErrorBoundary featureName="Vedic">
+            <VedicPage />
           </ErrorBoundary>
         )}
         {currentPage === 'themes' && (

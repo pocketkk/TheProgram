@@ -1,6 +1,10 @@
 """
 Main FastAPI application entry point
 """
+import warnings
+# Suppress passlib warning about bcrypt version detection (harmless compatibility issue)
+warnings.filterwarnings("ignore", message=".*error reading bcrypt version.*")
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
