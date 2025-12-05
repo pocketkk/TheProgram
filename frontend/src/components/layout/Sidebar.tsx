@@ -13,6 +13,7 @@ import {
   Hexagon,
   Hash,
   User,
+  Brain,
   Palette,
   Wand2,
   type LucideIcon
@@ -47,6 +48,8 @@ const navigation: NavigationItem[] = [
   { name: 'Numerology', icon: Hash, page: 'numerology', section: 'exploration' },
   // Phase 4: Human Design
   { name: 'Human Design', icon: User, page: 'humandesign', section: 'exploration' },
+  // Phase 6: Myers-Briggs
+  { name: 'Myers-Briggs', icon: Brain, page: 'myersbriggs', section: 'exploration' },
   // Phase 5: Image Generation
   { name: 'Themes', icon: Palette, page: 'themes', section: 'exploration' },
   { name: 'Studio', icon: Wand2, page: 'studio', section: 'exploration' },
