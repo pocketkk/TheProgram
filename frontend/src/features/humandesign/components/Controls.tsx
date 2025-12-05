@@ -43,6 +43,7 @@ export const Controls: React.FC<ControlsProps> = ({ className = '' }) => {
                 ? 'bg-celestial-gold text-gray-900'
                 : 'text-gray-400 hover:text-white hover:bg-gray-700'
               }`}
+            data-testid={`hd-tab-${mode}`}
           >
             {mode === 'bodygraph' && 'Body Graph'}
             {mode === 'activations' && 'Activations'}
@@ -62,6 +63,8 @@ export const Controls: React.FC<ControlsProps> = ({ className = '' }) => {
                   ? 'bg-celestial-gold/20 text-celestial-gold border border-celestial-gold/50'
                   : 'bg-gray-800 text-gray-500 border border-gray-700'
                 }`}
+              data-testid="hd-toggle-channels"
+              aria-label="Toggle channel visibility"
             >
               Channels
             </button>
@@ -71,6 +74,8 @@ export const Controls: React.FC<ControlsProps> = ({ className = '' }) => {
                   ? 'bg-red-500/20 text-red-400 border border-red-500/50'
                   : 'bg-gray-800 text-gray-500 border border-gray-700'
                 }`}
+              data-testid="hd-toggle-personality"
+              aria-label="Toggle personality gates"
             >
               Personality
             </button>
@@ -80,6 +85,8 @@ export const Controls: React.FC<ControlsProps> = ({ className = '' }) => {
                   ? 'bg-gray-600/20 text-gray-300 border border-gray-500/50'
                   : 'bg-gray-800 text-gray-500 border border-gray-700'
                 }`}
+              data-testid="hd-toggle-design"
+              aria-label="Toggle design gates"
             >
               Design
             </button>
@@ -97,6 +104,7 @@ export const Controls: React.FC<ControlsProps> = ({ className = '' }) => {
                 ? 'bg-blue-500/20 text-blue-400 border border-blue-500/50'
                 : 'bg-gray-800 text-gray-500 border border-gray-700'
               }`}
+            data-testid="hd-btn-zodiac-tropical"
           >
             Tropical
           </button>
@@ -106,6 +114,7 @@ export const Controls: React.FC<ControlsProps> = ({ className = '' }) => {
                 ? 'bg-purple-500/20 text-purple-400 border border-purple-500/50'
                 : 'bg-gray-800 text-gray-500 border border-gray-700'
               }`}
+            data-testid="hd-btn-zodiac-sidereal"
           >
             Sidereal
           </button>
@@ -120,6 +129,8 @@ export const Controls: React.FC<ControlsProps> = ({ className = '' }) => {
                 value={siderealMethod}
                 onChange={(e) => setSiderealMethod(e.target.value as 'shift_positions' | 'shift_wheel')}
                 className="w-full bg-gray-800 border border-gray-700 rounded px-2 py-1 text-sm text-white"
+                data-testid="hd-select-sidereal-method"
+                aria-label="Select sidereal method"
               >
                 <option value="shift_positions">Shift Positions</option>
                 <option value="shift_wheel">Shift Wheel</option>
@@ -131,6 +142,8 @@ export const Controls: React.FC<ControlsProps> = ({ className = '' }) => {
                 value={ayanamsa}
                 onChange={(e) => setAyanamsa(e.target.value)}
                 className="w-full bg-gray-800 border border-gray-700 rounded px-2 py-1 text-sm text-white"
+                data-testid="hd-select-ayanamsa"
+                aria-label="Select ayanamsa"
               >
                 <option value="lahiri">Lahiri</option>
                 <option value="raman">Raman</option>

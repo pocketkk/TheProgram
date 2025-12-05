@@ -113,6 +113,8 @@ export function ChartSettings({ compact = false, onSettingsChange }: ChartSettin
             value={zodiacSystem}
             onChange={(e) => handleZodiacChange(e.target.value as ZodiacSystem)}
             className="bg-cosmic-800 border border-cosmic-600 rounded px-2 py-1 text-white focus:outline-none focus:ring-1 focus:ring-celestial-gold"
+            data-testid="birthchart-settings-select-zodiac"
+            aria-label="Select zodiac system"
           >
             {ZODIAC_OPTIONS.map((opt) => (
               <option key={opt.value} value={opt.value}>
@@ -130,6 +132,8 @@ export function ChartSettings({ compact = false, onSettingsChange }: ChartSettin
               value={ayanamsa}
               onChange={(e) => handleAyanamsaChange(e.target.value as AyanamsaSystem)}
               className="bg-cosmic-800 border border-cosmic-600 rounded px-2 py-1 text-white focus:outline-none focus:ring-1 focus:ring-celestial-pink"
+              data-testid="birthchart-settings-select-ayanamsa"
+              aria-label="Select ayanamsa"
             >
               {AYANAMSA_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -147,6 +151,8 @@ export function ChartSettings({ compact = false, onSettingsChange }: ChartSettin
             value={houseSystem}
             onChange={(e) => handleHouseSystemChange(e.target.value as HouseSystem)}
             className="bg-cosmic-800 border border-cosmic-600 rounded px-2 py-1 text-white focus:outline-none focus:ring-1 focus:ring-celestial-purple"
+            data-testid="birthchart-settings-select-house-system"
+            aria-label="Select house system"
           >
             {HOUSE_SYSTEM_OPTIONS.map((opt) => (
               <option key={opt.value} value={opt.value}>
@@ -188,6 +194,7 @@ export function ChartSettings({ compact = false, onSettingsChange }: ChartSettin
                     : 'bg-cosmic-800/50 hover:bg-cosmic-700/50 border-l-2 border-transparent'
                   }
                 `}
+                data-testid={`birthchart-settings-btn-zodiac-${opt.value}`}
               >
                 <p className={`font-medium ${zodiacSystem === opt.value ? 'text-white' : 'text-gray-300'}`}>
                   {opt.label}
@@ -223,6 +230,7 @@ export function ChartSettings({ compact = false, onSettingsChange }: ChartSettin
                       : 'bg-cosmic-800/50 hover:bg-cosmic-700/50 border-l-2 border-transparent'
                     }
                   `}
+                  data-testid={`birthchart-settings-btn-ayanamsa-${opt.value}`}
                 >
                   <p className={`font-medium ${ayanamsa === opt.value ? 'text-white' : 'text-gray-300'}`}>
                     {opt.label}
@@ -254,6 +262,7 @@ export function ChartSettings({ compact = false, onSettingsChange }: ChartSettin
                     : 'bg-cosmic-800/50 hover:bg-cosmic-700/50 border-l-2 border-transparent'
                   }
                 `}
+                data-testid={`birthchart-settings-btn-house-${opt.value}`}
               >
                 <p className={`font-medium ${houseSystem === opt.value ? 'text-white' : 'text-gray-300'}`}>
                   {opt.label}
@@ -284,6 +293,7 @@ export function ChartSettings({ compact = false, onSettingsChange }: ChartSettin
                     : 'bg-cosmic-800/50 hover:bg-cosmic-700/50 border-l-2 border-transparent'
                   }
                 `}
+                data-testid="birthchart-settings-toggle-nakshatras"
               >
                 <div>
                   <p className={`font-medium ${includeNakshatras ? 'text-white' : 'text-gray-300'}`}>
@@ -310,6 +320,7 @@ export function ChartSettings({ compact = false, onSettingsChange }: ChartSettin
                     : 'bg-cosmic-800/50 hover:bg-cosmic-700/50 border-l-2 border-transparent'
                   }
                 `}
+                data-testid="birthchart-settings-toggle-western-aspects"
               >
                 <div>
                   <p className={`font-medium ${includeWesternAspects ? 'text-white' : 'text-gray-300'}`}>
@@ -333,6 +344,7 @@ export function ChartSettings({ compact = false, onSettingsChange }: ChartSettin
                   : 'bg-cosmic-800/50 hover:bg-cosmic-700/50 border-l-2 border-transparent'
                 }
               `}
+              data-testid="birthchart-settings-toggle-minor-aspects"
             >
               <div>
                 <p className={`font-medium ${includeMinorAspects ? 'text-white' : 'text-gray-300'}`}>

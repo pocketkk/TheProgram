@@ -144,8 +144,12 @@ class ImageCollection(BaseModel):
 
     @property
     def image_count(self) -> int:
-        """Get number of images in collection"""
-        return len(self.images) if self.images else 0
+        """Get number of unique cards in collection (by item_key)"""
+        if not self.images:
+            return 0
+        # Count unique item_keys to avoid counting regenerations multiple times
+        unique_keys = set(img.item_key for img in self.images if img.item_key)
+        return len(unique_keys)
 
     @property
     def completion_percentage(self) -> float:

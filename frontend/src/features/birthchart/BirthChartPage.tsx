@@ -1080,6 +1080,7 @@ export function BirthChartPage({ chartId: chartIdProp }: BirthChartPageProps = {
                 variant="ghost"
                 size="sm"
                 className="text-cosmic-300 hover:text-white"
+                data-testid="birthchart-btn-edit-birth-data"
               >
                 <Edit className="w-4 h-4" />
                 <span className="ml-2">Edit Birth Data</span>
@@ -1090,10 +1091,11 @@ export function BirthChartPage({ chartId: chartIdProp }: BirthChartPageProps = {
                 value={zodiacSystem}
                 onChange={(e) => useChartStore.getState().setZodiacSystem(e.target.value as any)}
                 className="px-3 py-1.5 text-sm bg-cosmic-800/50 text-cosmic-200 border border-cosmic-700 rounded-lg hover:bg-cosmic-700/50 transition-colors cursor-pointer"
+                data-testid="birthchart-select-zodiac-system"
+                aria-label="Select zodiac system"
               >
                 <option value="western">Western</option>
                 <option value="vedic">Vedic</option>
-                <option value="human-design">Human Design</option>
               </select>
 
               <Button
@@ -1102,6 +1104,8 @@ export function BirthChartPage({ chartId: chartIdProp }: BirthChartPageProps = {
                 size="sm"
                 className="text-cosmic-300 hover:text-white"
                 title="Toggle aspects"
+                data-testid="birthchart-btn-toggle-aspects"
+                aria-label="Toggle aspect visibility"
               >
                 {showAspects ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
                 {!isMobile && <span className="ml-2">Aspects</span>}
@@ -1113,6 +1117,8 @@ export function BirthChartPage({ chartId: chartIdProp }: BirthChartPageProps = {
                 size="sm"
                 className="text-cosmic-300 hover:text-white"
                 title="Toggle house numbers"
+                data-testid="birthchart-btn-toggle-houses"
+                aria-label="Toggle house numbers"
               >
                 {showHouseNumbers ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
                 {!isMobile && <span className="ml-2">Houses</span>}
@@ -1129,6 +1135,8 @@ export function BirthChartPage({ chartId: chartIdProp }: BirthChartPageProps = {
                 size="sm"
                 className="text-cosmic-300 hover:text-white"
                 title={visibility.orientation === 'natal' ? 'Switch to Natural Wheel (Aries at left)' : 'Switch to Natal Chart (Ascendant at left)'}
+                data-testid="birthchart-btn-toggle-orientation"
+                aria-label={visibility.orientation === 'natal' ? 'Switch to Natural Wheel' : 'Switch to Natal Chart'}
               >
                 <Hexagon className="w-4 h-4" />
                 {!isMobile && <span className="ml-2">{visibility.orientation === 'natal' ? 'Natal' : 'Natural'}</span>}
@@ -1140,6 +1148,8 @@ export function BirthChartPage({ chartId: chartIdProp }: BirthChartPageProps = {
                 size="sm"
                 className={`text-cosmic-300 hover:text-white ${showFilterPanel ? 'bg-cosmic-800/50' : ''}`}
                 title="Aspect filters"
+                data-testid="birthchart-btn-filters"
+                aria-label="Open aspect filters"
               >
                 <Filter className="w-4 h-4" />
                 {!isMobile && <span className="ml-2">Filters</span>}
@@ -1151,6 +1161,8 @@ export function BirthChartPage({ chartId: chartIdProp }: BirthChartPageProps = {
                 size="sm"
                 className="text-cosmic-300 hover:text-white"
                 title="Export chart"
+                data-testid="birthchart-btn-export"
+                aria-label="Export chart"
               >
                 <Download className="w-4 h-4" />
                 {!isMobile && <span className="ml-2">Export</span>}
@@ -1184,6 +1196,7 @@ export function BirthChartPage({ chartId: chartIdProp }: BirthChartPageProps = {
                             ? 'bg-cosmic-600 hover:bg-cosmic-500'
                             : 'text-cosmic-400 hover:text-white'
                         }`}
+                        data-testid="birthchart-filter-major-aspects"
                       >
                         Major
                       </Button>
@@ -1198,6 +1211,7 @@ export function BirthChartPage({ chartId: chartIdProp }: BirthChartPageProps = {
                             ? 'bg-cosmic-600 hover:bg-cosmic-500'
                             : 'text-cosmic-400 hover:text-white'
                         }`}
+                        data-testid="birthchart-filter-minor-aspects"
                       >
                         Minor
                       </Button>
@@ -1214,6 +1228,8 @@ export function BirthChartPage({ chartId: chartIdProp }: BirthChartPageProps = {
                         value={visibility.maxOrb}
                         onChange={e => setMaxOrb(parseFloat(e.target.value))}
                         className="flex-1 h-2 bg-cosmic-800 rounded-lg appearance-none cursor-pointer slider"
+                        data-testid="birthchart-slider-max-orb"
+                        aria-label="Adjust maximum orb"
                       />
                       <span className="text-sm font-bold text-cosmic-200 min-w-[3rem]">
                         {visibility.maxOrb.toFixed(1)}°
@@ -1380,6 +1396,7 @@ export function BirthChartPage({ chartId: chartIdProp }: BirthChartPageProps = {
                     ? 'bg-gradient-to-r from-cosmic-600 to-cosmic-500 text-white shadow-lg'
                     : 'bg-cosmic-900/50 text-cosmic-400 hover:bg-cosmic-800/50'
                 }`}
+                data-testid="birthchart-tab-planets"
               >
                 <Sparkles className="w-4 h-4 inline mr-2" />
                 Planets
@@ -1391,6 +1408,7 @@ export function BirthChartPage({ chartId: chartIdProp }: BirthChartPageProps = {
                     ? 'bg-gradient-to-r from-cosmic-600 to-cosmic-500 text-white shadow-lg'
                     : 'bg-cosmic-900/50 text-cosmic-400 hover:bg-cosmic-800/50'
                 }`}
+                data-testid="birthchart-tab-houses"
               >
                 <Star className="w-4 h-4 inline mr-2" />
                 Houses
@@ -1402,6 +1420,7 @@ export function BirthChartPage({ chartId: chartIdProp }: BirthChartPageProps = {
                     ? 'bg-gradient-to-r from-cosmic-600 to-cosmic-500 text-white shadow-lg'
                     : 'bg-cosmic-900/50 text-cosmic-400 hover:bg-cosmic-800/50'
                 }`}
+                data-testid="birthchart-tab-aspects"
               >
                 <Eye className="w-4 h-4 inline mr-2" />
                 Aspects
@@ -1413,6 +1432,7 @@ export function BirthChartPage({ chartId: chartIdProp }: BirthChartPageProps = {
                     ? 'bg-gradient-to-r from-cosmic-600 to-cosmic-500 text-white shadow-lg'
                     : 'bg-cosmic-900/50 text-cosmic-400 hover:bg-cosmic-800/50'
                 }`}
+                data-testid="birthchart-tab-patterns"
               >
                 <Hexagon className="w-4 h-4 inline mr-2" />
                 Patterns

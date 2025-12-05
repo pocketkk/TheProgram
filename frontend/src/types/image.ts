@@ -77,6 +77,7 @@ export interface BatchProgressUpdate {
   current: number
   total: number
   item_name: string
+  item_key?: string
   status: 'generating' | 'complete' | 'failed'
   image_url?: string
   image_id?: string

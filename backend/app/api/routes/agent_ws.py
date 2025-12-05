@@ -15,6 +15,7 @@ import asyncio
 from app.services.agent_service import AgentService
 from app.core.websocket import manager
 from app.core.database_sqlite import SessionLocal
+from app.models.app_config import AppConfig
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -110,9 +111,17 @@ async def agent_conversation(websocket: WebSocket):
         # Accept WebSocket connection
         await manager.connect(websocket, connection_id)
 
-        # Initialize agent service
+        # Get API key from database
+        db = SessionLocal()
         try:
-            agent_service = AgentService()
+            config = db.query(AppConfig).filter_by(id=1).first()
+            api_key = config.anthropic_api_key if config else None
+        finally:
+            db.close()
+
+        # Initialize agent service with API key from database
+        try:
+            agent_service = AgentService(api_key=api_key)
         except ValueError as e:
             await manager.send_message(connection_id, {
                 "type": "error",
@@ -349,8 +358,16 @@ async def proactive_insights(websocket: WebSocket):
     try:
         await manager.connect(websocket, connection_id)
 
+        # Get API key from database
+        db = SessionLocal()
         try:
-            agent_service = AgentService()
+            config = db.query(AppConfig).filter_by(id=1).first()
+            api_key = config.anthropic_api_key if config else None
+        finally:
+            db.close()
+
+        try:
+            agent_service = AgentService(api_key=api_key)
         except ValueError as e:
             await manager.send_message(connection_id, {
                 "type": "error",
