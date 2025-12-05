@@ -100,6 +100,28 @@ from app.schemas.image import (
     StorageStats,
 )
 
+# Phase 6: Card Games
+from app.schemas.card_game import (
+    GameType,
+    GameStatus,
+    AIDifficulty,
+    PlayingCard,
+    SolitaireState,
+    SolitaireMove,
+    CribbageState,
+    CribbageMove,
+    CribbageScore,
+    CardGameCreate,
+    CardGameResponse,
+    CardGameListResponse,
+    MakeMoveRequest,
+    MakeMoveResponse,
+    GameHintResponse,
+    ValidMovesResponse,
+    DeckMappingResponse,
+    GameStats,
+)
+
 __all__ = [
     # Common
     'Message',
@@ -212,4 +234,24 @@ __all__ = [
     'BatchGenerateRequest',
     'BatchProgressUpdate',
     'StorageStats',
+
+    # Phase 6: Card Games
+    'GameType',
+    'GameStatus',
+    'AIDifficulty',
+    'PlayingCard',
+    'SolitaireState',
+    'SolitaireMove',
+    'CribbageState',
+    'CribbageMove',
+    'CribbageScore',
+    'CardGameCreate',
+    'CardGameResponse',
+    'CardGameListResponse',
+    'MakeMoveRequest',
+    'MakeMoveResponse',
+    'GameHintResponse',
+    'ValidMovesResponse',
+    'DeckMappingResponse',
+    'GameStats',
 ]

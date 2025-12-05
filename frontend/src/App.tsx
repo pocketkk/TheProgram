@@ -39,6 +39,8 @@ import { HumanDesignPage } from './features/humandesign'
 import { ThemesPage } from './features/themes'
 // Studio (Image Generators)
 import { StudioPage } from './features/studio'
+// Phase 6: Card Games
+import { CardsPage } from './features/cards/CardsPage'
 // Guide module system
 import { initializeGuideRegistry, initializeGuideStateRegistry, updateGuideGlobalState } from './lib/guide'
 
@@ -208,6 +210,11 @@ function App() {
         {currentPage === 'studio' && (
           <ErrorBoundary featureName="Studio">
             <StudioPage />
+          </ErrorBoundary>
+        )}
+        {currentPage === 'cards' && (
+          <ErrorBoundary featureName="Cards">
+            <CardsPage />
           </ErrorBoundary>
         )}
         {currentPage === 'settings' && (
