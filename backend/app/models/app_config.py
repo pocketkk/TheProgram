@@ -106,6 +106,41 @@ class AppConfig(SingletonModel):
         comment="Comma-separated priority order for news sources"
     )
 
+    # Voice Chat Settings
+    voice_name = Column(
+        String,
+        nullable=False,
+        default='Kore',
+        comment="Preferred Gemini voice: Puck, Charon, Kore, Fenrir, Aoede"
+    )
+
+    voice_personality = Column(
+        String,
+        nullable=False,
+        default='mystical guide',
+        comment="Voice personality description"
+    )
+
+    voice_speaking_style = Column(
+        String,
+        nullable=False,
+        default='warm and contemplative',
+        comment="Voice speaking style"
+    )
+
+    voice_response_length = Column(
+        String,
+        nullable=False,
+        default='medium',
+        comment="Voice response length: brief, medium, detailed"
+    )
+
+    voice_custom_personality = Column(
+        String,
+        nullable=True,
+        comment="Custom personality prompt (overrides defaults)"
+    )
+
     def __repr__(self):
         """String representation"""
         has_password = "with password" if self.password_hash else "no password"
@@ -165,4 +200,10 @@ class AppConfig(SingletonModel):
         result['has_newsapi_api_key'] = self.has_newsapi_api_key
         result['newspaper_style'] = self.newspaper_style or 'modern'
         result['newspaper_sources_priority'] = self.newspaper_sources_priority or 'guardian,nyt,wikipedia'
+        # Voice settings
+        result['voice_name'] = self.voice_name or 'Kore'
+        result['voice_personality'] = self.voice_personality or 'mystical guide'
+        result['voice_speaking_style'] = self.voice_speaking_style or 'warm and contemplative'
+        result['voice_response_length'] = self.voice_response_length or 'medium'
+        result['voice_custom_personality'] = self.voice_custom_personality
         return result
