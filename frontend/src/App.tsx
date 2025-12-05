@@ -39,6 +39,8 @@ import { HumanDesignPage } from './features/humandesign'
 import { ThemesPage } from './features/themes'
 // Studio (Image Generators)
 import { StudioPage } from './features/studio'
+// Phase 6: Meditation
+import { MeditationPage } from './features/meditation'
 // Guide module system
 import { initializeGuideRegistry, initializeGuideStateRegistry, updateGuideGlobalState } from './lib/guide'
 
@@ -208,6 +210,11 @@ function App() {
         {currentPage === 'studio' && (
           <ErrorBoundary featureName="Studio">
             <StudioPage />
+          </ErrorBoundary>
+        )}
+        {currentPage === 'meditation' && (
+          <ErrorBoundary featureName="Meditation">
+            <MeditationPage />
           </ErrorBoundary>
         )}
         {currentPage === 'settings' && (

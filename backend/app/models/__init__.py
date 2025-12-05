@@ -41,6 +41,9 @@ from app.models.canvas_board import CanvasBoard, CanvasItem
 # Phase 5: Image Generation
 from app.models.generated_image import GeneratedImage, ImageCollection
 
+# Phase 6: Meditation
+from app.models.meditation import MeditationPreset, MeditationSession, GeneratedMeditationAudio
+
 __all__ = [
     # Base classes
     'Base',
@@ -83,4 +86,9 @@ __all__ = [
     # Phase 5: Image Generation
     'GeneratedImage',
     'ImageCollection',
+
+    # Phase 6: Meditation
+    'MeditationPreset',
+    'MeditationSession',
+    'GeneratedMeditationAudio',
 ]
