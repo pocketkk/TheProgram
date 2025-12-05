@@ -39,6 +39,8 @@ import { HumanDesignPage } from './features/humandesign'
 import { ThemesPage } from './features/themes'
 // Studio (Image Generators)
 import { StudioPage } from './features/studio'
+// Guide module system
+import { initializeGuideRegistry, initializeGuideStateRegistry, updateGuideGlobalState } from './lib/guide'
 
 function App() {
   const { isAuthenticated, needsPasswordSetup, isLoading, checkAuthStatus } = useAuthStore()
@@ -46,6 +48,12 @@ function App() {
   const [authChecked, setAuthChecked] = useState(false)
   const [needsOnboarding, setNeedsOnboarding] = useState<boolean | null>(null)
   const [checkingBirthData, setCheckingBirthData] = useState(false)
+
+  // Initialize guide module system on mount
+  useEffect(() => {
+    initializeGuideRegistry()
+    initializeGuideStateRegistry()
+  }, [])
 
   // Check authentication status on mount
   useEffect(() => {
@@ -95,6 +103,8 @@ function App() {
   // This allows the AI companion to know what page the user is on
   useEffect(() => {
     (window as any).__currentPage = currentPage
+    // Also update guide state registry
+    updateGuideGlobalState({ currentPage })
   }, [currentPage])
 
   useEffect(() => {

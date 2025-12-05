@@ -291,7 +291,7 @@ export function PlanetSetDetail({ set, onBack, onDelete }: PlanetSetDetailProps)
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" onClick={onBack}>
+          <Button variant="ghost" onClick={onBack} data-testid="planet-btn-back">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back
           </Button>
@@ -312,7 +312,7 @@ export function PlanetSetDetail({ set, onBack, onDelete }: PlanetSetDetailProps)
             </div>
           </div>
         </div>
-        <Button variant="ghost" onClick={onDelete}>
+        <Button variant="ghost" onClick={onDelete} data-testid="planet-btn-delete-set" aria-label="Delete planet set">
           <Trash2 className="w-4 h-4 text-red-400" />
         </Button>
       </div>
@@ -490,6 +490,7 @@ export function PlanetSetDetail({ set, onBack, onDelete }: PlanetSetDetailProps)
           size="sm"
           variant={filter === 'all' ? 'primary' : 'outline'}
           onClick={() => setFilter('all')}
+          data-testid="planet-filter-all"
         >
           All ({allPlanets.length})
         </Button>
@@ -497,6 +498,7 @@ export function PlanetSetDetail({ set, onBack, onDelete }: PlanetSetDetailProps)
           size="sm"
           variant={filter === 'personal' ? 'primary' : 'outline'}
           onClick={() => setFilter('personal')}
+          data-testid="planet-filter-personal"
         >
           Personal (5)
         </Button>
@@ -504,6 +506,7 @@ export function PlanetSetDetail({ set, onBack, onDelete }: PlanetSetDetailProps)
           size="sm"
           variant={filter === 'social' ? 'primary' : 'outline'}
           onClick={() => setFilter('social')}
+          data-testid="planet-filter-social"
         >
           Social (2)
         </Button>
@@ -511,6 +514,7 @@ export function PlanetSetDetail({ set, onBack, onDelete }: PlanetSetDetailProps)
           size="sm"
           variant={filter === 'transpersonal' ? 'primary' : 'outline'}
           onClick={() => setFilter('transpersonal')}
+          data-testid="planet-filter-transpersonal"
         >
           Transpersonal (3)
         </Button>
@@ -518,6 +522,7 @@ export function PlanetSetDetail({ set, onBack, onDelete }: PlanetSetDetailProps)
           size="sm"
           variant={filter === 'point' ? 'primary' : 'outline'}
           onClick={() => setFilter('point')}
+          data-testid="planet-filter-points"
         >
           Points (5)
         </Button>
@@ -526,6 +531,7 @@ export function PlanetSetDetail({ set, onBack, onDelete }: PlanetSetDetailProps)
             size="sm"
             variant={filter === 'missing' ? 'primary' : 'outline'}
             onClick={() => setFilter('missing')}
+            data-testid="planet-filter-missing"
           >
             Missing ({missingCount})
           </Button>

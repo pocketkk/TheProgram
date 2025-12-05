@@ -149,6 +149,8 @@ export function TransitDashboard() {
                 <button
                   onClick={() => setTransitDate(null)}
                   className="text-xs text-celestial-gold hover:text-celestial-gold/80 underline"
+                  data-testid="transit-btn-reset-date"
+                  aria-label="Reset transit date to now"
                 >
                   Reset to Now
                 </button>
@@ -168,12 +170,15 @@ export function TransitDashboard() {
                 className="px-3 py-2 bg-cosmic-900 border border-cosmic-light/20 rounded-lg
                          text-white focus:outline-none focus:border-celestial-gold/50
                          [color-scheme:dark]"
+                data-testid="transit-input-date"
+                aria-label="Select transit date"
               />
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setTransitDate(null)}
                 className={transitDate === null ? 'bg-celestial-gold/20 text-celestial-gold' : ''}
+                data-testid="transit-btn-today"
               >
                 Today
               </Button>
@@ -186,6 +191,8 @@ export function TransitDashboard() {
               className="px-4 py-2 bg-cosmic-900 border border-cosmic-light/20 rounded-lg
                        text-white focus:outline-none focus:border-celestial-gold/50
                        [&>option]:bg-cosmic-900 [&>option]:text-white"
+              data-testid="transit-select-birth-data"
+              aria-label="Select birth chart for transits"
             >
               <option value="">Select chart...</option>
               {birthDataList.map(bd => (
@@ -204,6 +211,8 @@ export function TransitDashboard() {
                             ? 'bg-celestial-gold/20 text-celestial-gold'
                             : 'text-gray-400 hover:text-white'
                           }`}
+                data-testid="transit-btn-zodiac-tropical"
+                aria-label="Use tropical zodiac"
               >
                 Tropical
               </button>
@@ -214,6 +223,8 @@ export function TransitDashboard() {
                             ? 'bg-celestial-gold/20 text-celestial-gold'
                             : 'text-gray-400 hover:text-white'
                           }`}
+                data-testid="transit-btn-zodiac-sidereal"
+                aria-label="Use sidereal zodiac"
               >
                 Sidereal
               </button>
@@ -224,6 +235,8 @@ export function TransitDashboard() {
               variant="ghost"
               onClick={() => refreshAll()}
               disabled={isLoading || !currentBirthDataId}
+              data-testid="transit-btn-refresh"
+              aria-label="Refresh transits"
             >
               <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
             </Button>
@@ -248,7 +261,12 @@ export function TransitDashboard() {
             <AlertCircle className="h-4 w-4" />
             {error}
           </span>
-          <button onClick={clearError} className="text-red-400 hover:text-red-300">
+          <button
+            onClick={clearError}
+            className="text-red-400 hover:text-red-300"
+            data-testid="transit-btn-dismiss-error"
+            aria-label="Dismiss error"
+          >
             <X className="h-4 w-4" />
           </button>
         </motion.div>
@@ -461,6 +479,8 @@ export function TransitDashboard() {
                         <button
                           onClick={clearSelectedTransit}
                           className="text-gray-400 hover:text-white"
+                          data-testid="transit-btn-close-detail"
+                          aria-label="Close transit detail"
                         >
                           <X className="h-4 w-4" />
                         </button>
@@ -542,6 +562,8 @@ export function TransitDashboard() {
                       }}
                       className="text-xs bg-cosmic-900 border border-cosmic-light/20 rounded
                                px-2 py-1 text-white [&>option]:bg-cosmic-900 [&>option]:text-white"
+                      data-testid="transit-select-days-ahead"
+                      aria-label="Select number of days ahead to show"
                     >
                       <option value={7}>7 days</option>
                       <option value={14}>14 days</option>

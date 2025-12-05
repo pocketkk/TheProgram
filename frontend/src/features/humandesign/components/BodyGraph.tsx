@@ -61,13 +61,13 @@ const CenterShape: React.FC<{
       ? `${x},${y - h / 2} ${x - size / 2},${y + h / 2} ${x + size / 2},${y + h / 2}`
       : `${x - size / 2},${y - h / 2} ${x + size / 2},${y - h / 2} ${x},${y + h / 2}`
 
-    return <polygon points={points} {...commonProps} />
+    return <polygon points={points} {...commonProps} data-testid={`hd-center-${center}`} aria-label={`${center.replace('_', ' ')} center, ${defined ? 'defined' : 'undefined'}`} />
   }
 
   if (shape === 'diamond') {
     const s = size * 0.7
     const points = `${x},${y - s} ${x + s},${y} ${x},${y + s} ${x - s},${y}`
-    return <polygon points={points} {...commonProps} />
+    return <polygon points={points} {...commonProps} data-testid={`hd-center-${center}`} aria-label={`${center.replace('_', ' ')} center, ${defined ? 'defined' : 'undefined'}`} />
   }
 
   // Square
@@ -80,6 +80,8 @@ const CenterShape: React.FC<{
       height={size}
       rx={3}
       {...commonProps}
+      data-testid={`hd-center-${center}`}
+      aria-label={`${center.replace('_', ' ')} center, ${defined ? 'defined' : 'undefined'}`}
     />
   )
 }
@@ -111,6 +113,8 @@ const ChannelLine: React.FC<{
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
       style={{ transition: 'all 0.2s ease' }}
+      data-testid={`hd-channel-${channel.id}`}
+      aria-label={`Channel ${channel.id}, ${isActive ? 'active' : 'inactive'}`}
     />
   )
 }

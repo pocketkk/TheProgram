@@ -111,10 +111,14 @@ export function PlanetGeneratorPage() {
               variant="outline"
               onClick={() => setIsSettingsModalOpen(true)}
               title="Prompt Settings"
+              data-testid="planet-btn-settings"
             >
               <Settings className="w-5 h-5" />
             </Button>
-            <Button onClick={() => setIsCreateModalOpen(true)}>
+            <Button
+              onClick={() => setIsCreateModalOpen(true)}
+              data-testid="planet-btn-new-set"
+            >
               <Plus className="w-5 h-5 mr-2" />
               New Planet Set
             </Button>

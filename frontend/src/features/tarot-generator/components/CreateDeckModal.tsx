@@ -102,6 +102,8 @@ export function CreateDeckModal({
             onClick={onClose}
             className="text-gray-400 hover:text-white transition"
             disabled={isCreating}
+            data-testid="tarot-modal-close"
+            aria-label="Close modal"
           >
             <X className="w-6 h-6" />
           </button>
@@ -121,6 +123,7 @@ export function CreateDeckModal({
               className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:border-celestial-purple focus:outline-none"
               disabled={isCreating}
               required
+              data-testid="tarot-input-deck-name"
             />
           </div>
 
@@ -137,6 +140,7 @@ export function CreateDeckModal({
                     : 'border-gray-700 hover:border-gray-600'
                 }`}
                 disabled={isCreating}
+                data-testid="tarot-btn-size-full"
               >
                 <div className="font-semibold">Full Deck</div>
                 <div className="text-sm text-gray-400">78 cards (Major + Minor Arcana)</div>
@@ -150,6 +154,7 @@ export function CreateDeckModal({
                     : 'border-gray-700 hover:border-gray-600'
                 }`}
                 disabled={isCreating}
+                data-testid="tarot-btn-size-major-only"
               >
                 <div className="font-semibold">Major Arcana Only</div>
                 <div className="text-sm text-gray-400">22 cards</div>
@@ -170,6 +175,7 @@ export function CreateDeckModal({
                     : 'border-gray-700 hover:border-gray-600'
                 }`}
                 disabled={isCreating}
+                data-testid="tarot-btn-labels-none"
               >
                 <div className="font-semibold">No Labels</div>
                 <div className="text-sm text-gray-400">Clean card art only</div>
@@ -183,6 +189,7 @@ export function CreateDeckModal({
                     : 'border-gray-700 hover:border-gray-600'
                 }`}
                 disabled={isCreating}
+                data-testid="tarot-btn-labels-include"
               >
                 <div className="font-semibold">Include Labels</div>
                 <div className="text-sm text-gray-400">Card name & number</div>
@@ -313,6 +320,7 @@ export function CreateDeckModal({
               onClick={onClose}
               disabled={isCreating}
               className="flex-1"
+              data-testid="tarot-btn-cancel"
             >
               Cancel
             </Button>
@@ -320,6 +328,7 @@ export function CreateDeckModal({
               type="submit"
               disabled={isCreating || !deckName.trim()}
               className="flex-1"
+              data-testid="tarot-btn-create"
             >
               {isCreating ? (
                 <>

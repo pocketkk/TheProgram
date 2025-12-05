@@ -18,9 +18,10 @@ interface TabButtonProps {
   active: boolean
   onClick: () => void
   children: React.ReactNode
+  testId?: string
 }
 
-function TabButton({ active, onClick, children }: TabButtonProps) {
+function TabButton({ active, onClick, children, testId }: TabButtonProps) {
   return (
     <button
       onClick={onClick}
@@ -30,6 +31,7 @@ function TabButton({ active, onClick, children }: TabButtonProps) {
           ? 'bg-cosmic-800/50 text-white border-celestial-purple'
           : 'text-gray-400 hover:text-white border-transparent hover:bg-cosmic-800/30'
       )}
+      data-testid={testId}
     >
       {children}
     </button>
@@ -61,12 +63,14 @@ export function StudioPage() {
             <TabButton
               active={activeTab === 'tarot'}
               onClick={() => setActiveTab('tarot')}
+              testId="studio-tab-tarot"
             >
               Tarot Decks
             </TabButton>
             <TabButton
               active={activeTab === 'planets'}
               onClick={() => setActiveTab('planets')}
+              testId="studio-tab-planets"
             >
               Planets
             </TabButton>

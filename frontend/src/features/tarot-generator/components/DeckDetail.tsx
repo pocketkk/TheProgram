@@ -85,21 +85,7 @@ export function DeckDetail({ deck, onBack, onDelete }: DeckDetailProps) {
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
   const deckFirstImage = previewImages[0] || deck.images[0]
 
-  // Filter cards
-  const filteredCards = (() => {
-    switch (filter) {
-      case 'major':
-        return MAJOR_ARCANA
-      case 'minor':
-        return getMinorArcana()
-      case 'missing': {
-        const existingKeys = new Set(deck.images.map(img => img.item_key))
-        return allCards.filter(card => !existingKeys.has(card.key))
-      }
-      default:
-        return allCards
-    }
-  })()
+  // Filter cards - computed after batchGen is available (see below)
 
   // Generate style preview (first card only)
   const handleGeneratePreview = () => {
@@ -239,15 +225,36 @@ export function DeckDetail({ deck, onBack, onDelete }: DeckDetailProps) {
     ? { id: latestGeneratedPreview.id || lastGeneratedImageId || '', url: latestGeneratedPreview.url }
     : deckFirstImage
 
-  const missingCount = allCards.length - deck.image_count
-  const progressPercent = (deck.image_count / allCards.length) * 100
+  // Track generated images during batch operation to keep count accurate
+  const generatedInCurrentBatch = batchGen.isGenerating ? batchGen.generatedImages.length : 0
+  const actualGeneratedCount = deck.image_count + generatedInCurrentBatch
+  const missingCount = allCards.length - actualGeneratedCount
+  const progressPercent = (actualGeneratedCount / allCards.length) * 100
+
+  // Filter cards - include keys from both deck.images AND currently generating batch
+  const filteredCards = (() => {
+    switch (filter) {
+      case 'major':
+        return MAJOR_ARCANA
+      case 'minor':
+        return getMinorArcana()
+      case 'missing': {
+        const existingKeys = new Set(deck.images.map(img => img.item_key))
+        // Also exclude cards that were just generated in the current batch
+        batchGen.generatedImages.forEach(img => existingKeys.add(img.key))
+        return allCards.filter(card => !existingKeys.has(card.key))
+      }
+      default:
+        return allCards
+    }
+  })()
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-start justify-between">
         <div className="flex-1">
-          <Button variant="ghost" size="sm" onClick={onBack} className="mb-3">
+          <Button variant="ghost" size="sm" onClick={onBack} className="mb-3" data-testid="tarot-btn-back">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Decks
           </Button>
@@ -271,7 +278,7 @@ export function DeckDetail({ deck, onBack, onDelete }: DeckDetailProps) {
 
         {/* Actions */}
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" disabled>
+          <Button variant="outline" size="sm" disabled data-testid="tarot-btn-export">
             <Download className="w-4 h-4 mr-2" />
             Export
           </Button>
@@ -287,6 +294,8 @@ export function DeckDetail({ deck, onBack, onDelete }: DeckDetailProps) {
                 onDelete()
               }
             }}
+            data-testid="tarot-btn-delete-deck"
+            aria-label="Delete deck"
           >
             <Trash2 className="w-4 h-4 text-red-400" />
           </Button>
@@ -301,7 +310,7 @@ export function DeckDetail({ deck, onBack, onDelete }: DeckDetailProps) {
             <div>
               <div className="text-sm text-gray-400 mb-2">Progress</div>
               <div className="text-2xl font-bold text-celestial-purple mb-2">
-                {deck.image_count} / {allCards.length}
+                {actualGeneratedCount} / {allCards.length}
               </div>
               <div className="w-full bg-gray-700 rounded-full h-2">
                 <div
@@ -329,6 +338,7 @@ export function DeckDetail({ deck, onBack, onDelete }: DeckDetailProps) {
                   onClick={handleGeneratePreview}
                   className="w-full"
                   disabled={batchGen.isGenerating}
+                  data-testid="tarot-btn-generate-preview"
                 >
                   <Eye className="w-4 h-4 mr-2" />
                   Generate Style Preview
@@ -342,6 +352,7 @@ export function DeckDetail({ deck, onBack, onDelete }: DeckDetailProps) {
                     onClick={handleApproveStyle}
                     className="flex-1"
                     disabled={isApprovingStyle}
+                    data-testid="tarot-btn-approve-style"
                   >
                     <ThumbsUp className="w-4 h-4 mr-2" />
                     {isApprovingStyle ? 'Approving...' : 'Approve Style'}
@@ -351,6 +362,7 @@ export function DeckDetail({ deck, onBack, onDelete }: DeckDetailProps) {
                     variant="outline"
                     className="flex-1"
                     disabled={batchGen.isGenerating}
+                    data-testid="tarot-btn-regenerate"
                   >
                     <RefreshCw className="w-4 h-4 mr-2" />
                     Regenerate
@@ -364,6 +376,7 @@ export function DeckDetail({ deck, onBack, onDelete }: DeckDetailProps) {
                   onClick={handleGenerateMissing}
                   className="w-full"
                   disabled={batchGen.isGenerating}
+                  data-testid="tarot-btn-generate-remaining"
                 >
                   <Sparkles className="w-4 h-4 mr-2" />
                   Generate {missingCount} Remaining Cards
@@ -456,12 +469,13 @@ export function DeckDetail({ deck, onBack, onDelete }: DeckDetailProps) {
       )}
 
       {/* Batch Progress */}
-      {batchGen.isGenerating && (
+      {(batchGen.isGenerating || batchGen.error) && (
         <BatchProgress
           progress={batchGen.currentProgress}
           generatedImages={batchGen.generatedImages}
           isPaused={batchGen.isPaused}
           isGenerating={batchGen.isGenerating}
+          error={batchGen.error}
           onPause={batchGen.pauseGeneration}
           onResume={batchGen.resumeGeneration}
           onCancel={batchGen.cancelGeneration}
@@ -474,6 +488,7 @@ export function DeckDetail({ deck, onBack, onDelete }: DeckDetailProps) {
           size="sm"
           variant={filter === 'all' ? 'primary' : 'outline'}
           onClick={() => setFilter('all')}
+          data-testid="tarot-filter-all"
         >
           All Cards ({allCards.length})
         </Button>
@@ -483,6 +498,7 @@ export function DeckDetail({ deck, onBack, onDelete }: DeckDetailProps) {
               size="sm"
               variant={filter === 'major' ? 'primary' : 'outline'}
               onClick={() => setFilter('major')}
+              data-testid="tarot-filter-major"
             >
               Major Arcana (22)
             </Button>
@@ -490,6 +506,7 @@ export function DeckDetail({ deck, onBack, onDelete }: DeckDetailProps) {
               size="sm"
               variant={filter === 'minor' ? 'primary' : 'outline'}
               onClick={() => setFilter('minor')}
+              data-testid="tarot-filter-minor"
             >
               Minor Arcana (56)
             </Button>
@@ -500,6 +517,7 @@ export function DeckDetail({ deck, onBack, onDelete }: DeckDetailProps) {
             size="sm"
             variant={filter === 'missing' ? 'primary' : 'outline'}
             onClick={() => setFilter('missing')}
+            data-testid="tarot-filter-missing"
           >
             Missing ({missingCount})
           </Button>
@@ -509,8 +527,19 @@ export function DeckDetail({ deck, onBack, onDelete }: DeckDetailProps) {
       {/* Card Grid */}
       <CardGrid
         cards={filteredCards}
-        images={deck.images}
-        generatingCards={new Set()} // Could track this from batch progress
+        images={[
+          ...deck.images,
+          // Add newly generated images from current batch for real-time display
+          ...batchGen.generatedImages.map(img => ({
+            id: img.id || '',
+            item_key: img.key,
+            url: img.url,
+            created_at: new Date().toISOString(),
+          } as ImageInfo)),
+        ]}
+        generatingCards={batchGen.currentProgress?.status === 'generating' && batchGen.currentProgress.item_key
+          ? new Set([batchGen.currentProgress.item_key])
+          : new Set()}
         onCardClick={handleCardClick}
       />
 
