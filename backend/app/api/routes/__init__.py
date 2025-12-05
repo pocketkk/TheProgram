@@ -28,6 +28,8 @@ from . import (
     # Phase 5: Image Generation
     images,
     image_ws,
+    # Phase 6: Coloring Book / Art Therapy
+    coloring_book,
 )
 
 # Create main API router
@@ -67,5 +69,8 @@ router.include_router(human_design.router, prefix="/human-design", tags=["Human 
 # Phase 5: Image Generation
 router.include_router(images.router, tags=["Images"])
 router.include_router(image_ws.router, tags=["Images"])
+
+# Phase 6: Coloring Book / Art Therapy
+router.include_router(coloring_book.router, tags=["Coloring Book"])
 
 __all__ = ["router"]
