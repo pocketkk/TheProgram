@@ -14,10 +14,12 @@ import {
   ThumbsUp,
   Eye,
   MessageSquare,
+  Printer,
 } from 'lucide-react'
 import { CardGrid } from './CardPreview'
 import { BatchProgress } from './BatchProgress'
 import { CardRefineModal } from './CardRefineModal'
+import { PrintDeckModal } from './PrintDeckModal'
 import {
   FULL_TAROT_DECK,
   MAJOR_ARCANA,
@@ -48,6 +50,7 @@ export function DeckDetail({ deck, onBack, onDelete }: DeckDetailProps) {
     card: TarotCard
     image: ImageInfo
   } | null>(null)
+  const [isPrintModalOpen, setIsPrintModalOpen] = useState(false)
   const { refreshDeck } = useRefreshDeck()
   const getPromptForCard = useTarotPromptStore(state => state.getPromptForCard)
 
@@ -278,6 +281,17 @@ export function DeckDetail({ deck, onBack, onDelete }: DeckDetailProps) {
 
         {/* Actions */}
         <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsPrintModalOpen(true)}
+            disabled={deck.image_count < 10}
+            title={deck.image_count < 10 ? 'Generate at least 10 cards to print' : 'Order a physical print of your deck'}
+            data-testid="tarot-btn-print"
+          >
+            <Printer className="w-4 h-4 mr-2" />
+            Print
+          </Button>
           <Button variant="outline" size="sm" disabled data-testid="tarot-btn-export">
             <Download className="w-4 h-4 mr-2" />
             Export
@@ -553,6 +567,15 @@ export function DeckDetail({ deck, onBack, onDelete }: DeckDetailProps) {
           onRefineComplete={handleRefineComplete}
         />
       )}
+
+      {/* Print Deck Modal */}
+      <PrintDeckModal
+        isOpen={isPrintModalOpen}
+        onClose={() => setIsPrintModalOpen(false)}
+        deckId={deck.id}
+        deckName={deck.name}
+        cardCount={deck.image_count}
+      />
     </div>
   )
 }
