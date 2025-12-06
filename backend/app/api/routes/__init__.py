@@ -28,6 +28,8 @@ from . import (
     # Phase 5: Image Generation
     images,
     image_ws,
+    # Phase 6: Palm Reading
+    palm_reading,
 )
 
 # Create main API router
@@ -67,5 +69,8 @@ router.include_router(human_design.router, prefix="/human-design", tags=["Human 
 # Phase 5: Image Generation
 router.include_router(images.router, tags=["Images"])
 router.include_router(image_ws.router, tags=["Images"])
+
+# Phase 6: Palm Reading
+router.include_router(palm_reading.router, tags=["Palm Reading"])
 
 __all__ = ["router"]

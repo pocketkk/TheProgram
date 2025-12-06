@@ -15,6 +15,7 @@ import {
   User,
   Palette,
   Wand2,
+  Hand,
   type LucideIcon
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -50,6 +51,8 @@ const navigation: NavigationItem[] = [
   // Phase 5: Image Generation
   { name: 'Themes', icon: Palette, page: 'themes', section: 'exploration' },
   { name: 'Studio', icon: Wand2, page: 'studio', section: 'exploration' },
+  // Phase 6: Palm Reading
+  { name: 'Palm Reading', icon: Hand, page: 'palmreading', section: 'exploration' },
   // System section
   { name: 'Settings', icon: Settings, page: 'settings', section: 'system' },
   { name: 'Help', icon: HelpCircle, page: 'help', section: 'system' },

@@ -39,6 +39,8 @@ import { HumanDesignPage } from './features/humandesign'
 import { ThemesPage } from './features/themes'
 // Studio (Image Generators)
 import { StudioPage } from './features/studio'
+// Phase 6: Palm Reading
+import { PalmReadingPage } from './features/palm-reading'
 // Guide module system
 import { initializeGuideRegistry, initializeGuideStateRegistry, updateGuideGlobalState } from './lib/guide'
 
@@ -208,6 +210,11 @@ function App() {
         {currentPage === 'studio' && (
           <ErrorBoundary featureName="Studio">
             <StudioPage />
+          </ErrorBoundary>
+        )}
+        {currentPage === 'palmreading' && (
+          <ErrorBoundary featureName="Palm Reading">
+            <PalmReadingPage />
           </ErrorBoundary>
         )}
         {currentPage === 'settings' && (
