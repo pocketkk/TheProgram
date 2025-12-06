@@ -228,3 +228,56 @@ class StorageStats(BaseModel):
     total_size_bytes: int = Field(default=0)
     total_size_mb: float = Field(default=0.0)
     by_category: Dict[str, Dict[str, Any]] = Field(default_factory=dict)
+
+
+# =============================================================================
+# The Game Crafter Print Schemas
+# =============================================================================
+
+
+class TGCCredentialsUpdate(BaseModel):
+    """Request to update TGC credentials"""
+    api_key_id: str = Field(..., min_length=1, description="TGC API Key ID")
+    username: str = Field(..., min_length=1, description="TGC username")
+    password: str = Field(..., min_length=1, description="TGC password")
+
+
+class TGCCredentialsStatus(BaseModel):
+    """Status of TGC credentials configuration"""
+    configured: bool = Field(..., description="Whether TGC credentials are set")
+    username: Optional[str] = Field(default=None, description="Username (if configured)")
+
+
+class TGCPrintRequest(BaseModel):
+    """Request to submit a tarot deck for printing"""
+    collection_id: str = Field(..., description="Collection ID of the tarot deck to print")
+    deck_name: str = Field(..., min_length=1, max_length=100, description="Name for the printed deck")
+    description: Optional[str] = Field(
+        default=None,
+        max_length=500,
+        description="Optional description for the deck"
+    )
+    card_back_image_id: Optional[str] = Field(
+        default=None,
+        description="Image ID to use as card back (if not provided, uses a default)"
+    )
+
+
+class TGCPrintProgress(BaseModel):
+    """Progress update for print submission"""
+    stage: str = Field(..., description="Current stage of submission")
+    current: int = Field(default=0, description="Current progress (0-100)")
+    total: int = Field(default=100, description="Total (always 100)")
+    message: Optional[str] = Field(default=None, description="Status message")
+
+
+class TGCPrintResponse(BaseModel):
+    """Response from print submission"""
+    success: bool = Field(..., description="Whether submission succeeded")
+    game_id: Optional[str] = Field(default=None, description="TGC Game ID")
+    deck_id: Optional[str] = Field(default=None, description="TGC Deck ID")
+    game_url: Optional[str] = Field(default=None, description="URL to view the game on TGC")
+    checkout_url: Optional[str] = Field(default=None, description="URL to add to cart and purchase")
+    cards_uploaded: int = Field(default=0, description="Number of cards successfully uploaded")
+    error: Optional[str] = Field(default=None, description="Error message if failed")
+    details: Optional[Dict[str, Any]] = Field(default=None, description="Additional details")

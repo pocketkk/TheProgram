@@ -91,6 +91,25 @@ class AppConfig(SingletonModel):
         comment="NewsAPI.org API key for recent news (free tier available)"
     )
 
+    # The Game Crafter API Configuration (for printing tarot decks)
+    tgc_api_key_id = Column(
+        String,
+        nullable=True,
+        comment="The Game Crafter API Key ID"
+    )
+
+    tgc_username = Column(
+        String,
+        nullable=True,
+        comment="The Game Crafter username"
+    )
+
+    tgc_password = Column(
+        String,
+        nullable=True,
+        comment="The Game Crafter password (encrypted)"
+    )
+
     # User Preferences
     newspaper_style = Column(
         String,
@@ -141,6 +160,15 @@ class AppConfig(SingletonModel):
         """Check if NewsAPI.org API key is set"""
         return self.newsapi_api_key is not None and len(self.newsapi_api_key.strip()) > 0
 
+    @property
+    def has_tgc_credentials(self) -> bool:
+        """Check if The Game Crafter credentials are configured"""
+        return (
+            self.tgc_api_key_id is not None and len(self.tgc_api_key_id.strip()) > 0
+            and self.tgc_username is not None and len(self.tgc_username.strip()) > 0
+            and self.tgc_password is not None and len(self.tgc_password.strip()) > 0
+        )
+
     def to_dict(self):
         """
         Convert to dictionary (excludes sensitive fields for security)
@@ -156,6 +184,9 @@ class AppConfig(SingletonModel):
         result.pop('guardian_api_key', None)
         result.pop('nyt_api_key', None)
         result.pop('newsapi_api_key', None)
+        result.pop('tgc_api_key_id', None)
+        result.pop('tgc_username', None)
+        result.pop('tgc_password', None)
         # Add has_* properties
         result['has_password'] = self.has_password
         result['has_api_key'] = self.has_api_key
@@ -163,6 +194,7 @@ class AppConfig(SingletonModel):
         result['has_guardian_api_key'] = self.has_guardian_api_key
         result['has_nyt_api_key'] = self.has_nyt_api_key
         result['has_newsapi_api_key'] = self.has_newsapi_api_key
+        result['has_tgc_credentials'] = self.has_tgc_credentials
         result['newspaper_style'] = self.newspaper_style or 'modern'
         result['newspaper_sources_priority'] = self.newspaper_sources_priority or 'guardian,nyt,wikipedia'
         return result
