@@ -40,7 +40,7 @@ import { ThemesPage } from './features/themes'
 // Studio (Image Generators)
 import { StudioPage } from './features/studio'
 // Phase 6: Card Games
-import { CardsPage } from './features/cards/CardsPage'
+import { CardsPage } from './features/cards'
 // Guide module system
 import { initializeGuideRegistry, initializeGuideStateRegistry, updateGuideGlobalState } from './lib/guide'
 
