@@ -474,7 +474,7 @@ export const BirthChartWheel = forwardRef<HTMLDivElement, BirthChartWheelProps>(
   }
 
   return (
-    <div ref={chartRef} className="relative" style={{ width: size, height: size }}>
+    <div ref={chartRef} className="relative" data-chart-wheel style={{ width: size, height: size }}>
       <ChartTooltip containerRef={chartRef} />
 
       {/* Zoom Controls */}

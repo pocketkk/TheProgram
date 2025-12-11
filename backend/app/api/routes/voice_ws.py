@@ -6,8 +6,9 @@ Supports switching between voice and text modes while preserving context.
 """
 from typing import Dict, Any, Optional, List
 from contextlib import contextmanager
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, HTTPException
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect, HTTPException, Depends
 from pydantic import BaseModel, Field
+from sqlalchemy.orm import Session
 import logging
 import json
 import uuid
@@ -21,9 +22,20 @@ from app.services.gemini_voice_service import (
     GeminiVoice,
     get_gemini_voice_service,
 )
+from app.services.agent_service import ALL_TOOLS, BACKEND_TOOLS
 from app.core.websocket import manager
-from app.core.database_sqlite import SessionLocal
+from app.core.database_sqlite import SessionLocal, get_db
 from app.models.app_config import AppConfig
+
+
+@contextmanager
+def get_db_context():
+    """Context manager for database access in WebSocket handlers"""
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -49,16 +61,6 @@ class VoiceSettingsUpdate(BaseModel):
     speaking_style: Optional[str] = Field(None, min_length=1, max_length=200)
     response_length: Optional[str] = Field(None, pattern="^(brief|medium|detailed)$")
     custom_personality: Optional[str] = Field(None, max_length=2000)
-
-
-@contextmanager
-def get_db():
-    """Database session context manager"""
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 
 def cleanup_stale_sessions():
@@ -94,6 +96,135 @@ def cleanup_stale_sessions():
     if len(stale_sessions) > 100:
         for session_id in stale_sessions[:-100]:
             del shared_conversation_history[session_id]
+
+
+async def execute_backend_tool(
+    tool_name: str,
+    tool_args: Dict[str, Any],
+    chart_context: Optional[Dict[str, Any]] = None
+) -> Dict[str, Any]:
+    """
+    Execute a backend tool and return its result.
+
+    This is a subset of the tools that can execute on the server side.
+    More complex tools may need additional context.
+
+    Args:
+        tool_name: Name of the tool to execute
+        tool_args: Input parameters for the tool
+        chart_context: Current chart context (planets, houses, aspects, chart_id)
+
+    Returns:
+        Tool execution result
+    """
+    # Extract active chart ID from context (single-user app - use this as default)
+    active_chart_id = chart_context.get("chart_id") if chart_context else None
+
+    try:
+        if tool_name == "get_chart_data":
+            if not chart_context:
+                return {"success": False, "error": "No chart currently loaded"}
+
+            result = {"success": True}
+            if tool_args.get("include_aspects", True):
+                result["aspects"] = chart_context.get("aspects", [])
+            if tool_args.get("include_patterns", True):
+                result["patterns"] = chart_context.get("patterns", [])
+            result["planets"] = chart_context.get("planets", {})
+            result["houses"] = chart_context.get("houses", {})
+            return result
+
+        elif tool_name == "get_planet_info":
+            planet_name = tool_args.get("planet", "").lower()
+            if not chart_context or not chart_context.get("planets"):
+                return {"success": False, "error": "No chart data available"}
+
+            planet_data = chart_context["planets"].get(planet_name)
+            if not planet_data:
+                return {"success": False, "error": f"Planet '{planet_name}' not found in chart"}
+
+            return {"success": True, "planet": planet_data}
+
+        elif tool_name == "get_house_info":
+            house_num = tool_args.get("house_number", 1)
+            if not chart_context or not chart_context.get("houses"):
+                return {"success": False, "error": "No chart data available"}
+
+            houses = chart_context.get("houses", {})
+            cusps = houses.get("cusps", [])
+
+            if house_num < 1 or house_num > len(cusps):
+                return {"success": False, "error": f"House {house_num} not found"}
+
+            # Find planets in this house
+            planets_in_house = []
+            for name, data in chart_context.get("planets", {}).items():
+                if data.get("house") == house_num:
+                    planets_in_house.append(name)
+
+            return {
+                "success": True,
+                "house": {
+                    "number": house_num,
+                    "cusp": cusps[house_num - 1] if cusps else None,
+                    "planets": planets_in_house
+                }
+            }
+
+        elif tool_name == "list_available_charts":
+            with get_db_context() as db:
+                from app.models.chart import Chart
+                from app.models.birth_data import BirthData
+
+                charts = db.query(Chart).join(
+                    BirthData, Chart.birth_data_id == BirthData.id
+                ).order_by(Chart.updated_at.desc()).limit(20).all()
+
+                chart_list = []
+                for chart in charts:
+                    birth_data = db.query(BirthData).filter(
+                        BirthData.id == chart.birth_data_id
+                    ).first()
+                    # Mark which chart is currently active
+                    is_active = str(chart.id) == active_chart_id
+                    chart_list.append({
+                        "id": str(chart.id),
+                        "name": chart.chart_name,
+                        "type": chart.chart_type,
+                        "location": birth_data.location_string if birth_data else "Unknown",
+                        "is_active": is_active,
+                    })
+
+                return {
+                    "success": True,
+                    "charts": chart_list,
+                    "count": len(chart_list),
+                    "active_chart_id": active_chart_id
+                }
+
+        elif tool_name == "get_active_chart_info":
+            # Return info about the currently active chart (no ID needed)
+            if not chart_context:
+                return {"success": False, "error": "No chart currently loaded"}
+
+            return {
+                "success": True,
+                "chart_id": active_chart_id,
+                "chart_name": chart_context.get("chart_name", "Unknown"),
+                "chart_type": chart_context.get("chart_type", "natal"),
+                "message": "This is the currently active chart - no need to ask for IDs"
+            }
+
+        else:
+            # Tool not implemented for voice - return helpful message
+            return {
+                "success": False,
+                "error": f"Tool '{tool_name}' is not yet available in voice mode"
+            }
+
+    except Exception as e:
+        logger.error(f"Error executing backend tool {tool_name}: {e}")
+        return {"success": False, "error": str(e)}
 
 
 @router.websocket("/ws/voice")
@@ -175,7 +306,7 @@ async def voice_conversation(websocket: WebSocket):
         await manager.connect(websocket, connection_id)
 
         # Get API key from database
-        with get_db() as db:
+        with get_db_context() as db:
             config = db.query(AppConfig).filter_by(id=1).first()
             api_key = config.google_api_key if config else None
 
@@ -215,12 +346,14 @@ async def voice_conversation(websocket: WebSocket):
 
                 if message_type == "start_session":
                     # Start a new voice session
+                    logger.info(f"Starting voice session for {connection_id}")
                     live_session = await handle_start_session(
                         connection_id=connection_id,
                         api_key=api_key,
                         request=request,
                         session_id=session_id,
                     )
+                    logger.info(f"Voice session started, live_session: {live_session is not None}")
 
                 elif message_type == "audio_chunk":
                     # Forward audio to Gemini
@@ -229,6 +362,8 @@ async def voice_conversation(websocket: WebSocket):
                         if audio_b64:
                             audio_data = base64.b64decode(audio_b64)
                             await live_session.send_audio(audio_data)
+                    else:
+                        logger.warning(f"Audio chunk received but session not ready: live_session={live_session is not None}, connected={live_session.is_connected if live_session else 'N/A'}")
 
                 elif message_type == "end_turn":
                     # Signal end of user's speaking turn
@@ -298,7 +433,9 @@ async def voice_conversation(websocket: WebSocket):
     except WebSocketDisconnect:
         logger.info(f"Voice WebSocket disconnected: {connection_id}")
     except Exception as e:
+        import traceback
         logger.error(f"Voice WebSocket error: {e}")
+        logger.error(f"Full traceback: {traceback.format_exc()}")
         try:
             await manager.send_message(connection_id, {
                 "type": "error",
@@ -362,11 +499,13 @@ async def handle_start_session(
 
     # Create voice service
     try:
+        logger.info(f"Creating voice service for connection {connection_id}")
         service = get_gemini_voice_service(
             api_key=api_key,
             voice_settings=voice_settings,
             force_new=True,
         )
+        logger.info("Voice service created successfully")
 
         # Sync existing history
         if shared_conversation_history.get(effective_session_id):
@@ -405,20 +544,45 @@ async def handle_start_session(
                 "mode": "voice"
             })
 
-            # Signal turn complete
+        async def on_turn_complete():
+            """Signal turn complete to client (model finished speaking)"""
+            logger.info("Sending turn_complete to frontend")
             await manager.send_message(connection_id, {
                 "type": "turn_complete"
             })
 
-        # Start live session
+        async def on_tool_call(tool_name: str, tool_args: Dict[str, Any]) -> Dict[str, Any]:
+            """Execute a tool and return the result"""
+            logger.info(f"Voice tool call: {tool_name} with args: {tool_args}")
+
+            # Check if this is a backend tool (executes on server) or frontend tool (sends command to UI)
+            if tool_name in BACKEND_TOOLS:
+                # Execute backend tools directly
+                return await execute_backend_tool(tool_name, tool_args, astro_context)
+            else:
+                # Frontend tools - send command to frontend and return success
+                await manager.send_message(connection_id, {
+                    "type": "tool_command",
+                    "tool_name": tool_name,
+                    "tool_args": tool_args
+                })
+                return {"success": True, "message": f"Command {tool_name} sent to application"}
+
+        # Start live session with tools
+        logger.info("Starting live session...")
         live_session = await service.start_session(
             on_audio=on_audio,
             on_text=on_text,
             on_transcript=on_transcript,
+            on_turn_complete=on_turn_complete,
+            on_tool_call=on_tool_call,
+            tools=ALL_TOOLS,
             astrological_context=astro_context,
         )
+        logger.info("Live session created, connecting to Gemini...")
 
         await live_session.connect()
+        logger.info("Connected to Gemini Live API!")
 
         # Store references
         voice_sessions[connection_id] = {
@@ -436,7 +600,9 @@ async def handle_start_session(
         return live_session
 
     except Exception as e:
+        import traceback
         logger.error(f"Failed to start voice session: {e}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
         await manager.send_message(connection_id, {
             "type": "error",
             "error": f"Failed to start voice session: {str(e)}"
@@ -469,67 +635,64 @@ async def get_available_voices():
 
 
 @router.get("/voice/settings")
-async def get_voice_settings():
+async def get_voice_settings(db: Session = Depends(get_db)):
     """Get current voice settings from app config"""
-    with get_db() as db:
-        config = db.query(AppConfig).filter_by(id=1).first()
-        if not config:
-            return {
-                "voice_name": "Kore",
-                "personality": "mystical guide",
-                "speaking_style": "warm and contemplative",
-                "response_length": "medium",
-                "custom_personality": None,
-            }
-
+    config = db.query(AppConfig).filter_by(id=1).first()
+    if not config:
         return {
-            "voice_name": config.voice_name or "Kore",
-            "personality": config.voice_personality or "mystical guide",
-            "speaking_style": config.voice_speaking_style or "warm and contemplative",
-            "response_length": config.voice_response_length or "medium",
-            "custom_personality": config.voice_custom_personality,
+            "voice_name": "Kore",
+            "personality": "mystical guide",
+            "speaking_style": "warm and contemplative",
+            "response_length": "medium",
+            "custom_personality": None,
         }
+
+    return {
+        "voice_name": config.voice_name or "Kore",
+        "personality": config.voice_personality or "mystical guide",
+        "speaking_style": config.voice_speaking_style or "warm and contemplative",
+        "response_length": config.voice_response_length or "medium",
+        "custom_personality": config.voice_custom_personality,
+    }
 
 
 @router.put("/voice/settings")
-async def update_voice_settings(settings: VoiceSettingsUpdate):
+async def update_voice_settings(settings: VoiceSettingsUpdate, db: Session = Depends(get_db)):
     """Update voice settings in app config"""
-    with get_db() as db:
-        config = db.query(AppConfig).filter_by(id=1).first()
-        if not config:
-            raise HTTPException(status_code=404, detail="App config not found")
+    config = db.query(AppConfig).filter_by(id=1).first()
+    if not config:
+        raise HTTPException(status_code=404, detail="App config not found")
 
-        # Update only provided fields
-        if settings.voice_name is not None:
-            config.voice_name = settings.voice_name
-        if settings.personality is not None:
-            config.voice_personality = settings.personality
-        if settings.speaking_style is not None:
-            config.voice_speaking_style = settings.speaking_style
-        if settings.response_length is not None:
-            config.voice_response_length = settings.response_length
-        if settings.custom_personality is not None:
-            config.voice_custom_personality = settings.custom_personality
+    # Update only provided fields
+    if settings.voice_name is not None:
+        config.voice_name = settings.voice_name
+    if settings.personality is not None:
+        config.voice_personality = settings.personality
+    if settings.speaking_style is not None:
+        config.voice_speaking_style = settings.speaking_style
+    if settings.response_length is not None:
+        config.voice_response_length = settings.response_length
+    if settings.custom_personality is not None:
+        config.voice_custom_personality = settings.custom_personality
 
-        db.commit()
+    db.commit()
 
-        return {
-            "voice_name": config.voice_name,
-            "personality": config.voice_personality,
-            "speaking_style": config.voice_speaking_style,
-            "response_length": config.voice_response_length,
-            "custom_personality": config.voice_custom_personality,
-        }
+    return {
+        "voice_name": config.voice_name,
+        "personality": config.voice_personality,
+        "speaking_style": config.voice_speaking_style,
+        "response_length": config.voice_response_length,
+        "custom_personality": config.voice_custom_personality,
+    }
 
 
 @router.get("/voice/status")
-async def get_voice_status():
+async def get_voice_status(db: Session = Depends(get_db)):
     """Check if voice chat is available (Google API key configured)"""
-    with get_db() as db:
-        config = db.query(AppConfig).filter_by(id=1).first()
-        has_key = config and config.has_google_api_key
+    config = db.query(AppConfig).filter_by(id=1).first()
+    has_key = config and config.has_google_api_key
 
-        return {
-            "available": has_key,
-            "message": "Voice chat ready" if has_key else "Google API key required for voice chat"
-        }
+    return {
+        "available": has_key,
+        "message": "Voice chat ready" if has_key else "Google API key required for voice chat"
+    }

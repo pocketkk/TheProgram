@@ -358,8 +358,8 @@ export const handlers = [
     })
   }),
 
-  // GET /voice/options
-  http.get(`${API_BASE}/voice/options`, () => {
+  // GET /api/voice/options
+  http.get(`${API_BASE}/api/voice/options`, () => {
     return HttpResponse.json({
       voices: [
         { name: 'Puck', description: 'Upbeat and playful' },
@@ -378,13 +378,13 @@ export const handlers = [
     })
   }),
 
-  // GET /voice/settings
-  http.get(`${API_BASE}/voice/settings`, () => {
+  // GET /api/voice/settings
+  http.get(`${API_BASE}/api/voice/settings`, () => {
     return HttpResponse.json(mockVoiceSettings)
   }),
 
-  // PUT /voice/settings
-  http.put(`${API_BASE}/voice/settings`, async ({ request }) => {
+  // PUT /api/voice/settings
+  http.put(`${API_BASE}/api/voice/settings`, async ({ request }) => {
     const body = (await request.json()) as Partial<typeof mockVoiceSettings>
 
     mockVoiceSettings = {
@@ -395,8 +395,8 @@ export const handlers = [
     return HttpResponse.json(mockVoiceSettings)
   }),
 
-  // GET /voice/status
-  http.get(`${API_BASE}/voice/status`, () => {
+  // GET /api/voice/status
+  http.get(`${API_BASE}/api/voice/status`, () => {
     return HttpResponse.json({
       available: mockGoogleApiKeySet,
       message: mockGoogleApiKeySet

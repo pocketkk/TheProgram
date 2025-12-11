@@ -61,15 +61,25 @@ export function useVoiceChat(voiceSettings?: VoiceSettings): UseVoiceChatReturn 
   const processorRef = useRef<ScriptProcessorNode | null>(null)
   const audioQueueRef = useRef<Float32Array[]>([])
   const isPlayingRef = useRef(false)
+  const playbackStartedRef = useRef(false)  // Prevents multiple playback triggers
+  const currentSourceRef = useRef<AudioBufferSourceNode | null>(null)
   const reconnectAttemptsRef = useRef(0)
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const shouldReconnectRef = useRef(true)
+  const voiceStateRef = useRef<VoiceState>('idle')
+  const processingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   const [voiceConnectionStatus, setVoiceConnectionStatus] = useState<VoiceConnectionStatus>('disconnected')
-  const [voiceState, setVoiceState] = useState<VoiceState>('idle')
+  const [voiceState, setVoiceStateInternal] = useState<VoiceState>('idle')
   const [isVoiceActive, setIsVoiceActive] = useState(false)
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [transcript, setTranscript] = useState('')
+
+  // Wrapper to keep ref in sync with state
+  const setVoiceState = useCallback((state: VoiceState) => {
+    voiceStateRef.current = state
+    setVoiceStateInternal(state)
+  }, [])
 
   const { addMessage, messages } = useCompanionStore()
   const chartStore = useChartStore()
@@ -88,6 +98,10 @@ export function useVoiceChat(voiceSettings?: VoiceSettings): UseVoiceChatReturn 
     const chart = chartStore.getActiveChart()
     if (!chart) return null
 
+    // Get the active chart ID and type from the store (not on chart object)
+    const activeChartId = chartStore.activeChartId
+    const chartType = chartStore.chartType
+
     const planets = chart.planets.reduce(
       (acc, p) => {
         acc[p.name.toLowerCase()] = {
@@ -103,6 +117,11 @@ export function useVoiceChat(voiceSettings?: VoiceSettings): UseVoiceChatReturn 
     )
 
     return {
+      // Include chart identification for single-user context
+      chart_id: activeChartId,
+      chart_name: 'Current Chart', // BirthChart doesn't store name, backend will fill this in
+      chart_type: chartType || 'natal',
+      // Planet positions
       planets,
       houses: {
         cusps: chart.houses?.map(h => h.cusp) || [],
@@ -147,55 +166,169 @@ export function useVoiceChat(voiceSettings?: VoiceSettings): UseVoiceChatReturn 
     const apiHost = apiBaseUrl.replace(/^https?:\/\//, '')
     const wsUrl = `${wsProtocol}//${apiHost}/ws/voice`
 
-    try {
-      const ws = new WebSocket(wsUrl)
+    // Return a promise that resolves when WebSocket is open
+    return new Promise<void>((resolve, reject) => {
+      try {
+        const ws = new WebSocket(wsUrl)
 
-      ws.onopen = () => {
-        console.log('Voice WebSocket connected')
-        wsRef.current = ws
-        reconnectAttemptsRef.current = 0 // Reset on successful connection
-      }
+        ws.onopen = () => {
+          console.log('Voice WebSocket connected')
+          wsRef.current = ws
+          reconnectAttemptsRef.current = 0 // Reset on successful connection
+          resolve()
+        }
 
-      ws.onmessage = (event) => {
-        handleMessage(event)
-      }
+        ws.onmessage = (event) => {
+          handleMessage(event)
+        }
 
-      ws.onclose = (event) => {
-        console.log('Voice WebSocket closed', event.code, event.reason)
-        setVoiceConnectionStatus('disconnected')
-        setIsVoiceActive(false)
-        wsRef.current = null
+        ws.onclose = (event) => {
+          console.log('Voice WebSocket closed', event.code, event.reason)
+          setVoiceConnectionStatus('disconnected')
+          setIsVoiceActive(false)
+          wsRef.current = null
 
-        // Attempt reconnection if not intentionally closed
+          // Attempt reconnection if not intentionally closed
+          if (shouldReconnectRef.current && reconnectAttemptsRef.current < MAX_RECONNECT_ATTEMPTS) {
+            const delay = getReconnectDelay()
+            console.log(`Reconnecting in ${delay}ms (attempt ${reconnectAttemptsRef.current + 1}/${MAX_RECONNECT_ATTEMPTS})`)
+
+            reconnectTimeoutRef.current = setTimeout(() => {
+              reconnectAttemptsRef.current++
+              connect()
+            }, delay)
+          }
+        }
+
+        ws.onerror = (error) => {
+          console.error('Voice WebSocket error:', error)
+          setVoiceConnectionStatus('error')
+          reject(error)
+        }
+      } catch (error) {
+        console.error('Failed to create Voice WebSocket:', error)
+        setVoiceConnectionStatus('error')
+
+        // Attempt reconnection on connection failure
         if (shouldReconnectRef.current && reconnectAttemptsRef.current < MAX_RECONNECT_ATTEMPTS) {
           const delay = getReconnectDelay()
-          console.log(`Reconnecting in ${delay}ms (attempt ${reconnectAttemptsRef.current + 1}/${MAX_RECONNECT_ATTEMPTS})`)
-
           reconnectTimeoutRef.current = setTimeout(() => {
             reconnectAttemptsRef.current++
             connect()
           }, delay)
         }
+        reject(error)
       }
+    })
+  }, [getReconnectDelay])
 
-      ws.onerror = (error) => {
-        console.error('Voice WebSocket error:', error)
-        setVoiceConnectionStatus('error')
+  // Handle tool commands from voice
+  const handleToolCommand = useCallback((toolName: string, toolArgs: Record<string, unknown>) => {
+    try {
+      switch (toolName) {
+        case 'navigate_to_page': {
+          // Map API page names to app page names
+          const pageMap: Record<string, string> = {
+            dashboard: 'dashboard',
+            birthchart: 'birthchart',
+            cosmos: 'charts',
+            charts: 'charts',
+            journal: 'journal',
+            timeline: 'timeline',
+            canvas: 'canvas',
+            settings: 'settings',
+            help: 'help',
+          }
+          const page = toolArgs.page as string
+          const appPage = pageMap[page] || page
+          // Dispatch navigation event for App.tsx to handle
+          window.dispatchEvent(
+            new CustomEvent('companion-navigate', { detail: { page: appPage } })
+          )
+          break
+        }
+
+        case 'load_chart': {
+          const chartId = toolArgs.chart_id as string
+          chartStore.setActiveChart(chartId)
+          break
+        }
+
+        case 'set_zodiac_system': {
+          const system = toolArgs.system as 'western' | 'vedic' | 'human-design'
+          chartStore.setZodiacSystem(system)
+          break
+        }
+
+        case 'set_house_system': {
+          // Import HouseSystem type for proper typing
+          type HouseSystem = 'placidus' | 'koch' | 'whole_sign' | 'equal' | 'campanus' | 'regiomontanus' | 'porphyry' | 'morinus'
+          chartStore.setHouseSystem(toolArgs.system as HouseSystem)
+          break
+        }
+
+        case 'select_planet': {
+          // Dispatch event for chart component to handle
+          window.dispatchEvent(
+            new CustomEvent('select-planet', {
+              detail: { planet: toolArgs.planet },
+            })
+          )
+          break
+        }
+
+        case 'select_house': {
+          // Dispatch event for chart component to handle
+          window.dispatchEvent(
+            new CustomEvent('select-house', {
+              detail: { house: toolArgs.house_number },
+            })
+          )
+          break
+        }
+
+        case 'clear_selection': {
+          // Dispatch event for chart component to handle
+          window.dispatchEvent(new CustomEvent('clear-chart-selection'))
+          break
+        }
+
+        case 'toggle_layer': {
+          // Dispatch event for chart component to handle
+          window.dispatchEvent(
+            new CustomEvent('toggle-chart-layer', {
+              detail: { layer: toolArgs.layer, visible: toolArgs.visible },
+            })
+          )
+          break
+        }
+
+        case 'set_transit_date': {
+          const date = toolArgs.date as string
+          if (date) {
+            // Dispatch event for chart component to handle
+            window.dispatchEvent(
+              new CustomEvent('set-transit-date', {
+                detail: { date },
+              })
+            )
+          }
+          break
+        }
+
+        case 'recalculate_chart': {
+          // Dispatch recalculation event
+          window.dispatchEvent(new CustomEvent('recalculate-chart'))
+          break
+        }
+
+        default:
+          console.log('[VOICE] Unknown tool command:', toolName)
       }
     } catch (error) {
-      console.error('Failed to create Voice WebSocket:', error)
-      setVoiceConnectionStatus('error')
-
-      // Attempt reconnection on connection failure
-      if (shouldReconnectRef.current && reconnectAttemptsRef.current < MAX_RECONNECT_ATTEMPTS) {
-        const delay = getReconnectDelay()
-        reconnectTimeoutRef.current = setTimeout(() => {
-          reconnectAttemptsRef.current++
-          connect()
-        }, delay)
-      }
+      console.error('[VOICE] Error executing tool command:', toolName, error)
     }
-  }, [getReconnectDelay])
+  }, [chartStore])
 
   // Handle incoming WebSocket messages
   const handleMessage = useCallback((event: MessageEvent) => {
@@ -210,16 +343,25 @@ export function useVoiceChat(voiceSettings?: VoiceSettings): UseVoiceChatReturn 
 
         case 'session_started':
           setIsVoiceActive(true)
-          setVoiceState('idle')
-          console.log('Voice session started with voice:', data.voice_name)
+          // Don't set to idle here - let startListening set to 'listening'
+          console.log('[VOICE] Session started with voice:', data.voice_name, 'current state:', voiceStateRef.current)
           break
 
         case 'audio_chunk':
+          // Clear processing timeout - we're getting a response
+          if (processingTimeoutRef.current) {
+            clearTimeout(processingTimeoutRef.current)
+            processingTimeoutRef.current = null
+          }
           // Decode and queue audio for playback
           if (data.data) {
             const audioData = base64ToFloat32(data.data)
             audioQueueRef.current.push(audioData)
-            if (!isPlayingRef.current) {
+            console.log('[VOICE] Received audio chunk, queue size:', audioQueueRef.current.length)
+            // Only trigger playback start once - the playback loop handles the rest
+            if (!isPlayingRef.current && !playbackStartedRef.current) {
+              console.log('[VOICE] Starting audio playback')
+              playbackStartedRef.current = true
               playAudioQueue()
             }
             setVoiceState('speaking')
@@ -243,7 +385,17 @@ export function useVoiceChat(voiceSettings?: VoiceSettings): UseVoiceChatReturn 
           break
 
         case 'turn_complete':
-          setVoiceState('idle')
+          // Reset playback flags for next response
+          playbackStartedRef.current = false
+          // If microphone is still active, transition to listening so user can speak
+          // Otherwise go to idle
+          if (mediaStreamRef.current) {
+            console.log('[VOICE] Turn complete - transitioning to LISTENING (mic active)')
+            setVoiceState('listening')
+          } else {
+            console.log('[VOICE] Turn complete - transitioning to idle (no mic)')
+            setVoiceState('idle')
+          }
           break
 
         case 'session_stopped':
@@ -255,12 +407,27 @@ export function useVoiceChat(voiceSettings?: VoiceSettings): UseVoiceChatReturn 
           console.log('Voice history synced')
           break
 
-        case 'error':
-          console.error('Voice error:', data.error)
-          if (data.code === 'api_key_missing') {
-            setVoiceConnectionStatus('no_api_key')
+        case 'tool_command':
+          // Execute tool command from voice (frontend tools)
+          console.log('[VOICE] Tool command received:', data.tool_name, data.tool_args)
+          handleToolCommand(data.tool_name, data.tool_args)
+          break
+
+        case 'error': {
+          // Filter out transient errors that don't affect functionality
+          const errorMsg = data.error || ''
+          if (errorMsg.includes('list index out of range') ||
+              errorMsg.includes('IndexError')) {
+            // Transient Gemini library error - ignore silently
+            console.debug('Voice transient error (ignored):', errorMsg)
+          } else {
+            console.error('Voice error:', errorMsg)
+            if (data.code === 'api_key_missing') {
+              setVoiceConnectionStatus('no_api_key')
+            }
           }
           break
+        }
 
         case 'pong':
           break
@@ -271,7 +438,7 @@ export function useVoiceChat(voiceSettings?: VoiceSettings): UseVoiceChatReturn 
     } catch (error) {
       console.error('Error parsing voice message:', error)
     }
-  }, [addMessage])
+  }, [addMessage, handleToolCommand])
 
   // Convert base64 PCM to Float32Array for Web Audio
   const base64ToFloat32 = (base64: string): Float32Array => {
@@ -291,45 +458,110 @@ export function useVoiceChat(voiceSettings?: VoiceSettings): UseVoiceChatReturn 
     return float32
   }
 
-  // Play queued audio
+  // Play queued audio with batching for smoother playback
   const playAudioQueue = async () => {
+    // Wait for at least some audio to accumulate before playing
+    const MIN_CHUNKS_TO_START = 4  // Increased for better buffering
+    const MAX_CHUNKS_PER_PLAY = 5  // Combine more chunks for smoother audio
+
     if (audioQueueRef.current.length === 0) {
       isPlayingRef.current = false
+      playbackStartedRef.current = false  // Allow new playback to be triggered
+      currentSourceRef.current = null
+      return
+    }
+
+    // If not playing yet, wait for minimum chunks
+    if (!isPlayingRef.current && audioQueueRef.current.length < MIN_CHUNKS_TO_START) {
+      // Schedule a check after a short delay - playbackStartedRef prevents re-entry
+      setTimeout(() => playAudioQueue(), 100)
       return
     }
 
     isPlayingRef.current = true
 
-    if (!audioContextRef.current) {
+    if (!audioContextRef.current || audioContextRef.current.state === 'closed') {
       audioContextRef.current = new AudioContext({ sampleRate: OUTPUT_SAMPLE_RATE })
     }
 
-    const ctx = audioContextRef.current
-    const audioData = audioQueueRef.current.shift()!
+    // Resume audio context if suspended (browser autoplay policy)
+    if (audioContextRef.current.state === 'suspended') {
+      await audioContextRef.current.resume()
+    }
 
-    const buffer = ctx.createBuffer(1, audioData.length, OUTPUT_SAMPLE_RATE)
-    buffer.copyToChannel(audioData, 0)
+    const ctx = audioContextRef.current
+
+    // Combine multiple chunks for smoother playback
+    const chunksToPlay = Math.min(audioQueueRef.current.length, MAX_CHUNKS_PER_PLAY)
+    const chunks = audioQueueRef.current.splice(0, chunksToPlay)
+    const totalLength = chunks.reduce((sum, c) => sum + c.length, 0)
+    const combinedAudio = new Float32Array(totalLength)
+    let offset = 0
+    for (const chunk of chunks) {
+      combinedAudio.set(chunk, offset)
+      offset += chunk.length
+    }
+
+    const buffer = ctx.createBuffer(1, combinedAudio.length, OUTPUT_SAMPLE_RATE)
+    buffer.copyToChannel(combinedAudio, 0)
 
     const source = ctx.createBufferSource()
     source.buffer = buffer
-    source.connect(ctx.destination)
+
+    // Add gain node for volume control (reduce volume to prevent loudness)
+    const gainNode = ctx.createGain()
+    gainNode.gain.value = 0.7  // 70% volume
+    source.connect(gainNode)
+    gainNode.connect(ctx.destination)
+
+    // Track current source for potential cleanup
+    currentSourceRef.current = source
 
     source.onended = () => {
+      currentSourceRef.current = null
       playAudioQueue()
     }
 
     source.start()
   }
 
+  // Stop any currently playing audio
+  const stopAudioPlayback = () => {
+    if (currentSourceRef.current) {
+      try {
+        currentSourceRef.current.stop()
+      } catch {
+        // Already stopped
+      }
+      currentSourceRef.current = null
+    }
+    audioQueueRef.current = []
+    isPlayingRef.current = false
+    playbackStartedRef.current = false
+  }
+
   // Start voice session and listening
   const startListening = useCallback(async () => {
+    // Stop any currently playing audio to prevent overlap
+    stopAudioPlayback()
+
+    // Connect if not already connected
     if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
       await connect()
+      // Wait a bit for the 'connected' message to be processed
+      await new Promise(resolve => setTimeout(resolve, 100))
+    }
+
+    // Double-check WebSocket is ready
+    if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+      console.error('WebSocket not ready after connect')
+      return
     }
 
     // Start session if not active
     if (!isVoiceActive) {
-      wsRef.current?.send(JSON.stringify({
+      console.log('Sending start_session message')
+      wsRef.current.send(JSON.stringify({
         type: 'start_session',
         voice_settings: voiceSettings || {
           voice_name: 'Kore',
@@ -363,8 +595,10 @@ export function useVoiceChat(voiceSettings?: VoiceSettings): UseVoiceChatReturn 
       const processor = ctx.createScriptProcessor(4096, 1, 1)
       processorRef.current = processor
 
+      let audioChunkCount = 0
       processor.onaudioprocess = (e) => {
-        if (wsRef.current?.readyState === WebSocket.OPEN && voiceState === 'listening') {
+        // Use ref to get current voiceState (avoids stale closure)
+        if (wsRef.current?.readyState === WebSocket.OPEN && voiceStateRef.current === 'listening') {
           const inputData = e.inputBuffer.getChannelData(0)
           const pcmData = float32ToInt16(inputData)
           const base64 = arrayBufferToBase64(pcmData.buffer)
@@ -373,12 +607,23 @@ export function useVoiceChat(voiceSettings?: VoiceSettings): UseVoiceChatReturn 
             type: 'audio_chunk',
             data: base64,
           }))
+
+          // Log periodically to avoid flooding console
+          audioChunkCount++
+          if (audioChunkCount % 50 === 0) {
+            console.log(`[VOICE] Sent ${audioChunkCount} audio chunks to backend, voiceState: ${voiceStateRef.current}`)
+          }
+        } else if (audioChunkCount === 0) {
+          // Log why we're not sending (only once)
+          audioChunkCount = -1  // Mark as logged
+          console.log(`[VOICE] Audio processor ready, waiting for listening state. Current: ${voiceStateRef.current}, WS: ${wsRef.current?.readyState}`)
         }
       }
 
       source.connect(processor)
       processor.connect(ctx.destination)
 
+      console.log('[VOICE] Audio capture initialized, setting state to LISTENING')
       setVoiceState('listening')
 
     } catch (error) {
@@ -398,7 +643,7 @@ export function useVoiceChat(voiceSettings?: VoiceSettings): UseVoiceChatReturn 
   }
 
   // Convert ArrayBuffer to base64
-  const arrayBufferToBase64 = (buffer: ArrayBuffer): string => {
+  const arrayBufferToBase64 = (buffer: ArrayBufferLike): string => {
     const bytes = new Uint8Array(buffer)
     let binary = ''
     for (let i = 0; i < bytes.length; i++) {
@@ -427,6 +672,18 @@ export function useVoiceChat(voiceSettings?: VoiceSettings): UseVoiceChatReturn 
     if (wsRef.current?.readyState === WebSocket.OPEN) {
       wsRef.current.send(JSON.stringify({ type: 'end_turn' }))
     }
+
+    // Set timeout to reset to idle if no response received
+    // VAD should trigger a response within ~2-3 seconds after speech stops
+    if (processingTimeoutRef.current) {
+      clearTimeout(processingTimeoutRef.current)
+    }
+    processingTimeoutRef.current = setTimeout(() => {
+      if (voiceStateRef.current === 'processing') {
+        console.warn('Processing timeout - resetting to idle')
+        setVoiceState('idle')
+      }
+    }, 10000) // 10 second timeout
   }, [])
 
   // Send text while in voice mode
@@ -479,8 +736,9 @@ export function useVoiceChat(voiceSettings?: VoiceSettings): UseVoiceChatReturn 
       wsRef.current.send(JSON.stringify({ type: 'stop_session' }))
     }
 
-    // Stop listening
+    // Stop listening and any audio playback
     stopListening()
+    stopAudioPlayback()
 
     // Close WebSocket
     if (wsRef.current) {

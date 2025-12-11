@@ -2,83 +2,21 @@
  * Voice API Client Tests
  *
  * Tests for voice settings API interactions.
+ * Uses the global MSW server from src/tests/mocks/server.ts
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { http, HttpResponse } from 'msw'
-import { setupServer } from 'msw/node'
+import { server } from '@/tests/mocks/server'
+import { setMockGoogleApiKeyState } from '@/tests/mocks/handlers'
 import {
   getVoiceOptions,
   getVoiceSettings,
   updateVoiceSettings,
   getVoiceStatus,
-  type VoiceSettings,
-  type VoiceOptions,
 } from '../voice'
 
-const API_BASE = 'http://localhost:8000'
-
-// Mock voice data
-const mockVoiceOptions: VoiceOptions = {
-  voices: [
-    { name: 'Puck', description: 'Upbeat and playful' },
-    { name: 'Charon', description: 'Deep and authoritative' },
-    { name: 'Kore', description: 'Warm and nurturing' },
-    { name: 'Fenrir', description: 'Bold and energetic' },
-    { name: 'Aoede', description: 'Calm and melodic' },
-  ],
-  default_settings: {
-    voice_name: 'Kore',
-    personality: 'mystical guide',
-    speaking_style: 'warm and contemplative',
-    response_length: 'medium',
-    custom_personality: null,
-  },
-  response_lengths: ['brief', 'medium', 'detailed'],
-}
-
-const mockVoiceSettings: VoiceSettings = {
-  voice_name: 'Kore',
-  personality: 'mystical guide',
-  speaking_style: 'warm and contemplative',
-  response_length: 'medium',
-  custom_personality: null,
-}
-
-// Setup MSW server
-const server = setupServer(
-  http.get(`${API_BASE}/voice/options`, () => {
-    return HttpResponse.json(mockVoiceOptions)
-  }),
-
-  http.get(`${API_BASE}/voice/settings`, () => {
-    return HttpResponse.json(mockVoiceSettings)
-  }),
-
-  http.put(`${API_BASE}/voice/settings`, async ({ request }) => {
-    const body = await request.json() as Partial<VoiceSettings>
-    return HttpResponse.json({
-      ...mockVoiceSettings,
-      ...body,
-    })
-  }),
-
-  http.get(`${API_BASE}/voice/status`, () => {
-    return HttpResponse.json({
-      available: true,
-      message: 'Voice chat ready',
-    })
-  })
-)
-
-beforeEach(() => {
-  server.listen({ onUnhandledRequest: 'bypass' })
-})
-
-afterEach(() => {
-  server.resetHandlers()
-  server.close()
-})
+const API_BASE = 'http://localhost:8000/api'
 
 describe('Voice API Client', () => {
   describe('getVoiceOptions', () => {
@@ -166,6 +104,7 @@ describe('Voice API Client', () => {
 
   describe('getVoiceStatus', () => {
     it('should return available status when API key is configured', async () => {
+      setMockGoogleApiKeyState(true)
       const status = await getVoiceStatus()
 
       expect(status.available).toBe(true)
@@ -173,15 +112,7 @@ describe('Voice API Client', () => {
     })
 
     it('should return unavailable status when no API key', async () => {
-      server.use(
-        http.get(`${API_BASE}/voice/status`, () => {
-          return HttpResponse.json({
-            available: false,
-            message: 'Google API key required for voice chat',
-          })
-        })
-      )
-
+      setMockGoogleApiKeyState(false)
       const status = await getVoiceStatus()
 
       expect(status.available).toBe(false)
