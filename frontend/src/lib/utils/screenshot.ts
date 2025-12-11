@@ -65,13 +65,20 @@ export async function captureScreenshot(
                 document.body
     }
 
-    // Capture with html2canvas
+    // Capture with html2canvas, excluding floating UI elements
     const canvas = await html2canvas(element, {
       scale: scale,
       useCORS: true,
       allowTaint: true,
       backgroundColor: '#0f0a1e', // Match app background
       logging: false,
+      ignoreElements: (el) => {
+        // Exclude the guide panel and other floating UI so we see the actual content
+        if (el.closest?.('[data-guide-panel]')) return true
+        if (el.closest?.('[data-companion-panel]')) return true
+        if (el.classList?.contains('companion-panel')) return true
+        return false
+      },
     })
 
     // Scale down if needed
@@ -115,13 +122,13 @@ export async function captureScreenshot(
  * Capture the birth chart wheel specifically
  */
 export async function captureChartWheel(): Promise<ScreenshotResult> {
-  // Try various selectors for the chart
+  // Try various selectors for the chart (in order of specificity)
   const selectors = [
+    '[data-chart-wheel]',        // BirthChartWheel component
     '[data-chart-container]',
     '.birth-chart-wheel',
     '[class*="BirthChartWheel"]',
     'svg[class*="chart"]',
-    'main > div > div:first-child', // Common layout pattern
   ]
 
   for (const selector of selectors) {

@@ -16,6 +16,9 @@ export type AvatarState =
   | 'curious'
   | 'celebrating'
 
+// Chat mode
+export type ChatMode = 'text' | 'voice'
+
 // Companion position options
 export type CompanionPosition =
   | 'bottom-right'
@@ -86,6 +89,7 @@ interface CompanionStore {
   // UI State
   isExpanded: boolean
   position: CompanionPosition
+  chatMode: ChatMode
 
   // Avatar
   avatarState: AvatarState
@@ -110,6 +114,7 @@ interface CompanionStore {
   expand: () => void
   minimize: () => void
   setPosition: (position: CompanionPosition) => void
+  setChatMode: (mode: ChatMode) => void
 
   // Avatar Actions
   setAvatarState: (state: AvatarState) => void
@@ -155,6 +160,7 @@ export const useCompanionStore = create<CompanionStore>()(
       // Initial UI State
       isExpanded: false,
       position: 'bottom-right',
+      chatMode: 'text',
 
       // Initial Avatar State
       avatarState: 'idle',
@@ -190,6 +196,7 @@ export const useCompanionStore = create<CompanionStore>()(
           position,
           preferences: { ...state.preferences, position },
         })),
+      setChatMode: chatMode => set({ chatMode }),
 
       // Avatar Actions
       setAvatarState: avatarState => set({ avatarState }),
