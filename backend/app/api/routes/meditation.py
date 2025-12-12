@@ -5,6 +5,7 @@ Handles meditation presets, sessions, and audio generation.
 Part of the Meditation feature.
 """
 import logging
+import re
 from datetime import datetime, timedelta
 from typing import List, Optional
 from pathlib import Path
@@ -33,6 +34,38 @@ from app.schemas.meditation import (
 from app.services.meditation_audio_service import MeditationAudioService
 
 logger = logging.getLogger(__name__)
+
+# =============================================================================
+# Audio Storage Configuration
+# =============================================================================
+
+# Centralized audio storage path
+BACKEND_DIR = Path(__file__).parent.parent.parent.parent
+AUDIO_STORAGE_DIR = BACKEND_DIR / "data" / "meditation_audio"
+
+# Maximum audio file size (50MB)
+MAX_AUDIO_FILE_SIZE = 50 * 1024 * 1024
+
+
+def get_audio_storage_path() -> Path:
+    """Get the audio storage directory, creating it if it doesn't exist."""
+    AUDIO_STORAGE_DIR.mkdir(parents=True, exist_ok=True)
+    return AUDIO_STORAGE_DIR
+
+
+def validate_audio_filename(filename: str) -> bool:
+    """
+    Validate audio filename to prevent path traversal attacks.
+
+    Args:
+        filename: The filename to validate
+
+    Returns:
+        True if filename is safe, False otherwise
+    """
+    # Only allow alphanumeric characters, hyphens, underscores, and .wav extension
+    pattern = r'^[a-zA-Z0-9_-]+\.wav$'
+    return bool(re.match(pattern, filename))
 
 router = APIRouter()
 
@@ -405,6 +438,19 @@ async def generate_audio(
                 prompt_used=result.prompt,
             )
 
+        # Validate file size
+        audio_size = len(result.audio_data)
+        if audio_size > MAX_AUDIO_FILE_SIZE:
+            logger.warning(f"Generated audio exceeds max size: {audio_size} bytes")
+            return AudioGenerateResponse(
+                success=False,
+                error=f"Generated audio file too large ({audio_size // (1024*1024)}MB). Maximum size is {MAX_AUDIO_FILE_SIZE // (1024*1024)}MB.",
+                prompt_used=result.prompt,
+            )
+
+        # Ensure storage directory exists
+        get_audio_storage_path()
+
         # Save audio to storage
         file_path = await service.save_audio(
             audio_data=result.audio_data,
@@ -462,9 +508,24 @@ async def get_audio(
     if not audio:
         raise HTTPException(status_code=404, detail="Audio not found")
 
-    # Build full path
-    backend_dir = Path(__file__).parent.parent.parent.parent
-    audio_path = backend_dir / "data" / "meditation_audio" / audio.file_path
+    # Validate filename to prevent path traversal attacks
+    if not audio.file_path or not validate_audio_filename(audio.file_path):
+        logger.warning(f"Invalid audio file path detected: {audio.file_path}")
+        raise HTTPException(status_code=400, detail="Invalid audio file path")
+
+    # Build full path using centralized storage directory
+    storage_dir = get_audio_storage_path()
+    audio_path = storage_dir / audio.file_path
+
+    # Additional path traversal protection: ensure resolved path is within storage directory
+    try:
+        resolved_path = audio_path.resolve()
+        if not str(resolved_path).startswith(str(storage_dir.resolve())):
+            logger.warning(f"Path traversal attempt detected: {audio.file_path}")
+            raise HTTPException(status_code=400, detail="Invalid audio file path")
+    except (ValueError, OSError) as e:
+        logger.error(f"Error resolving audio path: {e}")
+        raise HTTPException(status_code=400, detail="Invalid audio file path")
 
     if not audio_path.exists():
         raise HTTPException(status_code=404, detail="Audio file not found")
