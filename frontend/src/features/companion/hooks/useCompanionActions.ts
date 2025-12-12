@@ -193,11 +193,14 @@ export function useCompanionActions() {
             const pageMap: Record<string, string> = {
               dashboard: 'dashboard',
               birthchart: 'birthchart',
+              vedic: 'vedic',
+              humandesign: 'humandesign',
               cosmos: 'charts',
               charts: 'charts',
               journal: 'journal',
               timeline: 'timeline',
               canvas: 'canvas',
+              studio: 'studio',
               settings: 'settings',
               help: 'help',
             }

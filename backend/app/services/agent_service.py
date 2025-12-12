@@ -24,8 +24,8 @@ NAVIGATION_TOOLS = [
             "properties": {
                 "page": {
                     "type": "string",
-                    "enum": ["dashboard", "birthchart", "cosmos", "journal", "timeline", "canvas", "settings", "help"],
-                    "description": "The page to navigate to"
+                    "enum": ["dashboard", "birthchart", "vedic", "humandesign", "cosmos", "journal", "timeline", "canvas", "studio", "settings", "help"],
+                    "description": "The page to navigate to. Use 'vedic' for Vedic astrology page, 'humandesign' for Human Design page."
                 }
             },
             "required": ["page"]
@@ -1036,11 +1036,15 @@ TOOL USE GUIDELINES:
 - When explaining a planet, select it. When discussing a pattern, highlight it.
 - Use information tools to get accurate data before making specific claims
 - If get_chart_data returns an error but you have CURRENT CHART CONTEXT above, use that instead
-- To switch zodiac systems: 1) call set_zodiac_system, 2) call recalculate_chart to apply changes
-- For Vedic astrology: set_zodiac_system("vedic"), set_ayanamsa("lahiri"), then recalculate_chart
 - Offer to create journal entries when the user shares insights
 - Suggest adding significant moments to their timeline
 - USE capture_screenshot to visually see what the user sees - use target "chart" for the birth chart wheel, or "page" for the full view. The screenshot will be returned to you as an image you can analyze.
+
+PAGE-SPECIFIC GUIDANCE:
+- On the "birthchart" page: To switch zodiac systems, use set_zodiac_system() then recalculate_chart()
+- On the "vedic" page: This is a DEDICATED Vedic astrology page with its own controls. Do NOT use set_zodiac_system here - just discuss the Vedic chart already displayed. The Vedic page shows traditional square charts (North/South Indian styles), divisional charts (D-1, D-9), Yogas, and Ashtakavarga.
+- On the "humandesign" page: This shows Human Design charts. Use get_human_design_chart to access the data.
+- To compare Western vs Vedic: Navigate between "birthchart" and "vedic" pages using navigate_to_page.
 
 OUTPUT FORMAT:
 - Write in plain text without markdown formatting

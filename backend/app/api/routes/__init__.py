@@ -30,6 +30,9 @@ from . import (
     # Phase 5: Image Generation
     images,
     image_ws,
+    # Vedic Advanced Features
+    yogas,
+    ashtakavarga,
 )
 
 # Create main API router
@@ -71,5 +74,9 @@ router.include_router(human_design.router, prefix="/human-design", tags=["Human 
 # Phase 5: Image Generation
 router.include_router(images.router, tags=["Images"])
 router.include_router(image_ws.router, tags=["Images"])
+
+# Vedic Advanced Features
+router.include_router(yogas.router, prefix="/yogas", tags=["Yogas"])
+router.include_router(ashtakavarga.router, prefix="/ashtakavarga", tags=["Ashtakavarga"])
 
 __all__ = ["router"]
