@@ -4,9 +4,13 @@ Pydantic schemas for coloring book / art therapy feature
 Handles request/response validation for coloring book image generation
 and artwork saving.
 """
-from pydantic import BaseModel, Field
+import json
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional, List, Dict, Any
 from datetime import datetime
+
+# Maximum size for canvas_state JSON in bytes (1MB)
+MAX_CANVAS_STATE_SIZE = 1024 * 1024
 
 
 # =============================================================================
@@ -71,6 +75,18 @@ class ArtworkSaveRequest(BaseModel):
         description="Tags for organization"
     )
 
+    @field_validator("canvas_state")
+    @classmethod
+    def validate_canvas_state_size(cls, v: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+        """Validate canvas state doesn't exceed maximum size"""
+        if v is not None:
+            serialized = json.dumps(v)
+            if len(serialized) > MAX_CANVAS_STATE_SIZE:
+                raise ValueError(
+                    f"canvas_state exceeds maximum size of {MAX_CANVAS_STATE_SIZE // 1024}KB"
+                )
+        return v
+
 
 class ArtworkInfo(BaseModel):
     """Artwork information"""
@@ -113,6 +129,18 @@ class ArtworkUpdateRequest(BaseModel):
     )
     tags: Optional[List[str]] = Field(default=None)
 
+    @field_validator("canvas_state")
+    @classmethod
+    def validate_canvas_state_size(cls, v: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+        """Validate canvas state doesn't exceed maximum size"""
+        if v is not None:
+            serialized = json.dumps(v)
+            if len(serialized) > MAX_CANVAS_STATE_SIZE:
+                raise ValueError(
+                    f"canvas_state exceeds maximum size of {MAX_CANVAS_STATE_SIZE // 1024}KB"
+                )
+        return v
+
 
 # =============================================================================
 # Coloring Book Templates
@@ -133,3 +161,22 @@ class TemplateListResponse(BaseModel):
     """Response for listing templates"""
     templates: List[ColoringBookTemplate] = Field(default_factory=list)
     total: int = Field(default=0)
+
+
+# =============================================================================
+# Coloring Book Image Listing
+# =============================================================================
+
+
+class ColoringBookImageInfo(BaseModel):
+    """Info for a generated coloring book image"""
+    id: str = Field(..., description="Image ID")
+    prompt: str = Field(..., description="Generation prompt")
+    url: str = Field(..., description="Image URL")
+    width: int = Field(default=0, description="Width in pixels")
+    height: int = Field(default=0, description="Height in pixels")
+    theme: Optional[str] = Field(default=None, description="Image theme")
+    created_at: datetime = Field(..., description="Creation timestamp")
+
+    class Config:
+        from_attributes = True

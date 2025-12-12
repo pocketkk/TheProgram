@@ -10,7 +10,6 @@ import base64
 import logging
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Query
-from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
 from app.core.database_sqlite import get_db
@@ -27,6 +26,7 @@ from app.schemas.coloring_book import (
     ArtworkUpdateRequest,
     ColoringBookTemplate,
     TemplateListResponse,
+    ColoringBookImageInfo,
 )
 
 logger = logging.getLogger(__name__)
@@ -156,6 +156,60 @@ def get_google_api_key(db: Session) -> str:
             detail="Google API key not configured. Set your API key in settings to enable image generation.",
         )
     return config.google_api_key
+
+
+def _artwork_to_info(artwork: Artwork, storage) -> ArtworkInfo:
+    """Convert Artwork model to ArtworkInfo schema"""
+    return ArtworkInfo(
+        id=artwork.id,
+        name=artwork.name,
+        file_path=artwork.file_path,
+        url=storage.get_file_url(artwork.file_path),
+        thumbnail_url=None,
+        width=artwork.width or 0,
+        height=artwork.height or 0,
+        file_size=artwork.file_size,
+        source_image_id=artwork.source_image_id,
+        canvas_state=artwork.canvas_state,
+        tags=artwork.tags or [],
+        created_at=artwork.created_at,
+        updated_at=artwork.updated_at,
+    )
+
+
+def _decode_base64_image(image_data_str: str) -> bytes:
+    """
+    Decode base64 image data with validation.
+
+    Args:
+        image_data_str: Base64 encoded image, optionally with data URL prefix
+
+    Returns:
+        Decoded image bytes
+
+    Raises:
+        HTTPException: If decoding fails
+    """
+    try:
+        # Remove data URL prefix if present (e.g., "data:image/png;base64,")
+        if "," in image_data_str:
+            image_data_str = image_data_str.split(",")[1]
+
+        # Validate base64 string is not empty
+        if not image_data_str or not image_data_str.strip():
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Empty image data provided",
+            )
+
+        return base64.b64decode(image_data_str)
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid base64 image data: {str(e)}",
+        )
 
 
 # =============================================================================
@@ -371,7 +425,7 @@ async def list_templates(
 # =============================================================================
 
 
-@router.get("/images", response_model=list)
+@router.get("/images", response_model=list[ColoringBookImageInfo])
 async def list_coloring_book_images(
     limit: int = Query(default=50, ge=1, le=200),
     offset: int = Query(default=0, ge=0),
@@ -397,15 +451,15 @@ async def list_coloring_book_images(
     storage = get_image_storage_service()
 
     return [
-        {
-            "id": img.id,
-            "prompt": img.prompt,
-            "url": storage.get_file_url(img.file_path),
-            "width": img.width or 0,
-            "height": img.height or 0,
-            "theme": img.generation_params.get("theme") if img.generation_params else None,
-            "created_at": img.created_at,
-        }
+        ColoringBookImageInfo(
+            id=img.id,
+            prompt=img.prompt or "",
+            url=storage.get_file_url(img.file_path),
+            width=img.width or 0,
+            height=img.height or 0,
+            theme=img.generation_params.get("theme") if img.generation_params else None,
+            created_at=img.created_at,
+        )
         for img in images
     ]
 
@@ -434,70 +488,43 @@ async def save_artwork(
     """
     storage = get_image_storage_service()
 
+    # Decode and validate base64 image data
+    image_data = _decode_base64_image(request.image_data)
+
+    # Generate filename and save
+    filename = storage.generate_filename("artwork")
+    file_path = storage.save_image(
+        image_data=image_data,
+        category="artwork",
+        filename=filename,
+    )
+
+    # Get image dimensions
+    width, height = 0, 0
     try:
-        # Decode base64 image data
-        # Remove data URL prefix if present
-        image_data_str = request.image_data
-        if "," in image_data_str:
-            image_data_str = image_data_str.split(",")[1]
+        from PIL import Image
+        import io
+        img = Image.open(io.BytesIO(image_data))
+        width, height = img.size
+    except Exception:
+        pass
 
-        image_data = base64.b64decode(image_data_str)
+    # Create artwork record
+    artwork = Artwork(
+        name=request.name,
+        file_path=file_path,
+        width=width,
+        height=height,
+        file_size=len(image_data),
+        source_image_id=request.source_image_id,
+        canvas_state=request.canvas_state,
+        tags=request.tags,
+    )
+    db.add(artwork)
+    db.commit()
+    db.refresh(artwork)
 
-        # Generate filename and save
-        filename = storage.generate_filename("artwork")
-        file_path = storage.save_image(
-            image_data=image_data,
-            category="artwork",
-            filename=filename,
-        )
-
-        # Get image dimensions
-        width, height = 0, 0
-        try:
-            from PIL import Image
-            import io
-            img = Image.open(io.BytesIO(image_data))
-            width, height = img.size
-        except Exception:
-            pass
-
-        # Create artwork record
-        artwork = Artwork(
-            name=request.name,
-            file_path=file_path,
-            width=width,
-            height=height,
-            file_size=len(image_data),
-            source_image_id=request.source_image_id,
-            canvas_state=request.canvas_state,
-            tags=request.tags,
-        )
-        db.add(artwork)
-        db.commit()
-        db.refresh(artwork)
-
-        return ArtworkInfo(
-            id=artwork.id,
-            name=artwork.name,
-            file_path=artwork.file_path,
-            url=storage.get_file_url(artwork.file_path),
-            thumbnail_url=None,
-            width=artwork.width or 0,
-            height=artwork.height or 0,
-            file_size=artwork.file_size,
-            source_image_id=artwork.source_image_id,
-            canvas_state=artwork.canvas_state,
-            tags=artwork.tags or [],
-            created_at=artwork.created_at,
-            updated_at=artwork.updated_at,
-        )
-
-    except Exception as e:
-        logger.error(f"Failed to save artwork: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to save artwork: {str(e)}",
-        )
+    return _artwork_to_info(artwork, storage)
 
 
 @router.get("/artwork", response_model=ArtworkListResponse)
@@ -527,30 +554,16 @@ async def list_artwork(
 
     storage = get_image_storage_service()
 
-    # Filter by tag if specified (in Python since SQLite JSON querying is limited)
+    # NOTE: Tag filtering is done in Python because SQLite lacks native JSON array
+    # querying. This is acceptable for the expected dataset size (personal artwork
+    # collection). For larger datasets, consider PostgreSQL with JSONB or a separate
+    # tags table with proper indexing.
     if tag:
         artworks = [a for a in artworks if a.tags and tag in a.tags]
         total = len(artworks)
 
     return ArtworkListResponse(
-        artworks=[
-            ArtworkInfo(
-                id=artwork.id,
-                name=artwork.name,
-                file_path=artwork.file_path,
-                url=storage.get_file_url(artwork.file_path),
-                thumbnail_url=None,
-                width=artwork.width or 0,
-                height=artwork.height or 0,
-                file_size=artwork.file_size,
-                source_image_id=artwork.source_image_id,
-                canvas_state=artwork.canvas_state,
-                tags=artwork.tags or [],
-                created_at=artwork.created_at,
-                updated_at=artwork.updated_at,
-            )
-            for artwork in artworks
-        ],
+        artworks=[_artwork_to_info(artwork, storage) for artwork in artworks],
         total=total,
         limit=limit,
         offset=offset,
@@ -581,22 +594,7 @@ async def get_artwork(
         )
 
     storage = get_image_storage_service()
-
-    return ArtworkInfo(
-        id=artwork.id,
-        name=artwork.name,
-        file_path=artwork.file_path,
-        url=storage.get_file_url(artwork.file_path),
-        thumbnail_url=None,
-        width=artwork.width or 0,
-        height=artwork.height or 0,
-        file_size=artwork.file_size,
-        source_image_id=artwork.source_image_id,
-        canvas_state=artwork.canvas_state,
-        tags=artwork.tags or [],
-        created_at=artwork.created_at,
-        updated_at=artwork.updated_at,
-    )
+    return _artwork_to_info(artwork, storage)
 
 
 @router.patch("/artwork/{artwork_id}", response_model=ArtworkInfo)
@@ -638,61 +636,36 @@ async def update_artwork(
 
     # Update image if provided
     if request.image_data is not None:
+        # Decode and validate base64 image data
+        image_data = _decode_base64_image(request.image_data)
+
+        # Delete old file
+        storage.delete_image(artwork.file_path)
+
+        # Save new file
+        filename = storage.generate_filename("artwork")
+        file_path = storage.save_image(
+            image_data=image_data,
+            category="artwork",
+            filename=filename,
+        )
+
+        artwork.file_path = file_path
+        artwork.file_size = len(image_data)
+
+        # Update dimensions
         try:
-            # Decode and save new image
-            image_data_str = request.image_data
-            if "," in image_data_str:
-                image_data_str = image_data_str.split(",")[1]
-
-            image_data = base64.b64decode(image_data_str)
-
-            # Delete old file
-            storage.delete_image(artwork.file_path)
-
-            # Save new file
-            filename = storage.generate_filename("artwork")
-            file_path = storage.save_image(
-                image_data=image_data,
-                category="artwork",
-                filename=filename,
-            )
-
-            artwork.file_path = file_path
-            artwork.file_size = len(image_data)
-
-            # Update dimensions
-            try:
-                from PIL import Image
-                import io
-                img = Image.open(io.BytesIO(image_data))
-                artwork.width, artwork.height = img.size
-            except Exception:
-                pass
-
-        except Exception as e:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Failed to update image: {str(e)}",
-            )
+            from PIL import Image
+            import io
+            img = Image.open(io.BytesIO(image_data))
+            artwork.width, artwork.height = img.size
+        except Exception:
+            pass
 
     db.commit()
     db.refresh(artwork)
 
-    return ArtworkInfo(
-        id=artwork.id,
-        name=artwork.name,
-        file_path=artwork.file_path,
-        url=storage.get_file_url(artwork.file_path),
-        thumbnail_url=None,
-        width=artwork.width or 0,
-        height=artwork.height or 0,
-        file_size=artwork.file_size,
-        source_image_id=artwork.source_image_id,
-        canvas_state=artwork.canvas_state,
-        tags=artwork.tags or [],
-        created_at=artwork.created_at,
-        updated_at=artwork.updated_at,
-    )
+    return _artwork_to_info(artwork, storage)
 
 
 @router.delete("/artwork/{artwork_id}")

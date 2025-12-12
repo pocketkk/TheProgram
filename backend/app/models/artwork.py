@@ -3,7 +3,7 @@ Artwork model for coloring book / art therapy feature
 
 Stores user-created colored artwork and canvas state for resuming work.
 """
-from sqlalchemy import Column, String, ForeignKey, Index, Text, Integer
+from sqlalchemy import Column, String, ForeignKey, Index, Integer
 from sqlalchemy.orm import relationship
 
 from app.models.base import BaseModel
