@@ -294,12 +294,34 @@ async def get_center(center_name: str):
     """Get information about a specific Human Design center."""
     centers = HumanDesignCalculator.get_all_centers()
 
-    # Normalize the center name for matching
+    # Normalize the input for matching
     normalized = center_name.lower().replace('-', '_').replace(' ', '_')
 
+    # Map short names to full names
+    short_name_map = {
+        'head': 'head center',
+        'ajna': 'ajna center',
+        'throat': 'throat center',
+        'g': 'g center (identity)',
+        'g_center': 'g center (identity)',
+        'heart': 'heart/ego center',
+        'ego': 'heart/ego center',
+        'sacral': 'sacral center',
+        'solar_plexus': 'solar plexus center',
+        'spleen': 'splenic center',
+        'splenic': 'splenic center',
+        'root': 'root center',
+    }
+
+    # Try short name mapping first
+    target_name = short_name_map.get(normalized, normalized)
+
     for center in centers:
-        center_key = center['name'].lower().replace(' ', '_').replace('/', '_')
-        if center_key == normalized or center['name'].lower() == center_name.lower():
+        center_lower = center['name'].lower()
+        center_key = center_lower.replace(' ', '_').replace('/', '_')
+        if (center_key == normalized or
+            center_lower == target_name or
+            center_lower.startswith(normalized)):
             return HDCenterInfo(**center)
 
     raise HTTPException(
