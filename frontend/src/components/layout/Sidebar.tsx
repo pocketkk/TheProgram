@@ -16,6 +16,7 @@ import {
   Palette,
   Wand2,
   Grid3X3,
+  Paintbrush,
   type LucideIcon
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -52,6 +53,8 @@ const navigation: NavigationItem[] = [
   // Phase 5: Image Generation
   { name: 'Themes', icon: Palette, page: 'themes', section: 'exploration' },
   { name: 'Studio', icon: Wand2, page: 'studio', section: 'exploration' },
+  // Phase 6: Art Therapy
+  { name: 'Coloring Book', icon: Paintbrush, page: 'coloringbook', section: 'exploration' },
   // System section
   { name: 'Settings', icon: Settings, page: 'settings', section: 'system' },
   { name: 'Help', icon: HelpCircle, page: 'help', section: 'system' },

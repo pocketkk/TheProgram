@@ -33,6 +33,8 @@ from . import (
     # Vedic Advanced Features
     yogas,
     ashtakavarga,
+    # Phase 6: Coloring Book / Art Therapy
+    coloring_book,
 )
 
 # Create main API router
@@ -78,5 +80,8 @@ router.include_router(image_ws.router, tags=["Images"])
 # Vedic Advanced Features
 router.include_router(yogas.router, prefix="/yogas", tags=["Yogas"])
 router.include_router(ashtakavarga.router, prefix="/ashtakavarga", tags=["Ashtakavarga"])
+
+# Phase 6: Coloring Book / Art Therapy
+router.include_router(coloring_book.router, tags=["Coloring Book"])
 
 __all__ = ["router"]
