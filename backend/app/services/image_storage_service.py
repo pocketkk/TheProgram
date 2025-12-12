@@ -41,7 +41,7 @@ class ImageStorageService:
         url = service.get_file_url(path)
     """
 
-    CATEGORIES = ["tarot", "backgrounds", "infographics", "custom", "temp"]
+    CATEGORIES = ["tarot", "backgrounds", "infographics", "custom", "temp", "coloring_book", "artwork"]
 
     def __init__(self, base_path: Optional[str] = None):
         """
