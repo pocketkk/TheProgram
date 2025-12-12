@@ -3,13 +3,14 @@
  *
  * Main page for Human Design chart visualization and analysis
  */
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useMemo } from 'react'
 import { useHDStore } from './stores/hdStore'
 import { BodyGraph } from './components/BodyGraph'
-import { DetailPanel } from './components/DetailPanel'
 import { Controls } from './components/Controls'
 import { AIReading } from './components/AIReading'
+import { CenterDetailModal } from './components/CenterDetailModal'
 import { listBirthData } from '@/lib/api/birthData'
+import type { GateActivation, CenterDefinition, ChannelDefinition } from './types'
 
 interface HumanDesignPageProps {
   birthDataId?: string | null
@@ -49,12 +50,62 @@ export const HumanDesignPage: React.FC<HumanDesignPageProps> = ({ birthDataId: p
     isLoading,
     error,
     viewMode,
+    selection,
     calculateChart,
+    clearSelection,
     zodiac,
     siderealMethod,
     ayanamsa,
-    reset,
   } = useHDStore()
+
+  // Compute active gates map and active channels for the modal
+  const { activeGates, activeChannels, centerDefinitions } = useMemo(() => {
+    if (!chart) {
+      return {
+        activeGates: new Map<number, 'personality' | 'design' | 'both'>(),
+        activeChannels: new Set<string>(),
+        centerDefinitions: new Map<string, boolean>(),
+      }
+    }
+
+    const personalityArr = Array.isArray(chart.personality_activations) ? chart.personality_activations : []
+    const designArr = Array.isArray(chart.design_activations) ? chart.design_activations : []
+    const channelsArr = Array.isArray(chart.channels) ? chart.channels : []
+    const centersArr = Array.isArray(chart.centers) ? chart.centers : []
+
+    const personality = new Set(personalityArr.map((a: GateActivation) => a.gate))
+    const design = new Set(designArr.map((a: GateActivation) => a.gate))
+
+    // Build active gates map
+    const gatesMap = new Map<number, 'personality' | 'design' | 'both'>()
+    personalityArr.forEach((a: GateActivation) => {
+      gatesMap.set(a.gate, design.has(a.gate) ? 'both' : 'personality')
+    })
+    designArr.forEach((a: GateActivation) => {
+      if (!gatesMap.has(a.gate)) {
+        gatesMap.set(a.gate, 'design')
+      }
+    })
+
+    // Build active channels set
+    const channels = new Set<string>()
+    channelsArr.forEach((c: ChannelDefinition) => {
+      if (c.channel_id) {
+        channels.add(c.channel_id)
+        const [g1, g2] = c.channel_id.split('-')
+        channels.add(`${g2}-${g1}`)
+      }
+    })
+
+    // Build center definitions map
+    const centerDefs = new Map(centersArr.map((c: CenterDefinition) => [c.center, c.defined]))
+
+    return {
+      activeGates: gatesMap,
+      activeChannels: channels,
+      centerDefinitions: centerDefs,
+    }
+  }, [chart])
 
   // Calculate chart when birthDataId or settings change
   useEffect(() => {
@@ -146,100 +197,150 @@ export const HumanDesignPage: React.FC<HumanDesignPageProps> = ({ birthDataId: p
   }
 
   return (
-    <div className="flex-1 bg-cosmic-dark overflow-hidden">
-      <div className="h-full flex flex-col lg:flex-row">
-        {/* Left Sidebar - Controls */}
-        <aside className="w-full lg:w-64 xl:w-72 bg-gray-900/50 border-b lg:border-b-0 lg:border-r border-gray-800 p-4 overflow-y-auto">
-          <h1 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-            <span className="text-celestial-gold">⬡</span>
+    <div className="flex-1 overflow-hidden relative">
+      {/* Cosmic background that extends across entire page */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: 'radial-gradient(ellipse at 50% 0%, #1E1B4B 0%, #0F172A 40%, #020617 100%)',
+        }}
+      />
+
+      {/* Subtle star field overlay */}
+      <div className="absolute inset-0 pointer-events-none opacity-30">
+        {[...Array(40)].map((_, i) => (
+          <div
+            key={i}
+            className="absolute rounded-full bg-white"
+            style={{
+              width: `${1 + (i % 3) * 0.5}px`,
+              height: `${1 + (i % 3) * 0.5}px`,
+              left: `${(i * 17 + 5) % 100}%`,
+              top: `${(i * 23 + 3) % 100}%`,
+              opacity: 0.3 + (i % 5) * 0.15,
+            }}
+          />
+        ))}
+      </div>
+
+      <div className="h-full flex flex-col lg:flex-row relative z-10">
+        {/* Left Sidebar - Floating glass panel */}
+        <aside className="w-full lg:w-52 xl:w-56 backdrop-blur-sm bg-gray-900/40 border-b lg:border-b-0 lg:border-r border-white/5 p-3 overflow-y-auto flex-shrink-0">
+          <h1 className="text-base font-medium text-white/90 mb-3 flex items-center gap-2">
+            <span className="text-celestial-gold text-lg">⬡</span>
             Human Design
           </h1>
           <Controls />
         </aside>
 
-        {/* Main Content */}
-        <main className="flex-1 p-4 lg:p-6 overflow-y-auto">
+        {/* Main Content - Chart dominates */}
+        <main className="flex-1 flex overflow-hidden relative">
           {viewMode === 'reading' ? (
-            <AIReading birthDataId={birthDataId} className="max-w-3xl mx-auto" />
+            <div className="flex-1 p-4 lg:p-6 overflow-y-auto">
+              <AIReading birthDataId={birthDataId} className="max-w-3xl mx-auto" />
+            </div>
           ) : (
-            <div className="flex flex-col lg:flex-row gap-6 items-start justify-center">
-              {/* Body Graph */}
-              <div className="flex-shrink-0">
-                <div className="bg-gray-900/30 rounded-xl p-4 shadow-2xl">
-                  <BodyGraph width={340} height={500} />
-                </div>
+            <>
+              {/* Body Graph - edge to edge, no container */}
+              <div className="flex-1 flex items-center justify-center p-0 min-h-0 relative">
+                <BodyGraph className="w-full h-full max-w-3xl" />
               </div>
 
-              {/* Detail Panel */}
-              <div className="w-full lg:w-80 xl:w-96">
-                <DetailPanel />
-              </div>
-            </div>
+              {/* Floating info panel - glass morphism */}
+              <aside className="w-64 xl:w-72 backdrop-blur-md bg-gray-900/50 border-l border-white/5 p-4 overflow-y-auto flex-shrink-0 hidden lg:flex flex-col gap-4">
+                {/* Type Card - Hero element */}
+                <div className="text-center py-4 px-3 bg-gradient-to-b from-gray-800/50 to-transparent rounded-xl border border-white/5">
+                  <span className="text-4xl mb-2 block drop-shadow-lg">
+                    {(chart?.type || chart?.hd_type) === 'Generator' && '⚡'}
+                    {(chart?.type || chart?.hd_type) === 'Manifesting Generator' && '⚡✨'}
+                    {(chart?.type || chart?.hd_type) === 'Projector' && '👁'}
+                    {(chart?.type || chart?.hd_type) === 'Manifestor' && '🔥'}
+                    {(chart?.type || chart?.hd_type) === 'Reflector' && '🌙'}
+                  </span>
+                  <h3 className="text-lg font-semibold text-celestial-gold tracking-wide">
+                    {(chart?.type || chart?.hd_type) || '...'}
+                  </h3>
+                  <p className="text-xs text-white/60 mt-1 italic">{chart?.strategy || ''}</p>
+                </div>
+
+                {/* Key attributes - minimal grid */}
+                <div className="space-y-2">
+                  <div className="flex justify-between items-baseline py-1.5 border-b border-white/5">
+                    <span className="text-[10px] uppercase tracking-wider text-white/40">Authority</span>
+                    <span className="text-sm text-white/90">{chart?.authority || ''}</span>
+                  </div>
+                  <div className="flex justify-between items-baseline py-1.5 border-b border-white/5">
+                    <span className="text-[10px] uppercase tracking-wider text-white/40">Profile</span>
+                    <span className="text-sm text-white/90">{chart?.profile?.name || ''}</span>
+                  </div>
+                  <div className="flex justify-between items-baseline py-1.5 border-b border-white/5">
+                    <span className="text-[10px] uppercase tracking-wider text-white/40">Definition</span>
+                    <span className="text-sm text-white/90">{chart?.definition?.replace('_', ' ') || ''}</span>
+                  </div>
+                  <div className="py-1.5">
+                    <span className="text-[10px] uppercase tracking-wider text-white/40 block mb-1">Incarnation Cross</span>
+                    <span className="text-xs text-celestial-gold leading-tight block">{chart?.incarnation_cross?.name || ''}</span>
+                  </div>
+                </div>
+
+                {/* Channels - scrollable list */}
+                {chart?.channels && chart.channels.length > 0 && (
+                  <div className="flex-1 min-h-0 flex flex-col">
+                    <h4 className="text-[10px] uppercase tracking-wider text-white/40 mb-2 flex-shrink-0">
+                      Channels ({chart.channels.length})
+                    </h4>
+                    <div className="flex-1 overflow-y-auto space-y-1 pr-1">
+                      {chart.channels.map((channel: { channel_id?: string; name?: string }) => (
+                        <div
+                          key={channel.channel_id}
+                          className="text-xs py-2 px-2.5 bg-white/5 rounded-lg flex justify-between items-center hover:bg-white/10 cursor-pointer transition-all duration-200 group"
+                        >
+                          <span className="text-white/80 group-hover:text-white">{channel.name}</span>
+                          <span className="text-white/30 text-[10px] font-mono">{channel.channel_id}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Variables - compact row */}
+                {chart?.variables?.determination && chart?.variables?.environment && (
+                  <div className="pt-2 border-t border-white/5 flex-shrink-0">
+                    <div className="flex justify-between items-center">
+                      <span className="text-[10px] uppercase tracking-wider text-white/40">Variables</span>
+                      <div className="flex gap-2 text-lg">
+                        <span title="Determination" className="opacity-70 hover:opacity-100 cursor-help">
+                          {chart.variables.determination.arrow === 'left' ? '◀' : '▶'}
+                        </span>
+                        <span title="Environment" className="opacity-70 hover:opacity-100 cursor-help">
+                          {chart.variables.environment.arrow === 'left' ? '◀' : '▶'}
+                        </span>
+                        <span title="Perspective" className="opacity-70 hover:opacity-100 cursor-help">
+                          {chart.variables.perspective?.arrow === 'left' ? '◀' : '▶'}
+                        </span>
+                        <span title="Awareness" className="opacity-70 hover:opacity-100 cursor-help">
+                          {chart.variables.awareness?.arrow === 'left' ? '◀' : '▶'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </aside>
+            </>
           )}
         </main>
-
-        {/* Right Sidebar - Type Summary (visible on large screens) */}
-        <aside className="hidden xl:block w-64 bg-gray-900/30 border-l border-gray-800 p-4">
-          <div className="space-y-4">
-            <div className="text-center p-4 bg-gray-800/50 rounded-lg">
-              <span className="text-4xl mb-2 block">
-                {(chart?.type || chart?.hd_type) === 'Generator' && '⚡'}
-                {(chart?.type || chart?.hd_type) === 'Manifesting Generator' && '⚡✨'}
-                {(chart?.type || chart?.hd_type) === 'Projector' && '👁'}
-                {(chart?.type || chart?.hd_type) === 'Manifestor' && '🔥'}
-                {(chart?.type || chart?.hd_type) === 'Reflector' && '🌙'}
-              </span>
-              <h3 className="text-lg font-medium text-celestial-gold">
-                {(chart?.type || chart?.hd_type) || 'Loading...'}
-              </h3>
-              <p className="text-sm text-gray-400 mt-1">{chart?.strategy || ''}</p>
-            </div>
-
-            <div className="space-y-3 text-sm">
-              <div>
-                <span className="text-gray-500 block">Authority</span>
-                <span className="text-white">{chart?.authority || ''}</span>
-              </div>
-              <div>
-                <span className="text-gray-500 block">Profile</span>
-                <span className="text-white">{chart?.profile?.name || ''}</span>
-              </div>
-              <div>
-                <span className="text-gray-500 block">Definition</span>
-                <span className="text-white">{chart?.definition?.replace('_', ' ') || ''}</span>
-              </div>
-              <div>
-                <span className="text-gray-500 block">Incarnation Cross</span>
-                <span className="text-white text-xs">{chart?.incarnation_cross?.name || ''}</span>
-              </div>
-            </div>
-
-            {chart?.variables?.determination && chart?.variables?.environment && chart?.variables?.perspective && chart?.variables?.awareness && (
-              <div className="pt-3 border-t border-gray-700">
-                <h4 className="text-xs font-medium text-gray-500 uppercase mb-2">Variables</h4>
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div className="text-center p-2 bg-gray-800/50 rounded">
-                    <span className="text-lg">{chart.variables.determination.arrow === 'left' ? '◀' : '▶'}</span>
-                    <p className="text-gray-400">Diet</p>
-                  </div>
-                  <div className="text-center p-2 bg-gray-800/50 rounded">
-                    <span className="text-lg">{chart.variables.environment.arrow === 'left' ? '◀' : '▶'}</span>
-                    <p className="text-gray-400">Environment</p>
-                  </div>
-                  <div className="text-center p-2 bg-gray-800/50 rounded">
-                    <span className="text-lg">{chart.variables.perspective.arrow === 'left' ? '◀' : '▶'}</span>
-                    <p className="text-gray-400">Perspective</p>
-                  </div>
-                  <div className="text-center p-2 bg-gray-800/50 rounded">
-                    <span className="text-lg">{chart.variables.awareness.arrow === 'left' ? '◀' : '▶'}</span>
-                    <p className="text-gray-400">Awareness</p>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </aside>
       </div>
+
+      {/* Center Detail Modal */}
+      {selection.type === 'center' && selection.id && (
+        <CenterDetailModal
+          centerName={selection.id as string}
+          defined={centerDefinitions.get(selection.id as string) ?? false}
+          activeGates={activeGates}
+          allActiveChannels={activeChannels}
+          onClose={clearSelection}
+        />
+      )}
     </div>
   )
 }

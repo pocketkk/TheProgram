@@ -41,26 +41,27 @@ export interface BodyGraphLayout {
 }
 
 // Body graph center positions (anatomically accurate layout)
+// Seated Buddha layout with more room at top for crown/head
 export const BODYGRAPH_LAYOUT: BodyGraphLayout = {
-  width: 340,
-  height: 500,
+  width: 320,
+  height: 400,  // Slightly shorter for seated figure
   centers: {
-    head: { x: 170, y: 45 },
-    ajna: { x: 170, y: 95 },
-    throat: { x: 170, y: 155 },
-    g_center: { x: 170, y: 225 },
-    heart: { x: 115, y: 210 },
-    sacral: { x: 170, y: 330 },
-    solar_plexus: { x: 230, y: 285 },
-    spleen: { x: 110, y: 285 },
-    root: { x: 170, y: 420 },
+    head: { x: 160, y: 32 },      // Crown - elevated, above the head
+    ajna: { x: 160, y: 78 },      // Third eye - forehead level
+    throat: { x: 160, y: 130 },   // Throat
+    g_center: { x: 160, y: 190 }, // G / Identity
+    heart: { x: 102, y: 162 },    // Will / Heart
+    sacral: { x: 160, y: 258 },   // Sacral
+    solar_plexus: { x: 218, y: 224 }, // Solar Plexus
+    spleen: { x: 102, y: 224 },   // Spleen
+    root: { x: 160, y: 328 },     // Root - in lotus lap area
   },
 }
 
 // Center shapes for the body graph
-export const CENTER_SHAPES: Record<string, 'triangle' | 'square' | 'diamond'> = {
-  head: 'triangle',
-  ajna: 'triangle',
+export const CENTER_SHAPES: Record<string, 'triangle' | 'triangle_down' | 'square' | 'diamond' | 'crown'> = {
+  head: 'crown',           // Crown chakra - lotus/crown shape
+  ajna: 'triangle_down',   // Third eye - inverted triangle
   throat: 'square',
   g_center: 'diamond',
   heart: 'triangle',
