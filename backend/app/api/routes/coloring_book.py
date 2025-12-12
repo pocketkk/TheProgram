@@ -420,6 +420,59 @@ async def list_templates(
     )
 
 
+@router.get("/templates/{template_id}/thumbnail")
+async def get_template_thumbnail(template_id: str):
+    """
+    Get a placeholder thumbnail for a template
+
+    Returns an SVG placeholder showing the template name.
+    Actual thumbnails could be pre-generated and cached in the future.
+
+    Args:
+        template_id: Template ID
+
+    Returns:
+        SVG image response
+    """
+    from fastapi.responses import Response
+
+    # Find template
+    template = next((t for t in COLORING_BOOK_TEMPLATES if t["id"] == template_id), None)
+    if not template:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Template '{template_id}' not found",
+        )
+
+    # Theme colors for the placeholder
+    theme_colors = {
+        "mandala": "#9b59b6",
+        "mystical": "#8e44ad",
+        "cosmic": "#2c3e50",
+        "nature": "#27ae60",
+        "fantasy": "#e74c3c",
+        "geometric": "#3498db",
+        "abstract": "#e67e22",
+        "animals": "#16a085",
+    }
+    color = theme_colors.get(template["theme"], "#7f8c8d")
+
+    # Generate SVG placeholder
+    svg = f'''<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
+  <rect width="200" height="200" fill="#f5f5f5"/>
+  <rect x="10" y="10" width="180" height="180" rx="10" fill="none" stroke="{color}" stroke-width="2"/>
+  <circle cx="100" cy="80" r="40" fill="none" stroke="{color}" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <text x="100" y="150" font-family="Arial, sans-serif" font-size="12" fill="#333" text-anchor="middle">{template["name"]}</text>
+  <text x="100" y="170" font-family="Arial, sans-serif" font-size="10" fill="#666" text-anchor="middle">{template["theme"]}</text>
+</svg>'''
+
+    return Response(
+        content=svg,
+        media_type="image/svg+xml",
+        headers={"Cache-Control": "public, max-age=86400"},
+    )
+
+
 # =============================================================================
 # Coloring Book Image Browsing
 # =============================================================================

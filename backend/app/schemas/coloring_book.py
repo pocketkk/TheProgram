@@ -12,6 +12,10 @@ from datetime import datetime
 # Maximum size for canvas_state JSON in bytes (1MB)
 MAX_CANVAS_STATE_SIZE = 1024 * 1024
 
+# Maximum size for base64 image data in bytes (10MB)
+# Base64 encoding adds ~33% overhead, so this allows ~7.5MB raw images
+MAX_IMAGE_DATA_SIZE = 10 * 1024 * 1024
+
 
 # =============================================================================
 # Coloring Book Image Generation
@@ -75,6 +79,16 @@ class ArtworkSaveRequest(BaseModel):
         description="Tags for organization"
     )
 
+    @field_validator("image_data")
+    @classmethod
+    def validate_image_data_size(cls, v: str) -> str:
+        """Validate image data doesn't exceed maximum size"""
+        if len(v) > MAX_IMAGE_DATA_SIZE:
+            raise ValueError(
+                f"image_data exceeds maximum size of {MAX_IMAGE_DATA_SIZE // (1024 * 1024)}MB"
+            )
+        return v
+
     @field_validator("canvas_state")
     @classmethod
     def validate_canvas_state_size(cls, v: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
@@ -128,6 +142,16 @@ class ArtworkUpdateRequest(BaseModel):
         description="Updated canvas state"
     )
     tags: Optional[List[str]] = Field(default=None)
+
+    @field_validator("image_data")
+    @classmethod
+    def validate_image_data_size(cls, v: Optional[str]) -> Optional[str]:
+        """Validate image data doesn't exceed maximum size"""
+        if v is not None and len(v) > MAX_IMAGE_DATA_SIZE:
+            raise ValueError(
+                f"image_data exceeds maximum size of {MAX_IMAGE_DATA_SIZE // (1024 * 1024)}MB"
+            )
+        return v
 
     @field_validator("canvas_state")
     @classmethod
