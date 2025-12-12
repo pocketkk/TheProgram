@@ -24,8 +24,8 @@ NAVIGATION_TOOLS = [
             "properties": {
                 "page": {
                     "type": "string",
-                    "enum": ["dashboard", "birthchart", "cosmos", "journal", "timeline", "canvas", "settings", "help"],
-                    "description": "The page to navigate to"
+                    "enum": ["dashboard", "birthchart", "vedic", "humandesign", "cosmos", "journal", "timeline", "canvas", "studio", "settings", "help"],
+                    "description": "The page to navigate to. Use 'vedic' for Vedic astrology page, 'humandesign' for Human Design page."
                 }
             },
             "required": ["page"]
@@ -746,6 +746,30 @@ IMAGE_GENERATION_TOOLS = [
     }
 ]
 
+# Voice output tools (for hybrid voice mode)
+VOICE_OUTPUT_TOOLS = [
+    {
+        "name": "speak_text",
+        "description": "Speak text aloud using text-to-speech. Use this to verbally communicate greetings, key insights, summaries, or important observations. Keep spoken responses conversational and under 2-3 sentences.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "text": {
+                    "type": "string",
+                    "description": "The text to speak aloud. Keep it natural and conversational for voice."
+                },
+                "style": {
+                    "type": "string",
+                    "enum": ["warm", "calm", "excited", "contemplative", "serious"],
+                    "description": "The speaking style/tone. Default: warm",
+                    "default": "warm"
+                }
+            },
+            "required": ["text"]
+        }
+    }
+]
+
 # Combine all tools
 ALL_TOOLS = (
     NAVIGATION_TOOLS +
@@ -758,7 +782,8 @@ ALL_TOOLS = (
     TIMELINE_NAVIGATION_TOOLS +
     CANVAS_TOOLS +
     SCREENSHOT_TOOLS +
-    IMAGE_GENERATION_TOOLS
+    IMAGE_GENERATION_TOOLS +
+    VOICE_OUTPUT_TOOLS
 )
 
 # Tools that execute on frontend (return instruction to client)
@@ -772,7 +797,9 @@ FRONTEND_TOOLS = {
     # Screenshot tool
     "capture_screenshot",
     # Timeline navigation tool (frontend)
-    "navigate_timeline_to_date"
+    "navigate_timeline_to_date",
+    # Voice output tool (TTS)
+    "speak_text"
 }
 
 # Frontend tools that require waiting for a response (async frontend tools)
@@ -921,6 +948,7 @@ def build_system_prompt(
 
     # Load user profile from database
     user_profile = get_user_profile(db_session)
+    logger.info(f"[PROFILE] Loaded user profile: {user_profile}")
 
     # Build user profile section
     user_section = ""
@@ -1008,17 +1036,32 @@ TOOL USE GUIDELINES:
 - When explaining a planet, select it. When discussing a pattern, highlight it.
 - Use information tools to get accurate data before making specific claims
 - If get_chart_data returns an error but you have CURRENT CHART CONTEXT above, use that instead
-- To switch zodiac systems: 1) call set_zodiac_system, 2) call recalculate_chart to apply changes
-- For Vedic astrology: set_zodiac_system("vedic"), set_ayanamsa("lahiri"), then recalculate_chart
 - Offer to create journal entries when the user shares insights
 - Suggest adding significant moments to their timeline
 - USE capture_screenshot to visually see what the user sees - use target "chart" for the birth chart wheel, or "page" for the full view. The screenshot will be returned to you as an image you can analyze.
+
+PAGE-SPECIFIC GUIDANCE:
+- On the "birthchart" page: To switch zodiac systems, use set_zodiac_system() then recalculate_chart()
+- On the "vedic" page: This is a DEDICATED Vedic astrology page with its own controls. Do NOT use set_zodiac_system here - just discuss the Vedic chart already displayed. The Vedic page shows traditional square charts (North/South Indian styles), divisional charts (D-1, D-9), Yogas, and Ashtakavarga.
+- On the "humandesign" page: This shows Human Design charts. Use get_human_design_chart to access the data.
+- To compare Western vs Vedic: Navigate between "birthchart" and "vedic" pages using navigate_to_page.
 
 OUTPUT FORMAT:
 - Write in plain text without markdown formatting
 - Be conversational and personal
 - Keep responses focused and meaningful
 - After using tools, start a NEW PARAGRAPH before continuing your explanation
+"""
+
+    # Add voice mode instructions if enabled
+    if app.get('voice_mode'):
+        base_prompt += """
+
+VOICE MODE:
+A screenshot is attached showing what the user currently sees.
+Use speak_text() for your main response - this will be spoken aloud.
+Keep spoken responses warm and conversational (3-5 sentences).
+Text output should be brief bullet points as visual reference only.
 """
 
     # Add chart context if available
@@ -1112,7 +1155,8 @@ class AgentService:
         chart_context: Optional[Dict[str, Any]] = None,
         user_preferences: Optional[Dict[str, Any]] = None,
         db_session: Optional[Any] = None,
-        wait_for_tool_result: Optional[Any] = None  # Callable[[str], Awaitable[Dict[str, Any]]]
+        wait_for_tool_result: Optional[Any] = None,  # Callable[[str], Awaitable[Dict[str, Any]]]
+        image: Optional[Dict[str, str]] = None  # Screenshot: {image: base64, mimeType: "image/jpeg"}
     ) -> AsyncGenerator[Dict[str, Any], None]:
         """
         Process a user message and stream responses with tool use continuation.
@@ -1133,6 +1177,8 @@ class AgentService:
             wait_for_tool_result: Optional callback to wait for async frontend tool results.
                                   Takes tool_id, returns result dict. Used for tools like
                                   capture_screenshot that need to receive data from frontend.
+            image: Optional screenshot to include with the message (for voice mode).
+                   Dict with 'image' (base64) and 'mimeType' fields.
 
         Yields:
             Response chunks with types: 'text_delta', 'tool_call', 'tool_result', 'complete'
@@ -1149,11 +1195,31 @@ class AgentService:
 
         # Build messages including history
         messages = list(conversation_history)
-        messages.append({"role": "user", "content": message})
+
+        # Build user message content (text-only or multimodal with image)
+        if image and image.get("image"):
+            # Multimodal message with screenshot
+            media_type = image.get("mimeType", "image/jpeg")
+            logger.info(f"[Agent] Including screenshot in message ({media_type})")
+            user_content = [
+                {
+                    "type": "image",
+                    "source": {
+                        "type": "base64",
+                        "media_type": media_type,
+                        "data": image["image"]
+                    }
+                },
+                {"type": "text", "text": f"[Screenshot of current view attached]\n\n{message}"}
+            ]
+            messages.append({"role": "user", "content": user_content})
+        else:
+            messages.append({"role": "user", "content": message})
 
         full_response = ""
         all_tool_calls = []
-        max_iterations = 10  # Prevent infinite loops
+        is_voice_mode = app_context.get("voice_mode", False) if app_context else False
+        max_iterations = 10
 
         try:
             for iteration in range(max_iterations):
@@ -1166,20 +1232,19 @@ class AgentService:
                 stop_reason = None
 
                 # Create streaming message with tools
+                # Voice mode uses same tools as text mode (simplified architecture)
+                tools_to_use = self.tools
+
                 # Debug: Log tools being passed to Claude
-                tool_names = [t.get("name") for t in self.tools]
-                logger.info(f"[DEBUG] Passing {len(self.tools)} tools to Claude: {tool_names}")
-                if "capture_screenshot" in tool_names:
-                    logger.info("[DEBUG] capture_screenshot tool IS in the tools list!")
-                else:
-                    logger.warning("[DEBUG] capture_screenshot tool is MISSING from tools list!")
+                tool_names = [t.get("name") for t in tools_to_use]
+                logger.info(f"[DEBUG] Passing {len(tools_to_use)} tools to Claude: {tool_names}")
 
                 async with self.client.messages.stream(
                     model=self.model,
                     max_tokens=2000,
                     system=system_prompt,
                     messages=messages,
-                    tools=self.tools
+                    tools=tools_to_use
                 ) as stream:
                     current_tool_call = None
                     current_text = ""
@@ -1382,6 +1447,8 @@ class AgentService:
         Returns:
             Tool execution result
         """
+        logger.info(f"[TOOL] Executing backend tool: {tool_name}")
+        logger.info(f"[TOOL] Input: {tool_input}")
         try:
             if tool_name == "get_chart_data":
                 if not chart_context:
@@ -1574,6 +1641,9 @@ class AgentService:
 
                     limit = tool_input.get("limit", 5)
                     entries = query.order_by(JournalEntry.entry_date.desc()).limit(limit).all()
+                    logger.info(f"[TOOL] search_journal found {len(entries)} entries")
+                    for e in entries:
+                        logger.info(f"[TOOL]   - {e.entry_date}: {e.title}")
 
                     return {
                         "success": True,
@@ -1604,6 +1674,9 @@ class AgentService:
                     entries = db_session.query(JournalEntry).order_by(
                         JournalEntry.entry_date.desc()
                     ).limit(limit).all()
+                    logger.info(f"[TOOL] get_recent_journal_entries found {len(entries)} entries")
+                    for e in entries:
+                        logger.info(f"[TOOL]   - {e.entry_date}: {e.title}")
 
                     return {
                         "success": True,

@@ -14,6 +14,17 @@ let mockToken = 'mock-jwt-token-abc123'
 const mockClients: any[] = []
 const mockCharts: any[] = []
 
+// Voice settings mock data
+let mockVoiceSettings = {
+  voice_name: 'Kore',
+  personality: 'mystical guide',
+  speaking_style: 'warm and contemplative',
+  response_length: 'medium',
+  custom_personality: null as string | null,
+}
+
+let mockGoogleApiKeySet = false
+
 /**
  * Reset mocks to initial state
  */
@@ -23,6 +34,22 @@ export const resetMocks = () => {
   mockToken = 'mock-jwt-token-abc123'
   mockClients.length = 0
   mockCharts.length = 0
+  // Reset voice settings
+  mockVoiceSettings = {
+    voice_name: 'Kore',
+    personality: 'mystical guide',
+    speaking_style: 'warm and contemplative',
+    response_length: 'medium',
+    custom_personality: null,
+  }
+  mockGoogleApiKeySet = false
+}
+
+/**
+ * Set mock Google API key state
+ */
+export const setMockGoogleApiKeyState = (hasKey: boolean) => {
+  mockGoogleApiKeySet = hasKey
 }
 
 /**
@@ -328,6 +355,53 @@ export const handlers = [
         aspects: {},
       },
       created_at: new Date().toISOString(),
+    })
+  }),
+
+  // GET /api/voice/options
+  http.get(`${API_BASE}/api/voice/options`, () => {
+    return HttpResponse.json({
+      voices: [
+        { name: 'Puck', description: 'Upbeat and playful' },
+        { name: 'Charon', description: 'Deep and authoritative' },
+        { name: 'Kore', description: 'Warm and nurturing' },
+        { name: 'Fenrir', description: 'Bold and energetic' },
+        { name: 'Aoede', description: 'Calm and melodic' },
+      ],
+      default_settings: {
+        voice_name: 'Kore',
+        personality: 'mystical guide',
+        speaking_style: 'warm and contemplative',
+        response_length: 'medium',
+      },
+      response_lengths: ['brief', 'medium', 'detailed'],
+    })
+  }),
+
+  // GET /api/voice/settings
+  http.get(`${API_BASE}/api/voice/settings`, () => {
+    return HttpResponse.json(mockVoiceSettings)
+  }),
+
+  // PUT /api/voice/settings
+  http.put(`${API_BASE}/api/voice/settings`, async ({ request }) => {
+    const body = (await request.json()) as Partial<typeof mockVoiceSettings>
+
+    mockVoiceSettings = {
+      ...mockVoiceSettings,
+      ...body,
+    }
+
+    return HttpResponse.json(mockVoiceSettings)
+  }),
+
+  // GET /api/voice/status
+  http.get(`${API_BASE}/api/voice/status`, () => {
+    return HttpResponse.json({
+      available: mockGoogleApiKeySet,
+      message: mockGoogleApiKeySet
+        ? 'Voice chat ready'
+        : 'Google API key required for voice chat',
     })
   }),
 ]

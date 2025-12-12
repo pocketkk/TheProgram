@@ -3,6 +3,7 @@
  *
  * Tool selection and brush presets for the art canvas
  */
+import React from 'react'
 import { motion } from 'framer-motion'
 import {
   Paintbrush,
@@ -39,7 +40,7 @@ interface ToolbarProps {
 
 interface ToolButtonProps {
   tool: ToolType
-  icon: LucideIcon
+  icon: LucideIcon | React.FC
   label: string
   isActive: boolean
   onClick: () => void
@@ -172,7 +173,7 @@ export const Toolbar = ({
             <ToolButton
               key={tool}
               tool={tool}
-              icon={typeof Icon === 'function' ? Icon : Icon}
+              icon={Icon}
               label={label}
               isActive={currentTool === tool}
               onClick={() => setTool(tool)}

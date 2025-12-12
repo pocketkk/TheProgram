@@ -11,6 +11,8 @@ from . import (
     chart_interpretations,
     dasha,
     agent_ws,
+    voice_ws,
+    hybrid_voice_ws,
     # Phase 2: New features
     journal,
     timeline,
@@ -28,6 +30,9 @@ from . import (
     # Phase 5: Image Generation
     images,
     image_ws,
+    # Vedic Advanced Features
+    yogas,
+    ashtakavarga,
     # Phase 6: Coloring Book / Art Therapy
     coloring_book,
 )
@@ -42,6 +47,8 @@ router.include_router(charts.router, prefix="/charts", tags=["Charts"])
 router.include_router(chart_interpretations.router, prefix="/charts", tags=["Interpretations"])
 router.include_router(dasha.router, prefix="/dasha", tags=["Dasha"])
 router.include_router(agent_ws.router, tags=["AI Agent"])
+router.include_router(voice_ws.router, tags=["Voice Chat"])
+router.include_router(hybrid_voice_ws.router, tags=["Hybrid Voice"])
 
 # Phase 2: Journal, Timeline, and Canvas
 router.include_router(journal.router, prefix="/journal", tags=["Journal"])
@@ -69,6 +76,10 @@ router.include_router(human_design.router, prefix="/human-design", tags=["Human 
 # Phase 5: Image Generation
 router.include_router(images.router, tags=["Images"])
 router.include_router(image_ws.router, tags=["Images"])
+
+# Vedic Advanced Features
+router.include_router(yogas.router, prefix="/yogas", tags=["Yogas"])
+router.include_router(ashtakavarga.router, prefix="/ashtakavarga", tags=["Ashtakavarga"])
 
 # Phase 6: Coloring Book / Art Therapy
 router.include_router(coloring_book.router, tags=["Coloring Book"])

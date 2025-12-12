@@ -161,12 +161,16 @@ export interface HDGateInfo {
   name: string
   center: string
   keynote: string
+  description: string
   theme: string
   channel_partners: number[]
   hexagram_name: string
   shadow: string
   gift: string
   siddhi: string
+  // Additional fields from backend
+  channel_name?: string
+  line_descriptions?: Record<string, string>
 }
 
 // Raw response from backend uses gate1/gate2, center1/center2
@@ -390,13 +394,46 @@ export async function getGatesList(): Promise<HDGatesListResponse> {
   }
 }
 
+// Raw response from backend for gates
+interface HDGateInfoRaw {
+  number: number
+  name: string
+  keyword: string
+  description: string
+  i_ching_name: string
+  center: string
+  circuit: string | null
+  channel_partner: number
+  channel_name: string
+  line_descriptions: Record<string, string>
+}
+
 /**
  * Get info for a specific gate
+ * Transforms backend response to frontend format
  */
 export async function getGateInfo(gateNumber: number): Promise<HDGateInfo> {
   try {
-    const response = await apiClient.get(`/human-design/gates/${gateNumber}`)
-    return response.data
+    const response = await apiClient.get<HDGateInfoRaw>(`/human-design/gates/${gateNumber}`)
+    const raw = response.data
+    // Transform backend response to frontend format
+    return {
+      gate: raw.number,
+      name: raw.name,
+      center: raw.center,
+      keynote: raw.keyword,
+      description: raw.description || '',
+      theme: raw.circuit || '',
+      channel_partners: raw.channel_partner ? [raw.channel_partner] : [],
+      hexagram_name: raw.i_ching_name,
+      // Gene Keys not available from backend yet
+      shadow: '',
+      gift: '',
+      siddhi: '',
+      // Additional fields for display
+      channel_name: raw.channel_name,
+      line_descriptions: raw.line_descriptions,
+    }
   } catch (error) {
     throw new Error(getErrorMessage(error))
   }
