@@ -65,7 +65,7 @@ export async function captureScreenshot(
                 document.body
     }
 
-    // Capture with html2canvas
+    // Capture with html2canvas, excluding floating UI elements
     const canvas = await html2canvas(element, {
       scale: scale,
       useCORS: true,
@@ -75,10 +75,14 @@ export async function captureScreenshot(
       // SVG handling options
       foreignObjectRendering: true,
       removeContainer: true,
-      // Ignore problematic elements
       ignoreElements: (el) => {
         // Ignore iframes that might cause issues
-        return el.tagName === 'IFRAME'
+        if (el.tagName === 'IFRAME') return true
+        // Exclude the guide panel and other floating UI so we see the actual content
+        if (el.closest?.('[data-guide-panel]')) return true
+        if (el.closest?.('[data-companion-panel]')) return true
+        if (el.classList?.contains('companion-panel')) return true
+        return false
       },
     })
 
@@ -199,11 +203,13 @@ async function captureSvgElement(svg: SVGElement, maxWidth: number = 800): Promi
 export async function captureChartWheel(): Promise<ScreenshotResult> {
   // Try various selectors for the chart (includes Vedic charts)
   const selectors = [
+    '[data-chart-wheel]',        // BirthChartWheel component
     '[data-chart-container]',
     '.vedic-chart-container',
     '.birth-chart-wheel',
     '[class*="BirthChartWheel"]',
     '.vedic-chart',
+    'svg[class*="chart"]',
     'main > div > div:first-child', // Common layout pattern
   ]
 

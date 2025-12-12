@@ -29,6 +29,14 @@ import {
 } from '@/components/ui'
 import { useJournalStore } from '@/store/journalStore'
 
+// Helper to get local date in YYYY-MM-DD format (avoids UTC timezone issues)
+const getLocalDateString = (date: Date = new Date()): string => {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
 // Mood emoji mapping
 const moodEmojis: Record<string, string> = {
   reflective: '🤔',
@@ -76,7 +84,7 @@ export function JournalPage() {
     mood: '',
     mood_score: 5,
     tags: [] as string[],
-    entry_date: new Date().toISOString().split('T')[0],
+    entry_date: getLocalDateString(),
   })
   const [newTag, setNewTag] = useState('')
   const [showTagInput, setShowTagInput] = useState(false)
@@ -110,7 +118,7 @@ export function JournalPage() {
       mood: '',
       mood_score: 5,
       tags: [],
-      entry_date: new Date().toISOString().split('T')[0],
+      entry_date: getLocalDateString(),
     })
     setEditing(true)
   }
@@ -155,7 +163,7 @@ export function JournalPage() {
       mood: '',
       mood_score: 5,
       tags: [],
-      entry_date: new Date().toISOString().split('T')[0],
+      entry_date: getLocalDateString(),
     })
   }
 
@@ -179,9 +187,10 @@ export function JournalPage() {
     }))
   }
 
-  // Format date for display
+  // Format date for display (parse as local date to avoid UTC timezone issues)
   const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr)
+    const [year, month, day] = dateStr.split('-').map(Number)
+    const date = new Date(year, month - 1, day) // month is 0-indexed
     return date.toLocaleDateString('en-US', {
       weekday: 'short',
       month: 'short',

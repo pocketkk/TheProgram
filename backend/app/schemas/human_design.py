@@ -327,6 +327,7 @@ class HDGateInfo(BaseModel):
     number: int
     name: str
     keyword: str
+    description: str = ""
     i_ching_name: str
     center: str
     circuit: Optional[str] = None

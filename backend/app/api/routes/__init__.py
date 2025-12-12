@@ -11,6 +11,8 @@ from . import (
     chart_interpretations,
     dasha,
     agent_ws,
+    voice_ws,
+    hybrid_voice_ws,
     # Phase 2: New features
     journal,
     timeline,
@@ -43,6 +45,8 @@ router.include_router(charts.router, prefix="/charts", tags=["Charts"])
 router.include_router(chart_interpretations.router, prefix="/charts", tags=["Interpretations"])
 router.include_router(dasha.router, prefix="/dasha", tags=["Dasha"])
 router.include_router(agent_ws.router, tags=["AI Agent"])
+router.include_router(voice_ws.router, tags=["Voice Chat"])
+router.include_router(hybrid_voice_ws.router, tags=["Hybrid Voice"])
 
 # Phase 2: Journal, Timeline, and Canvas
 router.include_router(journal.router, prefix="/journal", tags=["Journal"])

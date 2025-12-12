@@ -34,12 +34,12 @@ export const Controls: React.FC<ControlsProps> = ({ className = '' }) => {
   return (
     <div className={`space-y-4 ${className}`}>
       {/* View Mode Tabs */}
-      <div className="flex gap-1 bg-gray-800 rounded-lg p-1">
+      <div className="flex flex-wrap gap-1 bg-gray-800 rounded-lg p-1">
         {(['bodygraph', 'activations', 'reading'] as const).map((mode) => (
           <button
             key={mode}
             onClick={() => setViewMode(mode)}
-            className={`flex-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${viewMode === mode
+            className={`px-2 py-1.5 rounded-md text-xs font-medium transition-colors whitespace-nowrap ${viewMode === mode
                 ? 'bg-celestial-gold text-gray-900'
                 : 'text-gray-400 hover:text-white hover:bg-gray-700'
               }`}
@@ -47,7 +47,7 @@ export const Controls: React.FC<ControlsProps> = ({ className = '' }) => {
           >
             {mode === 'bodygraph' && 'Body Graph'}
             {mode === 'activations' && 'Activations'}
-            {mode === 'reading' && 'AI Reading'}
+            {mode === 'reading' && 'Reading'}
           </button>
         ))}
       </div>
