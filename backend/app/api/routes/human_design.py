@@ -289,6 +289,25 @@ async def get_all_centers():
     )
 
 
+@router.get("/centers/{center_name}", response_model=HDCenterInfo)
+async def get_center(center_name: str):
+    """Get information about a specific Human Design center."""
+    centers = HumanDesignCalculator.get_all_centers()
+
+    # Normalize the center name for matching
+    normalized = center_name.lower().replace('-', '_').replace(' ', '_')
+
+    for center in centers:
+        center_key = center['name'].lower().replace(' ', '_').replace('/', '_')
+        if center_key == normalized or center['name'].lower() == center_name.lower():
+            return HDCenterInfo(**center)
+
+    raise HTTPException(
+        status_code=404,
+        detail=f"Center not found: {center_name}"
+    )
+
+
 @router.get("/types", response_model=HDTypesListResponse)
 async def get_all_types():
     """Get information about all 5 Human Design types."""
