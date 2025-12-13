@@ -9,6 +9,7 @@ import logging
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from fastapi.responses import FileResponse
+from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from app.core.database_sqlite import get_db
@@ -304,6 +305,142 @@ async def refine_image(
         )
 
 
+class CardBackGenerateRequest(BaseModel):
+    """Request to generate a card back for a tarot deck"""
+    collection_id: str = Field(..., description="Collection ID to generate card back for")
+    prompt: str = Field(
+        default="Ornate mystical card back design with symmetrical geometric patterns, sacred geometry, celestial motifs",
+        description="Card back design prompt"
+    )
+
+
+@router.post("/generate-card-back", response_model=ImageGenerateResponse)
+async def generate_card_back(
+    request: CardBackGenerateRequest,
+    db: Session = Depends(get_db),
+):
+    """
+    Generate a card back image for a tarot deck collection
+
+    Creates a card back image based on the collection's style and the provided prompt.
+    The generated image is automatically linked to the collection.
+
+    Args:
+        request: Card back generation request with collection_id and optional prompt
+
+    Returns:
+        ImageGenerateResponse with image URL or error
+    """
+    # Get the collection
+    collection = db.query(ImageCollection).filter_by(id=request.collection_id).first()
+    if not collection:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Collection not found",
+        )
+
+    api_key = get_google_api_key(db)
+
+    try:
+        from app.services.gemini_image_service import GeminiImageService
+
+        # Initialize service with API key
+        service = GeminiImageService(api_key=api_key)
+
+        # Assemble the card back prompt with collection style
+        prompt_parts = [request.prompt]
+        if collection.style_prompt:
+            prompt_parts.append(collection.style_prompt)
+        if collection.border_style:
+            prompt_parts.append(collection.border_style)
+        full_prompt = ", ".join(prompt_parts)
+
+        # Load reference image if available for style consistency
+        reference_image_bytes = None
+        storage = get_image_storage_service()
+        if collection.reference_image_id:
+            ref_img = db.query(GeneratedImage).filter_by(id=collection.reference_image_id).first()
+            if ref_img and ref_img.file_path:
+                reference_image_bytes = storage.load_image(ref_img.file_path)
+
+        # Generate card back image (3:4 aspect ratio to match card faces)
+        result = await service.generate_image(
+            prompt=full_prompt,
+            purpose="tarot_card",
+            style=collection.style_prompt,
+            aspect_ratio="3:4",
+            reference_image=reference_image_bytes,
+        )
+
+        if not result.success:
+            return ImageGenerateResponse(
+                success=False,
+                prompt=full_prompt,
+                error=result.error,
+            )
+
+        # Save to storage
+        filename = storage.generate_filename("card_back")
+
+        file_path = storage.save_image(
+            image_data=result.image_data,
+            category="tarot",
+            filename=filename,
+            collection_id=request.collection_id,
+        )
+
+        # Save to database
+        image = GeneratedImage(
+            image_type="tarot_card",
+            prompt=full_prompt,
+            style_prompt=collection.style_prompt,
+            file_path=file_path,
+            mime_type=result.mime_type,
+            width=result.width,
+            height=result.height,
+            file_size=len(result.image_data),
+            collection_id=request.collection_id,
+            item_key="card_back",
+            generation_params={
+                "enhanced_prompt": result.enhanced_prompt,
+                "style": collection.style_prompt,
+                "aspect_ratio": "3:4",
+                "type": "card_back",
+            },
+        )
+        db.add(image)
+        db.commit()
+        db.refresh(image)
+
+        # Update collection with the card back image
+        collection.card_back_image_id = image.id
+        db.commit()
+
+        return ImageGenerateResponse(
+            success=True,
+            image_id=image.id,
+            image_url=storage.get_file_url(file_path),
+            width=result.width,
+            height=result.height,
+            prompt=full_prompt,
+        )
+
+    except ImportError as e:
+        logger.error(f"Missing dependency: {e}")
+        return ImageGenerateResponse(
+            success=False,
+            prompt=request.prompt,
+            error="Image generation dependencies not installed. Install google-genai package.",
+        )
+    except Exception as e:
+        logger.error(f"Card back generation error: {e}")
+        return ImageGenerateResponse(
+            success=False,
+            prompt=request.prompt,
+            error=str(e),
+        )
+
+
 # =============================================================================
 # Image Management Endpoints
 # =============================================================================
@@ -436,9 +573,16 @@ async def list_collections(
     collections = query.order_by(ImageCollection.created_at.desc()).all()
 
     # Get image counts
+    storage = get_image_storage_service()
     result = []
     for coll in collections:
         count = db.query(GeneratedImage).filter_by(collection_id=coll.id).count()
+        # Get card back URL if it exists
+        card_back_url = None
+        if coll.card_back_image_id:
+            card_back_img = db.query(GeneratedImage).filter_by(id=coll.card_back_image_id).first()
+            if card_back_img:
+                card_back_url = storage.get_file_url(card_back_img.file_path)
         result.append(
             CollectionInfo(
                 id=coll.id,
@@ -450,6 +594,8 @@ async def list_collections(
                 total_expected=coll.total_expected,
                 include_card_labels=coll.include_card_labels,
                 reference_image_id=coll.reference_image_id,
+                card_back_image_id=coll.card_back_image_id,
+                card_back_url=card_back_url,
                 image_count=count,
                 metadata=None,  # Model doesn't have metadata field
                 created_at=coll.created_at,
@@ -501,6 +647,8 @@ async def create_collection(
         total_expected=collection.total_expected,
         include_card_labels=collection.include_card_labels,
         reference_image_id=collection.reference_image_id,
+        card_back_image_id=collection.card_back_image_id,
+        card_back_url=None,
         image_count=0,
         metadata=None,  # Model doesn't have metadata field
         created_at=collection.created_at,
@@ -538,6 +686,13 @@ async def get_collection(
     unique_item_keys = set(img.item_key for img in images if img.item_key)
     unique_count = len(unique_item_keys)
 
+    # Get card back URL if it exists
+    card_back_url = None
+    if collection.card_back_image_id:
+        card_back_img = db.query(GeneratedImage).filter_by(id=collection.card_back_image_id).first()
+        if card_back_img:
+            card_back_url = storage.get_file_url(card_back_img.file_path)
+
     return CollectionWithImages(
         id=collection.id,
         name=collection.name,
@@ -548,6 +703,8 @@ async def get_collection(
         total_expected=collection.total_expected,
         include_card_labels=collection.include_card_labels,
         reference_image_id=collection.reference_image_id,
+        card_back_image_id=collection.card_back_image_id,
+        card_back_url=card_back_url,
         image_count=unique_count,
         metadata=None,  # Model doesn't have metadata field
         created_at=collection.created_at,
@@ -607,12 +764,22 @@ async def update_collection(
         collection.include_card_labels = request.include_card_labels
     if request.reference_image_id is not None:
         collection.reference_image_id = request.reference_image_id
+    if request.card_back_image_id is not None:
+        collection.card_back_image_id = request.card_back_image_id
     # Note: request.metadata ignored - model doesn't have metadata field
 
     db.commit()
     db.refresh(collection)
 
     count = db.query(GeneratedImage).filter_by(collection_id=collection_id).count()
+    storage = get_image_storage_service()
+
+    # Get card back URL if it exists
+    card_back_url = None
+    if collection.card_back_image_id:
+        card_back_img = db.query(GeneratedImage).filter_by(id=collection.card_back_image_id).first()
+        if card_back_img:
+            card_back_url = storage.get_file_url(card_back_img.file_path)
 
     return CollectionInfo(
         id=collection.id,
@@ -624,6 +791,8 @@ async def update_collection(
         total_expected=collection.total_expected,
         include_card_labels=collection.include_card_labels,
         reference_image_id=collection.reference_image_id,
+        card_back_image_id=collection.card_back_image_id,
+        card_back_url=card_back_url,
         image_count=count,
         metadata=None,  # Model doesn't have metadata field
         created_at=collection.created_at,

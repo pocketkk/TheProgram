@@ -53,6 +53,8 @@ export interface CollectionInfo {
   total_expected?: number
   include_card_labels: boolean
   reference_image_id?: string
+  card_back_image_id?: string
+  card_back_url?: string
   image_count: number
   metadata?: Record<string, any>
   created_at: string
