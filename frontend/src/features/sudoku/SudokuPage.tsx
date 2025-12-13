@@ -331,6 +331,20 @@ export const SudokuPage = () => {
               </button>
 
               <button
+                onClick={() => {
+                  setGrid(originalGrid.map(row => [...row]))
+                  setHistory([])
+                  setErrors([])
+                  setHint(null)
+                  setGameState('playing')
+                }}
+                className="flex items-center gap-2 px-4 py-2 bg-orange-600/20
+                           hover:bg-orange-600/30 text-orange-400 rounded-lg transition-colors"
+              >
+                Reset
+              </button>
+
+              <button
                 onClick={handleGetHint}
                 className="flex items-center gap-2 px-4 py-2 bg-yellow-600/20
                            hover:bg-yellow-600/30 text-yellow-400 rounded-lg transition-colors"
@@ -356,6 +370,34 @@ export const SudokuPage = () => {
               >
                 <Eye className="w-4 h-4" />
                 Reveal
+              </button>
+            </div>
+          )}
+
+          {/* Number pad for touch input */}
+          {puzzle && gameState !== 'loading' && (
+            <div className="mt-4 grid grid-cols-5 gap-2">
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
+                <button
+                  key={num}
+                  onClick={() => handleCellInput(num)}
+                  disabled={!selectedCell || originalGrid[selectedCell.row]?.[selectedCell.col] !== 0}
+                  className="w-12 h-12 bg-gray-800 hover:bg-gray-700
+                             disabled:opacity-30 disabled:cursor-not-allowed
+                             rounded-lg text-xl font-mono text-purple-300
+                             transition-colors"
+                >
+                  {num}
+                </button>
+              ))}
+              <button
+                onClick={() => handleCellInput(0)}
+                disabled={!selectedCell || originalGrid[selectedCell.row]?.[selectedCell.col] !== 0}
+                className="w-12 h-12 bg-gray-800 hover:bg-gray-700
+                           disabled:opacity-30 disabled:cursor-not-allowed
+                           rounded-lg text-sm text-gray-400 transition-colors"
+              >
+                Clear
               </button>
             </div>
           )}
