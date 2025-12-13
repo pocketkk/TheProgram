@@ -226,12 +226,21 @@ export const SudokuPage = () => {
             className="bg-red-900/30 border border-red-500/50 rounded-lg p-4"
           >
             <p className="text-red-400">{errorMessage}</p>
-            <button
-              onClick={() => setErrorMessage(null)}
-              className="text-sm text-red-300 hover:text-red-200 mt-2"
-            >
-              Dismiss
-            </button>
+            <div className="flex gap-3 mt-3">
+              <button
+                onClick={() => loadNewPuzzle()}
+                className="px-4 py-2 bg-red-600/30 hover:bg-red-600/50
+                           text-red-300 rounded-lg text-sm transition-colors"
+              >
+                Try Again
+              </button>
+              <button
+                onClick={() => setErrorMessage(null)}
+                className="text-sm text-red-300/60 hover:text-red-200"
+              >
+                Dismiss
+              </button>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -250,6 +259,24 @@ export const SudokuPage = () => {
               >
                 <RefreshCw className="w-8 h-8 text-purple-400" />
               </motion.div>
+            </div>
+          )}
+
+          {/* Error state */}
+          {gameState === 'error' && (
+            <div className="flex flex-col items-center justify-center bg-gray-800/50 rounded-lg"
+                 style={{ width: 432, height: 432 }}>
+              <HelpCircle className="w-16 h-16 text-red-400/50 mb-4" />
+              <p className="text-gray-400 text-center mb-4">
+                Failed to generate puzzle
+              </p>
+              <button
+                onClick={() => loadNewPuzzle()}
+                className="px-6 py-2 bg-purple-600 hover:bg-purple-500
+                           rounded-lg text-white transition-colors"
+              >
+                Try Again
+              </button>
             </div>
           )}
 
