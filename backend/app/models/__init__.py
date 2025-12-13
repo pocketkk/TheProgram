@@ -44,6 +44,9 @@ from app.models.generated_image import GeneratedImage, ImageCollection
 # Phase 6: Coloring Book / Art Therapy
 from app.models.artwork import Artwork
 
+# Phase 7: Location History / Personal Investigation
+from app.models.location_history import LocationImport, LocationRecord, SignificantLocation
+
 __all__ = [
     # Base classes
     'Base',
@@ -89,4 +92,9 @@ __all__ = [
 
     # Phase 6: Coloring Book / Art Therapy
     'Artwork',
+
+    # Phase 7: Location History / Personal Investigation
+    'LocationImport',
+    'LocationRecord',
+    'SignificantLocation',
 ]

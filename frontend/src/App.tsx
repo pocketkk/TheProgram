@@ -43,6 +43,8 @@ import { ThemesPage } from './features/themes'
 import { StudioPage } from './features/studio'
 // Coloring Book / Art Therapy
 import { ColoringBookPage } from './features/coloring-book'
+// Location History / Personal Investigation
+import { LocationHistoryPage } from './features/location-history'
 // Guide module system
 import { initializeGuideRegistry, initializeGuideStateRegistry, updateGuideGlobalState } from './lib/guide'
 
@@ -222,6 +224,11 @@ function App() {
         {currentPage === 'coloringbook' && (
           <ErrorBoundary featureName="Coloring Book">
             <ColoringBookPage />
+          </ErrorBoundary>
+        )}
+        {currentPage === 'locationhistory' && (
+          <ErrorBoundary featureName="Location History">
+            <LocationHistoryPage />
           </ErrorBoundary>
         )}
         {currentPage === 'settings' && (

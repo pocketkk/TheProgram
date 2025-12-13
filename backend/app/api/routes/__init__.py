@@ -35,6 +35,8 @@ from . import (
     ashtakavarga,
     # Phase 6: Coloring Book / Art Therapy
     coloring_book,
+    # Phase 7: Location History / Personal Investigation
+    location_history,
 )
 
 # Create main API router
@@ -83,5 +85,8 @@ router.include_router(ashtakavarga.router, prefix="/ashtakavarga", tags=["Ashtak
 
 # Phase 6: Coloring Book / Art Therapy
 router.include_router(coloring_book.router, tags=["Coloring Book"])
+
+# Phase 7: Location History / Personal Investigation
+router.include_router(location_history.router, tags=["Location History"])
 
 __all__ = ["router"]

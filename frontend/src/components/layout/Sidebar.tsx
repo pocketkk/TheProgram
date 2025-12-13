@@ -17,6 +17,7 @@ import {
   Wand2,
   Grid3X3,
   Paintbrush,
+  MapPin,
   type LucideIcon
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -55,6 +56,8 @@ const navigation: NavigationItem[] = [
   { name: 'Studio', icon: Wand2, page: 'studio', section: 'exploration' },
   // Phase 6: Art Therapy
   { name: 'Coloring Book', icon: Paintbrush, page: 'coloringbook', section: 'exploration' },
+  // Phase 7: Personal Investigation
+  { name: 'Location History', icon: MapPin, page: 'locationhistory', section: 'exploration' },
   // System section
   { name: 'Settings', icon: Settings, page: 'settings', section: 'system' },
   { name: 'Help', icon: HelpCircle, page: 'help', section: 'system' },
