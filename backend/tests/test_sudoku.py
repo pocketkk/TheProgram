@@ -580,6 +580,99 @@ class TestTransitToSudokuMapper:
         assert 'constraints' in summary
 
 
+class TestLogicOnlySolvability:
+    """Tests for ensuring puzzles are solvable without guessing"""
+
+    def test_solve_with_logic_only_easy_puzzle(self):
+        """Easy puzzles should be solvable with logic only"""
+        rng = random.Random(42)
+        solution = SudokuGenerator.generate_complete_grid(rng)
+        puzzle = SudokuGenerator.remove_clues(solution, [], 'easy', rng)
+
+        solver = SudokuSolver([row[:] for row in puzzle], [])
+        assert solver.solve_with_logic_only(), "Easy puzzle should be logic-solvable"
+
+    def test_solve_with_logic_only_medium_puzzle(self):
+        """Medium puzzles should be solvable with logic only"""
+        rng = random.Random(123)
+        solution = SudokuGenerator.generate_complete_grid(rng)
+        puzzle = SudokuGenerator.remove_clues(solution, [], 'medium', rng)
+
+        solver = SudokuSolver([row[:] for row in puzzle], [])
+        assert solver.solve_with_logic_only(), "Medium puzzle should be logic-solvable"
+
+    def test_solve_with_logic_only_hard_puzzle(self):
+        """Hard puzzles should be solvable with logic only"""
+        rng = random.Random(456)
+        solution = SudokuGenerator.generate_complete_grid(rng)
+        puzzle = SudokuGenerator.remove_clues(solution, [], 'hard', rng)
+
+        solver = SudokuSolver([row[:] for row in puzzle], [])
+        assert solver.solve_with_logic_only(), "Hard puzzle should be logic-solvable"
+
+    def test_solve_with_logic_only_with_constraints(self):
+        """Puzzles with variant constraints should be logic-solvable"""
+        rng = random.Random(789)
+        solution = SudokuGenerator.generate_complete_grid(rng)
+
+        # Add a renban constraint
+        constraints = [
+            Constraint(
+                constraint_type=ConstraintType.RENBAN,
+                cells=[(0, 0), (0, 1), (0, 2)]
+            )
+        ]
+
+        # Only use if solution satisfies constraint
+        if SudokuGenerator.verify_constraints(solution, constraints):
+            puzzle = SudokuGenerator.remove_clues(solution, constraints, 'medium', rng)
+            solver = SudokuSolver([row[:] for row in puzzle], constraints)
+            assert solver.solve_with_logic_only(), "Puzzle with constraints should be logic-solvable"
+
+    def test_hidden_singles_detection(self):
+        """Hidden singles technique should find placements"""
+        # Create a grid where hidden singles can be applied
+        grid = [
+            [5, 3, 0, 0, 7, 0, 0, 0, 0],
+            [6, 0, 0, 1, 9, 5, 0, 0, 0],
+            [0, 9, 8, 0, 0, 0, 0, 6, 0],
+            [8, 0, 0, 0, 6, 0, 0, 0, 3],
+            [4, 0, 0, 8, 0, 3, 0, 0, 1],
+            [7, 0, 0, 0, 2, 0, 0, 0, 6],
+            [0, 6, 0, 0, 0, 0, 2, 8, 0],
+            [0, 0, 0, 4, 1, 9, 0, 0, 5],
+            [0, 0, 0, 0, 8, 0, 0, 7, 9],
+        ]
+
+        solver = SudokuSolver(grid)
+        # This classic puzzle should be solvable with logic
+        assert solver.solve_with_logic_only(), "Classic puzzle should be logic-solvable"
+
+    def test_puzzles_have_unique_solution(self):
+        """All generated puzzles should have exactly one solution"""
+        for seed in [100, 200, 300]:
+            rng = random.Random(seed)
+            solution = SudokuGenerator.generate_complete_grid(rng)
+            puzzle = SudokuGenerator.remove_clues(solution, [], 'medium', rng)
+
+            solver = SudokuSolver([row[:] for row in puzzle], [])
+            solutions = solver.solve(max_solutions=2)
+
+            assert len(solutions) == 1, f"Puzzle with seed {seed} should have exactly one solution"
+
+    def test_remove_clues_preserves_logic_solvability(self):
+        """remove_clues should never create a puzzle requiring guessing"""
+        for seed in [111, 222, 333]:
+            rng = random.Random(seed)
+            solution = SudokuGenerator.generate_complete_grid(rng)
+            puzzle = SudokuGenerator.remove_clues(solution, [], 'hard', rng)
+
+            solver = SudokuSolver([row[:] for row in puzzle], [])
+            is_logic_solvable = solver.solve_with_logic_only()
+
+            assert is_logic_solvable, f"Puzzle {seed} should be logic-solvable after remove_clues"
+
+
 class TestPuzzleSeedReproducibility:
     """Tests for puzzle reproducibility with seeds"""
 

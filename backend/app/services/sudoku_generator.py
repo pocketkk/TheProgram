@@ -57,7 +57,12 @@ class SudokuPuzzle:
 class SudokuSolver:
     """
     Constraint-propagation sudoku solver with variant support.
-    Uses logic-only solving (no guessing) to ensure human-solvable puzzles.
+
+    Two solving modes:
+    - solve(): Uses constraint propagation + backtracking for completeness
+    - solve_with_logic_only(): Uses only logical techniques (no guessing)
+
+    The logic-only mode is used to ensure generated puzzles are human-solvable.
     """
 
     def __init__(self, grid: List[List[int]], constraints: List[Constraint] = None):
@@ -249,6 +254,157 @@ class SudokuSolver:
                 progress = True
 
         return progress
+
+    def _apply_hidden_singles(self) -> bool:
+        """
+        Hidden singles: if a value can only go in one place in a row/col/box.
+        This is a key human solving technique.
+        """
+        progress = False
+
+        # Check rows
+        for r in range(9):
+            for val in range(1, 10):
+                if any(self.grid[r][c] == val for c in range(9)):
+                    continue  # Already placed
+                possible_cols = [c for c in range(9)
+                                if self.grid[r][c] == 0 and val in self.candidates[r][c]]
+                if len(possible_cols) == 1:
+                    c = possible_cols[0]
+                    self.grid[r][c] = val
+                    self.candidates[r][c] = set()
+                    self._propagate(r, c, val)
+                    progress = True
+
+        # Check columns
+        for c in range(9):
+            for val in range(1, 10):
+                if any(self.grid[r][c] == val for r in range(9)):
+                    continue
+                possible_rows = [r for r in range(9)
+                                if self.grid[r][c] == 0 and val in self.candidates[r][c]]
+                if len(possible_rows) == 1:
+                    r = possible_rows[0]
+                    self.grid[r][c] = val
+                    self.candidates[r][c] = set()
+                    self._propagate(r, c, val)
+                    progress = True
+
+        # Check boxes
+        for box_r in range(0, 9, 3):
+            for box_c in range(0, 9, 3):
+                for val in range(1, 10):
+                    # Check if already in box
+                    found = False
+                    for r in range(box_r, box_r + 3):
+                        for c in range(box_c, box_c + 3):
+                            if self.grid[r][c] == val:
+                                found = True
+                                break
+                        if found:
+                            break
+                    if found:
+                        continue
+
+                    possible_cells = []
+                    for r in range(box_r, box_r + 3):
+                        for c in range(box_c, box_c + 3):
+                            if self.grid[r][c] == 0 and val in self.candidates[r][c]:
+                                possible_cells.append((r, c))
+
+                    if len(possible_cells) == 1:
+                        r, c = possible_cells[0]
+                        self.grid[r][c] = val
+                        self.candidates[r][c] = set()
+                        self._propagate(r, c, val)
+                        progress = True
+
+        return progress
+
+    def _apply_pointing_pairs(self) -> bool:
+        """
+        Pointing pairs/triples: if candidates in a box are confined to one row/col,
+        eliminate those candidates from the rest of that row/col.
+        """
+        progress = False
+
+        for box_r in range(0, 9, 3):
+            for box_c in range(0, 9, 3):
+                for val in range(1, 10):
+                    # Find all cells in box that can contain val
+                    cells_with_val = []
+                    for r in range(box_r, box_r + 3):
+                        for c in range(box_c, box_c + 3):
+                            if self.grid[r][c] == 0 and val in self.candidates[r][c]:
+                                cells_with_val.append((r, c))
+
+                    if len(cells_with_val) < 2 or len(cells_with_val) > 3:
+                        continue
+
+                    # Check if all in same row
+                    rows = {r for r, c in cells_with_val}
+                    if len(rows) == 1:
+                        row = list(rows)[0]
+                        # Remove val from other cells in this row (outside box)
+                        for c in range(9):
+                            if c < box_c or c >= box_c + 3:
+                                if self.grid[row][c] == 0 and val in self.candidates[row][c]:
+                                    self.candidates[row][c].discard(val)
+                                    progress = True
+
+                    # Check if all in same column
+                    cols = {c for r, c in cells_with_val}
+                    if len(cols) == 1:
+                        col = list(cols)[0]
+                        for r in range(9):
+                            if r < box_r or r >= box_r + 3:
+                                if self.grid[r][col] == 0 and val in self.candidates[r][col]:
+                                    self.candidates[r][col].discard(val)
+                                    progress = True
+
+        return progress
+
+    def solve_with_logic_only(self) -> bool:
+        """
+        Attempt to solve the puzzle using only logical techniques (no guessing).
+
+        Returns True if the puzzle can be completely solved with logic.
+        Returns False if the puzzle requires guessing (backtracking).
+
+        This is used to ensure generated puzzles are human-solvable.
+        """
+        # Work on a copy to not modify state
+        solver = SudokuSolver([row[:] for row in self.grid], self.constraints)
+
+        while True:
+            progress = False
+
+            # Apply naked singles (cells with only one candidate)
+            for r in range(9):
+                for c in range(9):
+                    if solver.grid[r][c] == 0 and len(solver.candidates[r][c]) == 1:
+                        val = list(solver.candidates[r][c])[0]
+                        solver.grid[r][c] = val
+                        solver.candidates[r][c] = set()
+                        solver._propagate(r, c, val)
+                        progress = True
+                    elif solver.grid[r][c] == 0 and len(solver.candidates[r][c]) == 0:
+                        return False  # Contradiction - no solution
+
+            # Apply hidden singles
+            progress |= solver._apply_hidden_singles()
+
+            # Apply pointing pairs
+            progress |= solver._apply_pointing_pairs()
+
+            # Apply variant constraint logic
+            progress |= solver._apply_constraint_logic()
+
+            if not progress:
+                break
+
+        # Check if solved completely
+        return all(solver.grid[r][c] != 0 for r in range(9) for c in range(9))
 
     def solve(self, max_solutions: int = 2) -> List[List[List[int]]]:
         """
@@ -745,7 +901,10 @@ class SudokuGenerator:
         rng: random.Random
     ) -> List[List[int]]:
         """
-        Remove clues from solution while maintaining unique solvability.
+        Remove clues from solution while maintaining:
+        1. Unique solvability (exactly one solution)
+        2. Logic-only solvability (no guessing required)
+
         Difficulty affects how many clues remain.
         """
         difficulty_clues = {
@@ -770,14 +929,24 @@ class SudokuGenerator:
             old_val = grid[r][c]
             grid[r][c] = 0
 
-            # Check if still uniquely solvable
-            solver = SudokuSolver([row[:] for row in grid], constraints)
-            solutions = solver.solve(max_solutions=2)
+            # Create solver for testing
+            test_grid = [row[:] for row in grid]
+            solver = SudokuSolver(test_grid, constraints)
 
-            if len(solutions) == 1:
+            # First check: must have unique solution
+            solutions = solver.solve(max_solutions=2)
+            if len(solutions) != 1:
+                # Restore clue - needed for uniqueness
+                grid[r][c] = old_val
+                continue
+
+            # Second check: must be solvable with logic only (no guessing)
+            logic_solver = SudokuSolver([row[:] for row in grid], constraints)
+            if logic_solver.solve_with_logic_only():
+                # Success - puzzle remains logic-solvable
                 clues_remaining -= 1
             else:
-                # Restore clue - needed for uniqueness
+                # Restore clue - removing it requires guessing
                 grid[r][c] = old_val
 
         return grid
