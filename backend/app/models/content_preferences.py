@@ -218,6 +218,72 @@ class ContentPreferences(SingletonModel):
         comment='Custom newspaper sections: [{"name": "My Tech", "topics": ["AI", "coding"]}]'
     )
 
+    # ==========================================================================
+    # Contemplative Features Settings
+    # ==========================================================================
+    contemplative_depth = Column(
+        String(20),
+        nullable=False,
+        default="balanced",
+        comment="Contemplative depth: light, balanced, or deep"
+    )
+
+    show_lineage = Column(
+        Boolean,
+        nullable=False,
+        default=True,
+        comment="Show family lineage section in newspaper"
+    )
+
+    show_dreams = Column(
+        Boolean,
+        nullable=False,
+        default=True,
+        comment="Show dreams section in newspaper"
+    )
+
+    show_synchronicities = Column(
+        Boolean,
+        nullable=False,
+        default=True,
+        comment="Show synchronicity tracking in newspaper"
+    )
+
+    show_chart_weather = Column(
+        Boolean,
+        nullable=False,
+        default=True,
+        comment="Show personal astrological weather overlay"
+    )
+
+    show_questions = Column(
+        Boolean,
+        nullable=False,
+        default=True,
+        comment="Show contemplative questions section"
+    )
+
+    show_silence = Column(
+        Boolean,
+        nullable=False,
+        default=True,
+        comment="Show intentional silence/pause sections"
+    )
+
+    show_collective_weather = Column(
+        Boolean,
+        nullable=False,
+        default=True,
+        comment="Show collective emotional weather"
+    )
+
+    show_seasonal = Column(
+        Boolean,
+        nullable=False,
+        default=True,
+        comment="Show seasonal awareness section"
+    )
+
     def __repr__(self):
         """String representation"""
         interests_count = len(self.interests or [])
@@ -300,5 +366,16 @@ class ContentPreferences(SingletonModel):
                 "show_horoscope_context": self.show_horoscope_context,
                 "show_rss_content": self.show_rss_content
             },
-            "custom_sections": self.custom_sections or []
+            "custom_sections": self.custom_sections or [],
+            "contemplative": {
+                "depth": self.contemplative_depth,
+                "show_lineage": self.show_lineage,
+                "show_dreams": self.show_dreams,
+                "show_synchronicities": self.show_synchronicities,
+                "show_chart_weather": self.show_chart_weather,
+                "show_questions": self.show_questions,
+                "show_silence": self.show_silence,
+                "show_collective_weather": self.show_collective_weather,
+                "show_seasonal": self.show_seasonal
+            }
         }

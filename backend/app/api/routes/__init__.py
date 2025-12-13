@@ -37,6 +37,8 @@ from . import (
     coloring_book,
     # Phase 7: Personalized Cosmic Paper
     content_preferences,
+    # Phase 8: Contemplative Cosmic Paper
+    contemplative,
 )
 
 # Create main API router
@@ -88,5 +90,8 @@ router.include_router(coloring_book.router, tags=["Coloring Book"])
 
 # Phase 7: Personalized Cosmic Paper
 router.include_router(content_preferences.router, tags=["Content Preferences"])
+
+# Phase 8: Contemplative Cosmic Paper
+router.include_router(contemplative.router, tags=["Contemplative"])
 
 __all__ = ["router"]

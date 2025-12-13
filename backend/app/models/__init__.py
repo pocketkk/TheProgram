@@ -49,6 +49,13 @@ from app.models.content_preferences import ContentPreferences
 from app.models.rss_feed import RssFeed
 from app.models.rss_feed_entry import RssFeedEntry
 
+# Phase 8: Contemplative Cosmic Paper
+from app.models.lineage_member import LineageMember
+from app.models.dream_entry import DreamEntry
+from app.models.unread_archive import UnreadArchiveItem
+from app.models.witness_entry import WitnessEntry
+from app.models.synchronicity import Synchronicity
+
 __all__ = [
     # Base classes
     'Base',
@@ -99,4 +106,11 @@ __all__ = [
     'ContentPreferences',
     'RssFeed',
     'RssFeedEntry',
+
+    # Phase 8: Contemplative Cosmic Paper
+    'LineageMember',
+    'DreamEntry',
+    'UnreadArchiveItem',
+    'WitnessEntry',
+    'Synchronicity',
 ]
