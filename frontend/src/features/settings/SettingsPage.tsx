@@ -11,12 +11,14 @@ import {
   Sparkles,
   Info,
   Newspaper,
+  User,
 } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
 import { ApiKeySettings } from './components/ApiKeySettings'
 import { GoogleApiKeySettings } from './components/GoogleApiKeySettings'
 import { NewspaperStyleSettings } from './components/NewspaperStyleSettings'
 import { NewsSourcesSettings } from './components/NewsSourcesSettings'
+import { ContentPreferencesSettings } from './components/ContentPreferencesSettings'
 
 export function SettingsPage() {
   return (
@@ -124,6 +126,31 @@ export function SettingsPage() {
             </CardHeader>
             <CardContent>
               <NewsSourcesSettings />
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Content Preferences - Personalized Cosmic Paper */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.45 }}
+          className="lg:col-span-2"
+        >
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-3 mb-2">
+                <User className="h-5 w-5 text-cosmic-400" />
+                <CardTitle>Content Personalization</CardTitle>
+              </div>
+              <CardDescription>
+                Build your own algorithm. Configure your interests, sports teams, location for weather,
+                and truth filters to create a personalized Cosmic Paper that supports your spiritual journey
+                and gives you control over your information feed.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ContentPreferencesSettings />
             </CardContent>
           </Card>
         </motion.div>

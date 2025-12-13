@@ -553,6 +553,164 @@ LEFT JOIN birth_data bd ON ch.birth_data_id = bd.id
 ORDER BY ch.created_at DESC;
 
 -- ============================================================================
+-- TABLE: content_preferences
+-- Purpose: Store user content personalization settings for Cosmic Paper
+-- Note: Single row table - contains ONE preferences record
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS content_preferences (
+    id TEXT PRIMARY KEY CHECK (id = '1'), -- Enforce single row
+
+    -- Location (for weather)
+    location_name TEXT,
+    latitude REAL,
+    longitude REAL,
+    timezone TEXT,
+
+    -- Topics & Interests (JSON array)
+    -- Example: [{"topic": "technology", "weight": 1.0}]
+    interests TEXT,
+
+    -- Sports Preferences (JSON arrays)
+    sports_teams TEXT,    -- [{"name": "Lakers", "league": "NBA", "sport": "basketball"}]
+    sports_leagues TEXT,  -- ["NBA", "NFL"]
+
+    -- RSS Feed Settings
+    rss_categories TEXT,  -- ["news", "tech", "spiritual"]
+
+    -- Content Filtering (JSON arrays)
+    blocked_sources TEXT,
+    blocked_keywords TEXT,
+    prioritized_topics TEXT,
+
+    -- Truth Algorithm Settings
+    enable_truth_filter INTEGER NOT NULL DEFAULT 0,
+    truth_focus_topics TEXT,      -- ["consciousness", "spirituality"]
+    source_trust_levels TEXT,     -- {"nyt": 0.8, "guardian": 0.9}
+
+    -- Display Preferences
+    show_weather INTEGER NOT NULL DEFAULT 1,
+    show_sports INTEGER NOT NULL DEFAULT 1,
+    show_horoscope_context INTEGER NOT NULL DEFAULT 1,
+    show_rss_content INTEGER NOT NULL DEFAULT 1,
+
+    -- Custom Sections (JSON array)
+    custom_sections TEXT,  -- [{"name": "My Tech", "topics": ["AI", "coding"]}]
+
+    -- Timestamps
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+-- Trigger to auto-update updated_at
+CREATE TRIGGER IF NOT EXISTS content_preferences_updated_at
+    AFTER UPDATE ON content_preferences
+    FOR EACH ROW
+BEGIN
+    UPDATE content_preferences SET updated_at = datetime('now') WHERE id = '1';
+END;
+
+-- Insert default content preferences row
+INSERT OR IGNORE INTO content_preferences (id) VALUES ('1');
+
+-- ============================================================================
+-- TABLE: rss_feeds
+-- Purpose: Store RSS feed subscriptions for personalized content
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS rss_feeds (
+    id TEXT PRIMARY KEY,  -- UUID as TEXT
+
+    -- Feed Information
+    url TEXT NOT NULL UNIQUE,
+    name TEXT NOT NULL,
+    category TEXT DEFAULT 'news',
+    description TEXT,
+
+    -- Status
+    is_active INTEGER NOT NULL DEFAULT 1,
+    fetch_interval_hours INTEGER NOT NULL DEFAULT 24,
+
+    -- Fetch Status
+    last_fetched_at TEXT,
+    last_error TEXT,
+    entry_count INTEGER DEFAULT 0,
+
+    -- Content Categorization (JSON array)
+    topics TEXT,  -- ["technology", "AI"]
+
+    -- Trust Level (stored as TEXT for SQLite)
+    trust_level TEXT NOT NULL DEFAULT '0.5',
+
+    -- Historical Support
+    supports_historical INTEGER NOT NULL DEFAULT 0,
+    historical_url_template TEXT,
+
+    -- Timestamps
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+-- Trigger to auto-update updated_at
+CREATE TRIGGER IF NOT EXISTS rss_feeds_updated_at
+    AFTER UPDATE ON rss_feeds
+    FOR EACH ROW
+BEGIN
+    UPDATE rss_feeds SET updated_at = datetime('now') WHERE id = OLD.id;
+END;
+
+-- Indexes
+CREATE INDEX IF NOT EXISTS idx_rss_feeds_category ON rss_feeds(category);
+CREATE INDEX IF NOT EXISTS idx_rss_feeds_active ON rss_feeds(is_active);
+
+-- ============================================================================
+-- TABLE: rss_feed_entries
+-- Purpose: Cache RSS feed entries for date-based filtering
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS rss_feed_entries (
+    id TEXT PRIMARY KEY,  -- UUID as TEXT
+
+    -- Foreign key to feed
+    feed_id TEXT NOT NULL,
+
+    -- Entry Identification
+    guid TEXT NOT NULL,
+
+    -- Content
+    title TEXT NOT NULL,
+    link TEXT,
+    summary TEXT,
+    content TEXT,
+    author TEXT,
+
+    -- Timestamps for date filtering
+    published_at TEXT,
+    published_date TEXT,  -- YYYY-MM-DD for efficient queries
+
+    -- Metadata
+    categories TEXT,  -- Comma-separated categories
+    image_url TEXT,
+
+    -- Timestamps
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+
+    -- Foreign key constraints
+    FOREIGN KEY (feed_id) REFERENCES rss_feeds(id) ON DELETE CASCADE
+);
+
+-- Trigger to auto-update updated_at
+CREATE TRIGGER IF NOT EXISTS rss_feed_entries_updated_at
+    AFTER UPDATE ON rss_feed_entries
+    FOR EACH ROW
+BEGIN
+    UPDATE rss_feed_entries SET updated_at = datetime('now') WHERE id = OLD.id;
+END;
+
+-- Indexes for efficient queries
+CREATE INDEX IF NOT EXISTS idx_rss_entries_published_date ON rss_feed_entries(published_date);
+CREATE INDEX IF NOT EXISTS idx_rss_entries_feed_date ON rss_feed_entries(feed_id, published_date);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_rss_entries_feed_guid ON rss_feed_entries(feed_id, guid);
+
+-- ============================================================================
 -- UTILITY: Database maintenance
 -- ============================================================================
 

@@ -1344,3 +1344,194 @@ async def clear_historical_cache(
     db.commit()
 
     return Message(message=f"Cache cleared for {month:02d}-{day:02d}")
+
+
+# =============================================================================
+# Personalized Newspaper Endpoint
+# =============================================================================
+
+@router.get("/historical/{year}/{month}/{day}/newspaper/personalized")
+async def get_personalized_newspaper(
+    year: int,
+    month: int,
+    day: int,
+    style: str = Query("modern", description="Journalism style: 'victorian' or 'modern'"),
+    regenerate: bool = Query(False, description="Force regenerate newspaper, ignoring cache"),
+    db: Session = Depends(get_db),
+):
+    """
+    Get a PERSONALIZED newspaper for a specific date.
+
+    This endpoint generates a newspaper tailored to the user's interests,
+    including:
+    - Historical weather for their location
+    - Sports news filtered by their teams/leagues
+    - RSS feed content filtered by date
+    - News articles scored and ranked by interests
+    - Custom sections based on user-defined topics
+
+    Configure personalization in Settings > Content Preferences.
+
+    Args:
+        year: Year (e.g., 1985)
+        month: Month (1-12)
+        day: Day (1-31)
+        style: Journalism style ('victorian' or 'modern')
+        regenerate: Force regenerate, ignoring cache
+        db: Database session
+
+    Returns:
+        Personalized newspaper with weather, sports, and custom sections
+    """
+    import logging
+    logger = logging.getLogger(__name__)
+
+    # Validate inputs
+    if year < 1000 or year > 9999:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid year: {year}. Must be 1000-9999."
+        )
+    if not (1 <= month <= 12):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid month: {month}. Must be 1-12."
+        )
+    if not (1 <= day <= 31):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid day: {day}. Must be 1-31."
+        )
+    if style not in ["victorian", "modern"]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid style: {style}. Must be 'victorian' or 'modern'."
+        )
+
+    # Validate the date is real
+    try:
+        target_date = date(year, month, day)
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid date: {year}-{month:02d}-{day:02d}"
+        )
+
+    full_date_key = f"{year}-{month:02d}-{day:02d}"
+
+    # Get app config for API keys
+    config = db.query(AppConfig).first()
+    if not config:
+        config = AppConfig()
+        db.add(config)
+        db.commit()
+        db.refresh(config)
+
+    # First, get the base newspaper (from cache or generate)
+    base_newspaper = None
+    aggregated_news = None
+
+    # Check cache for base newspaper
+    if not regenerate:
+        historical = db.query(HistoricalDate).filter(
+            HistoricalDate.full_date == full_date_key
+        ).first()
+
+        if historical and historical.has_newspaper and historical.newspaper_style == style:
+            base_newspaper = {
+                "headline": historical.newspaper_content.get("headline", ""),
+                "date_display": historical.newspaper_content.get("date_display", f"{month}/{day}/{year}"),
+                "sections": historical.newspaper_content.get("sections", []),
+                "metadata": {
+                    "sources_used": historical.newspaper_sources.split(",") if historical.newspaper_sources else []
+                }
+            }
+
+    # If no cached base newspaper, fetch news and generate
+    if not base_newspaper:
+        try:
+            from app.services.news_aggregator_service import create_news_aggregator
+            from app.services.newspaper_service import get_newspaper_service
+
+            aggregator = create_news_aggregator(
+                guardian_api_key=config.guardian_api_key,
+                nyt_api_key=config.nyt_api_key,
+                sources_priority=config.newspaper_sources_priority
+            )
+
+            # Fetch aggregated news
+            aggregated_news = await aggregator.fetch_news_for_date(
+                year=year,
+                month=month,
+                day=day,
+                articles_per_source=15
+            )
+            await aggregator.close()
+
+            # Generate base newspaper
+            if config.google_api_key and (aggregated_news.has_real_news or aggregated_news.wikipedia_context):
+                newspaper_service = get_newspaper_service(api_key=config.google_api_key)
+                newspaper_result = await newspaper_service.generate_newspaper_from_aggregated(
+                    aggregated_news=aggregated_news,
+                    style=style
+                )
+                base_newspaper = {
+                    "headline": newspaper_result.headline,
+                    "date_display": newspaper_result.date_display,
+                    "sections": newspaper_result.sections,
+                    "metadata": newspaper_result.generation_metadata
+                }
+            else:
+                # Fallback newspaper
+                newspaper_service = get_newspaper_service()
+                fallback = newspaper_service.generate_fallback_newspaper(year, month, day, style)
+                base_newspaper = {
+                    "headline": fallback.headline,
+                    "date_display": fallback.date_display,
+                    "sections": fallback.sections,
+                    "metadata": fallback.generation_metadata
+                }
+
+        except Exception as e:
+            logger.error(f"Failed to generate base newspaper: {e}")
+            base_newspaper = {
+                "headline": f"The Cosmic Chronicle - {month}/{day}/{year}",
+                "date_display": f"{month}/{day}/{year}",
+                "sections": [],
+                "metadata": {"error": str(e)}
+            }
+
+    # Now apply personalization
+    try:
+        from app.services.personalized_newspaper_service import get_personalized_newspaper_service
+
+        personalized_service = get_personalized_newspaper_service(db)
+        personalized_newspaper = await personalized_service.generate_personalized_newspaper(
+            year=year,
+            month=month,
+            day=day,
+            base_newspaper=base_newspaper,
+            aggregated_news=aggregated_news,
+            style=style
+        )
+
+        return personalized_newspaper.to_dict()
+
+    except Exception as e:
+        logger.error(f"Personalization failed, returning base newspaper: {e}")
+        # Return base newspaper without personalization
+        return {
+            "date": full_date_key,
+            "year": year,
+            "month": month,
+            "day": day,
+            "headline": base_newspaper.get("headline", ""),
+            "date_display": base_newspaper.get("date_display", ""),
+            "sections": base_newspaper.get("sections", []),
+            "personalized_sections": [],
+            "weather": None,
+            "style": style,
+            "sources_used": base_newspaper.get("metadata", {}).get("sources_used", []),
+            "personalization_applied": False,
+            "metadata": {"error": str(e)}
+        }
