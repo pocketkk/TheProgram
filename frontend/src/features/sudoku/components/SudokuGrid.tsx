@@ -4,6 +4,7 @@
  * Features:
  * - 9x9 grid with box boundaries
  * - Keyboard input for numbers
+ * - Pencil marks (candidates) support
  * - Visual constraint overlays
  * - Cell selection and highlighting
  * - Error highlighting
@@ -14,6 +15,9 @@ import { motion } from 'framer-motion'
 import type { Constraint, CellSelection, SolutionError } from '../types'
 import { CONSTRAINT_COLORS } from '../types'
 
+// Pencil marks stored as a map of "row-col" -> Set of candidate digits
+export type PencilMarks = Map<string, Set<number>>
+
 interface SudokuGridProps {
   grid: number[][]
   originalGrid: number[][]  // For identifying fixed cells
@@ -21,6 +25,9 @@ interface SudokuGridProps {
   selectedCell: CellSelection
   onCellSelect: (row: number, col: number) => void
   onCellInput: (value: number) => void
+  pencilMarks: PencilMarks
+  onPencilMarkToggle: (row: number, col: number, value: number) => void
+  pencilMode: boolean
   errors?: SolutionError[]
   highlightedCells?: [number, number][]  // For hints
   isComplete?: boolean
@@ -38,6 +45,9 @@ export const SudokuGrid = ({
   selectedCell,
   onCellSelect,
   onCellInput,
+  pencilMarks,
+  onPencilMarkToggle,
+  pencilMode,
   errors = [],
   highlightedCells = [],
   isComplete = false
@@ -54,9 +64,20 @@ export const SudokuGrid = ({
       // Don't allow editing fixed cells
       if (originalGrid[row][col] !== 0) return
 
-      // Number input
+      // Number input (1-9)
       if (e.key >= '1' && e.key <= '9') {
-        onCellInput(parseInt(e.key))
+        const num = parseInt(e.key)
+
+        // Shift+number or pencil mode = toggle pencil mark
+        if (e.shiftKey || pencilMode) {
+          // Only allow pencil marks on empty cells
+          if (grid[row][col] === 0) {
+            onPencilMarkToggle(row, col, num)
+          }
+        } else {
+          // Normal input - clear pencil marks and set value
+          onCellInput(num)
+        }
         e.preventDefault()
       }
       // Clear cell
@@ -85,7 +106,12 @@ export const SudokuGrid = ({
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [selectedCell, originalGrid, onCellInput, onCellSelect])
+  }, [selectedCell, originalGrid, grid, onCellInput, onCellSelect, onPencilMarkToggle, pencilMode])
+
+  // Get pencil marks for a cell
+  const getCellPencilMarks = useCallback((row: number, col: number): Set<number> => {
+    return pencilMarks.get(`${row}-${col}`) || new Set()
+  }, [pencilMarks])
 
   // Check if a cell has an error
   const hasError = useCallback((row: number, col: number) => {
@@ -115,6 +141,25 @@ export const SudokuGrid = ({
     const sBoxCol = Math.floor(sc / 3)
     return boxRow === sBoxRow && boxCol === sBoxCol
   }, [selectedCell])
+
+  // Render pencil marks in a 3x3 grid
+  const renderPencilMarks = (marks: Set<number>) => {
+    if (marks.size === 0) return null
+
+    return (
+      <div className="absolute inset-0 grid grid-cols-3 grid-rows-3 p-0.5">
+        {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
+          <span
+            key={num}
+            className={`text-[10px] flex items-center justify-center
+                       ${marks.has(num) ? 'text-blue-400' : 'text-transparent'}`}
+          >
+            {num}
+          </span>
+        ))}
+      </div>
+    )
+  }
 
   // Render constraint overlays
   const renderConstraints = () => {
@@ -186,12 +231,6 @@ export const SudokuGrid = ({
   const renderKillerCage = (constraint: Constraint, idx: number, colors: { line: string; fill: string }) => {
     const cells = constraint.cells
     if (cells.length === 0) return null
-
-    // Find bounding cells
-    const minRow = Math.min(...cells.map(([r]) => r))
-    const maxRow = Math.max(...cells.map(([r]) => r))
-    const minCol = Math.min(...cells.map(([, c]) => c))
-    const maxCol = Math.max(...cells.map(([, c]) => c))
 
     // Create cage outline path (simplified - just outlines all cells)
     const padding = 4
@@ -274,6 +313,7 @@ export const SudokuGrid = ({
           const isRelatedCell = isRelated(row, col)
           const hasCellError = hasError(row, col)
           const isCellHighlighted = isHighlighted(row, col)
+          const cellPencilMarks = getCellPencilMarks(row, col)
 
           // Box borders
           const borderRight = (col + 1) % 3 === 0 && col !== 8 ? BOX_BORDER : CELL_BORDER
@@ -308,10 +348,12 @@ export const SudokuGrid = ({
               whileHover={{ backgroundColor: 'rgba(139, 92, 246, 0.2)' }}
               whileTap={{ scale: 0.95 }}
             >
-              {value !== 0 && (
+              {value !== 0 ? (
                 <span className={hasCellError ? 'text-red-400' : ''}>
                   {value}
                 </span>
+              ) : (
+                renderPencilMarks(cellPencilMarks)
               )}
             </motion.button>
           )

@@ -16,9 +16,10 @@ import {
   Calendar,
   HelpCircle,
   Sparkles,
-  Undo2
+  Undo2,
+  PenLine
 } from 'lucide-react'
-import { SudokuGrid } from './components/SudokuGrid'
+import { SudokuGrid, type PencilMarks } from './components/SudokuGrid'
 import { ConstraintLegend } from './components/ConstraintLegend'
 import type { CellSelection, Difficulty, SolutionError } from './types'
 import * as sudokuApi from '@/lib/api/sudoku'
@@ -40,6 +41,10 @@ export const SudokuPage = () => {
   const [legendExpanded, setLegendExpanded] = useState(true)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
+  // Pencil marks (candidates)
+  const [pencilMarks, setPencilMarks] = useState<PencilMarks>(new Map())
+  const [pencilMode, setPencilMode] = useState(false)
+
   // Settings
   const [difficulty, setDifficulty] = useState<Difficulty>('medium')
   const [showTransitInfo, setShowTransitInfo] = useState(true)
@@ -55,6 +60,7 @@ export const SudokuPage = () => {
     setHint(null)
     setErrorMessage(null)
     setHistory([])
+    setPencilMarks(new Map())
 
     try {
       const newPuzzle = await sudokuApi.generatePuzzle({ difficulty: diff })
@@ -74,6 +80,7 @@ export const SudokuPage = () => {
     setHint(null)
     setErrorMessage(null)
     setHistory([])
+    setPencilMarks(new Map())
 
     try {
       const newPuzzle = await sudokuApi.getDailyPuzzle(difficulty)
@@ -110,11 +117,42 @@ export const SudokuPage = () => {
       return newGrid
     })
 
+    // Clear pencil marks for this cell when entering a value
+    if (value !== 0) {
+      setPencilMarks(prev => {
+        const newMarks = new Map(prev)
+        newMarks.delete(`${row}-${col}`)
+        return newMarks
+      })
+    }
+
     // Clear errors related to this cell
     setErrors(prev => prev.filter(e =>
       !e.cell || e.cell[0] !== row || e.cell[1] !== col
     ))
   }, [selectedCell, originalGrid, grid, puzzle])
+
+  const handlePencilMarkToggle = useCallback((row: number, col: number, value: number) => {
+    setPencilMarks(prev => {
+      const newMarks = new Map(prev)
+      const key = `${row}-${col}`
+      const cellMarks = new Set(prev.get(key) || [])
+
+      if (cellMarks.has(value)) {
+        cellMarks.delete(value)
+      } else {
+        cellMarks.add(value)
+      }
+
+      if (cellMarks.size === 0) {
+        newMarks.delete(key)
+      } else {
+        newMarks.set(key, cellMarks)
+      }
+
+      return newMarks
+    })
+  }, [])
 
   const handleUndo = useCallback(() => {
     if (history.length === 0) return
@@ -290,6 +328,9 @@ export const SudokuPage = () => {
                 selectedCell={selectedCell}
                 onCellSelect={handleCellSelect}
                 onCellInput={handleCellInput}
+                pencilMarks={pencilMarks}
+                onPencilMarkToggle={handlePencilMarkToggle}
+                pencilMode={pencilMode}
                 errors={errors}
                 highlightedCells={hint ? [hint.cell] : []}
                 isComplete={gameState === 'complete'}
@@ -363,12 +404,26 @@ export const SudokuPage = () => {
                   setHistory([])
                   setErrors([])
                   setHint(null)
+                  setPencilMarks(new Map())
                   setGameState('playing')
                 }}
                 className="flex items-center gap-2 px-4 py-2 bg-orange-600/20
                            hover:bg-orange-600/30 text-orange-400 rounded-lg transition-colors"
               >
                 Reset
+              </button>
+
+              <button
+                onClick={() => setPencilMode(!pencilMode)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors
+                           ${pencilMode
+                             ? 'bg-blue-600 text-white'
+                             : 'bg-gray-800 hover:bg-gray-700 text-gray-400'
+                           }`}
+                title="Toggle pencil mode (or hold Shift while typing)"
+              >
+                <PenLine className="w-4 h-4" />
+                Pencil
               </button>
 
               <button
@@ -403,29 +458,44 @@ export const SudokuPage = () => {
 
           {/* Number pad for touch input */}
           {puzzle && gameState !== 'loading' && (
-            <div className="mt-4 grid grid-cols-5 gap-2">
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
+            <div className="mt-4">
+              {pencilMode && (
+                <p className="text-xs text-blue-400 mb-2 text-center">
+                  Pencil mode: tap numbers to toggle candidates
+                </p>
+              )}
+              <div className="grid grid-cols-5 gap-2">
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
+                  <button
+                    key={num}
+                    onClick={() => {
+                      if (!selectedCell) return
+                      const { row, col } = selectedCell
+                      if (pencilMode && grid[row][col] === 0) {
+                        handlePencilMarkToggle(row, col, num)
+                      } else {
+                        handleCellInput(num)
+                      }
+                    }}
+                    disabled={!selectedCell || originalGrid[selectedCell.row]?.[selectedCell.col] !== 0}
+                    className={`w-12 h-12 hover:bg-gray-700
+                               disabled:opacity-30 disabled:cursor-not-allowed
+                               rounded-lg text-xl font-mono transition-colors
+                               ${pencilMode ? 'bg-blue-900/30 text-blue-300' : 'bg-gray-800 text-purple-300'}`}
+                  >
+                    {num}
+                  </button>
+                ))}
                 <button
-                  key={num}
-                  onClick={() => handleCellInput(num)}
+                  onClick={() => handleCellInput(0)}
                   disabled={!selectedCell || originalGrid[selectedCell.row]?.[selectedCell.col] !== 0}
                   className="w-12 h-12 bg-gray-800 hover:bg-gray-700
                              disabled:opacity-30 disabled:cursor-not-allowed
-                             rounded-lg text-xl font-mono text-purple-300
-                             transition-colors"
+                             rounded-lg text-sm text-gray-400 transition-colors"
                 >
-                  {num}
+                  Clear
                 </button>
-              ))}
-              <button
-                onClick={() => handleCellInput(0)}
-                disabled={!selectedCell || originalGrid[selectedCell.row]?.[selectedCell.col] !== 0}
-                className="w-12 h-12 bg-gray-800 hover:bg-gray-700
-                           disabled:opacity-30 disabled:cursor-not-allowed
-                           rounded-lg text-sm text-gray-400 transition-colors"
-              >
-                Clear
-              </button>
+              </div>
             </div>
           )}
 
@@ -546,11 +616,12 @@ export const SudokuPage = () => {
             </h3>
             <ul className="text-sm text-gray-400 space-y-2">
               <li>* Click a cell and type 1-9 to enter a digit</li>
+              <li>* Shift+number adds pencil marks (candidates)</li>
+              <li>* Or toggle Pencil mode button for touch input</li>
               <li>* Use arrow keys to navigate</li>
               <li>* Backspace or 0 clears a cell</li>
               <li>* Fixed (white) numbers cannot be changed</li>
               <li>* Colored lines show variant constraints</li>
-              <li>* Constraints are based on today's transits</li>
             </ul>
           </div>
         </div>
