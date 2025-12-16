@@ -5,6 +5,8 @@
 export type ConstraintType = 'renban' | 'german_whispers' | 'killer_cage' | 'thermometer' | 'between_line' | 'arrow'
 export type Difficulty = 'easy' | 'medium' | 'hard' | 'expert'
 export type CellSelection = { row: number; col: number } | null
+export type MultiCellSelection = Set<string>  // Set of "row-col" strings
+export type MarkMode = 'digit' | 'corner' | 'center'  // Normal input, corner pencil marks, center candidates
 
 export interface Constraint {
   constraint_type: ConstraintType

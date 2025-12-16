@@ -998,6 +998,9 @@ class SudokuGenerator:
         """
         Generate a complete variant sudoku puzzle based on transits.
 
+        Uses a grid-first approach: generates the solution first, then finds
+        constraints that naturally exist in that grid, guided by transit data.
+
         Args:
             transit_aspects: List of aspect dictionaries
             planet_positions: Dict of planet positions
@@ -1013,54 +1016,287 @@ class SudokuGenerator:
 
         rng = random.Random(seed)
 
-        # Generate constraints from transits
-        constraints, transit_summary = TransitToSudokuMapper.map_transits_to_constraints(
-            transit_aspects, planet_positions, rng
+        # Step 1: Generate the complete solution grid first
+        solution = cls.generate_complete_grid(rng)
+
+        # Step 2: Find constraints that exist in this grid, guided by transits
+        constraints, transit_summary = cls._find_constraints_in_grid(
+            solution, transit_aspects, planet_positions, rng
         )
 
-        # Generate puzzles until we find one that satisfies all constraints
-        max_attempts = 50
-        for attempt in range(max_attempts):
-            # Generate complete grid
-            solution = cls.generate_complete_grid(rng)
-
-            # Check if it satisfies constraints
-            if cls.verify_constraints(solution, constraints):
-                # Remove clues while maintaining uniqueness
-                puzzle_grid = cls.remove_clues(solution, constraints, difficulty, rng)
-
-                return SudokuPuzzle(
-                    grid=puzzle_grid,
-                    solution=solution,
-                    constraints=constraints,
-                    difficulty=difficulty,
-                    transit_date=transit_date or datetime.now().isoformat(),
-                    transit_summary=transit_summary,
-                    seed=seed
-                )
-
-        # If no valid puzzle found with constraints, reduce constraints
-        # and try again
-        if len(constraints) > 2:
-            reduced_constraints = constraints[:len(constraints) // 2]
-            return cls.generate_puzzle(
-                transit_aspects, planet_positions, difficulty,
-                transit_date, seed + 1  # New seed to avoid infinite loop
-            )
-
-        # Fallback: generate without variant constraints
-        solution = cls.generate_complete_grid(rng)
-        puzzle_grid = cls.remove_clues(solution, [], difficulty, rng)
+        # Step 3: Remove clues while maintaining uniqueness
+        puzzle_grid = cls.remove_clues(solution, constraints, difficulty, rng)
 
         return SudokuPuzzle(
             grid=puzzle_grid,
             solution=solution,
-            constraints=[],
+            constraints=constraints,
             difficulty=difficulty,
             transit_date=transit_date or datetime.now().isoformat(),
-            transit_summary="Classic sudoku (no transit constraints applied)",
+            transit_summary=transit_summary,
             seed=seed
         )
+
+    @classmethod
+    def _find_constraints_in_grid(
+        cls,
+        grid: List[List[int]],
+        transit_aspects: List[Dict],
+        planet_positions: Dict[str, Dict],
+        rng: random.Random
+    ) -> Tuple[List[Constraint], str]:
+        """
+        Find valid constraints that naturally exist in the grid.
+
+        Uses transit aspects to guide what types of constraints to look for
+        and provides astrological meaning to the found constraints.
+        """
+        constraints = []
+        descriptions = []
+        used_cells: Set[Tuple[int, int]] = set()
+
+        # Group aspects by type
+        conjunctions = [a for a in transit_aspects if a.get('aspect') == 'conjunction']
+        oppositions = [a for a in transit_aspects if a.get('aspect') == 'opposition']
+        trines = [a for a in transit_aspects if a.get('aspect') == 'trine']
+        squares = [a for a in transit_aspects if a.get('aspect') == 'square']
+        sextiles = [a for a in transit_aspects if a.get('aspect') == 'sextile']
+
+        # Conjunctions -> Find renban lines (consecutive digits)
+        for aspect in conjunctions[:3]:
+            constraint = cls._find_renban_in_grid(grid, aspect, planet_positions, used_cells, rng)
+            if constraint:
+                constraints.append(constraint)
+                descriptions.append(f"Renban: {aspect.get('transit_planet')}-{aspect.get('natal_planet')}")
+
+        # Oppositions + Squares -> Find German Whispers (differ by 5+)
+        tense_aspects = (oppositions + squares)[:2]
+        for aspect in tense_aspects:
+            constraint = cls._find_whispers_in_grid(grid, aspect, planet_positions, used_cells, rng)
+            if constraint:
+                constraints.append(constraint)
+                descriptions.append(f"Whispers: {aspect.get('transit_planet')}-{aspect.get('natal_planet')}")
+
+        # Trines + Sextiles -> Find killer cages
+        harmonious = (trines + sextiles)[:3]
+        for aspect in harmonious:
+            constraint = cls._find_cage_in_grid(grid, aspect, planet_positions, used_cells, rng)
+            if constraint:
+                constraints.append(constraint)
+                descriptions.append(f"Cage: {aspect.get('transit_planet')}-{aspect.get('natal_planet')}")
+
+        # Find thermometers based on fast planets
+        fast_planets = ['Moon', 'Mercury', 'Venus', 'Sun']
+        for planet in fast_planets[:2]:
+            if planet in planet_positions:
+                constraint = cls._find_thermometer_in_grid(grid, planet, planet_positions, used_cells, rng)
+                if constraint:
+                    constraints.append(constraint)
+                    descriptions.append(f"Thermo: {planet}")
+
+        if constraints:
+            summary = f"Transit-based puzzle with {len(constraints)} constraints: " + ", ".join(descriptions[:5])
+            if len(descriptions) > 5:
+                summary += f" (+{len(descriptions) - 5} more)"
+        else:
+            summary = "Classic sudoku - transits did not yield variant constraints"
+
+        return constraints, summary
+
+    @classmethod
+    def _find_renban_in_grid(
+        cls,
+        grid: List[List[int]],
+        aspect: Dict,
+        positions: Dict,
+        used_cells: Set[Tuple[int, int]],
+        rng: random.Random
+    ) -> Optional[Constraint]:
+        """Find a valid renban line (consecutive digits) in the grid."""
+        transit_planet = aspect.get('transit_planet', '')
+        natal_planet = aspect.get('natal_planet', '')
+
+        # Search for consecutive sequences
+        directions = [(0, 1), (1, 0), (1, 1), (1, -1)]  # horizontal, vertical, diagonals
+        line_length = rng.randint(3, 4)
+
+        # Try multiple starting positions
+        start_positions = [(r, c) for r in range(9) for c in range(9) if (r, c) not in used_cells]
+        rng.shuffle(start_positions)
+
+        for start_r, start_c in start_positions[:30]:
+            for dr, dc in directions:
+                cells = []
+                for i in range(line_length):
+                    r, c = start_r + i * dr, start_c + i * dc
+                    if 0 <= r < 9 and 0 <= c < 9 and (r, c) not in used_cells:
+                        cells.append((r, c))
+                    else:
+                        break
+
+                if len(cells) >= 3:
+                    values = sorted([grid[r][c] for r, c in cells])
+                    # Check if consecutive
+                    is_consecutive = all(values[i+1] - values[i] == 1 for i in range(len(values)-1))
+                    if is_consecutive:
+                        used_cells.update(cells)
+                        return Constraint(
+                            constraint_type=ConstraintType.RENBAN,
+                            cells=cells,
+                            source_aspect='conjunction',
+                            planets=[transit_planet, natal_planet],
+                            description=f"{transit_planet} conjunct {natal_planet}: consecutive digits unite"
+                        )
+
+        return None
+
+    @classmethod
+    def _find_whispers_in_grid(
+        cls,
+        grid: List[List[int]],
+        aspect: Dict,
+        positions: Dict,
+        used_cells: Set[Tuple[int, int]],
+        rng: random.Random
+    ) -> Optional[Constraint]:
+        """Find a valid German Whispers line (adjacent cells differ by 5+)."""
+        transit_planet = aspect.get('transit_planet', '')
+        natal_planet = aspect.get('natal_planet', '')
+        aspect_type = aspect.get('aspect', '')
+
+        directions = [(0, 1), (1, 0), (1, 1), (1, -1)]
+        line_length = 4
+
+        start_positions = [(r, c) for r in range(9) for c in range(9) if (r, c) not in used_cells]
+        rng.shuffle(start_positions)
+
+        for start_r, start_c in start_positions[:30]:
+            for dr, dc in directions:
+                cells = []
+                valid = True
+                prev_val = None
+
+                for i in range(line_length):
+                    r, c = start_r + i * dr, start_c + i * dc
+                    if 0 <= r < 9 and 0 <= c < 9 and (r, c) not in used_cells:
+                        val = grid[r][c]
+                        if prev_val is not None and abs(val - prev_val) < 5:
+                            valid = False
+                            break
+                        cells.append((r, c))
+                        prev_val = val
+                    else:
+                        valid = False
+                        break
+
+                if valid and len(cells) >= 4:
+                    used_cells.update(cells)
+                    return Constraint(
+                        constraint_type=ConstraintType.GERMAN_WHISPERS,
+                        cells=cells,
+                        source_aspect=aspect_type,
+                        planets=[transit_planet, natal_planet],
+                        description=f"{transit_planet} {aspect_type} {natal_planet}: tension demands difference (5+)"
+                    )
+
+        return None
+
+    @classmethod
+    def _find_cage_in_grid(
+        cls,
+        grid: List[List[int]],
+        aspect: Dict,
+        positions: Dict,
+        used_cells: Set[Tuple[int, int]],
+        rng: random.Random
+    ) -> Optional[Constraint]:
+        """Find a valid killer cage (connected cells with unique digits)."""
+        transit_planet = aspect.get('transit_planet', '')
+        natal_planet = aspect.get('natal_planet', '')
+        aspect_type = aspect.get('aspect', '')
+
+        cage_size = 3 if aspect_type == 'sextile' else 4
+
+        start_positions = [(r, c) for r in range(9) for c in range(9) if (r, c) not in used_cells]
+        rng.shuffle(start_positions)
+
+        for start_r, start_c in start_positions[:20]:
+            cells = [(start_r, start_c)]
+
+            # Grow cage using flood-fill
+            while len(cells) < cage_size:
+                neighbors = set()
+                for r, c in cells:
+                    for dr, dc in [(0, 1), (1, 0), (0, -1), (-1, 0)]:
+                        nr, nc = r + dr, c + dc
+                        if (0 <= nr < 9 and 0 <= nc < 9 and
+                            (nr, nc) not in cells and (nr, nc) not in used_cells):
+                            neighbors.add((nr, nc))
+                if not neighbors:
+                    break
+                cells.append(rng.choice(list(neighbors)))
+
+            if len(cells) >= 3:
+                values = [grid[r][c] for r, c in cells]
+                # Check for unique digits (killer cage rule)
+                if len(values) == len(set(values)):
+                    target = sum(values)
+                    used_cells.update(cells)
+                    return Constraint(
+                        constraint_type=ConstraintType.KILLER_CAGE,
+                        cells=cells,
+                        target=target,
+                        source_aspect=aspect_type,
+                        planets=[transit_planet, natal_planet],
+                        description=f"{transit_planet} {aspect_type} {natal_planet}: harmony sums to {target}"
+                    )
+
+        return None
+
+    @classmethod
+    def _find_thermometer_in_grid(
+        cls,
+        grid: List[List[int]],
+        planet: str,
+        positions: Dict,
+        used_cells: Set[Tuple[int, int]],
+        rng: random.Random
+    ) -> Optional[Constraint]:
+        """Find a valid thermometer (strictly increasing sequence)."""
+        directions = [(0, 1), (1, 0), (1, 1), (1, -1), (0, -1), (-1, 0), (-1, -1), (-1, 1)]
+        thermo_length = rng.randint(4, 5)
+
+        start_positions = [(r, c) for r in range(9) for c in range(9) if (r, c) not in used_cells]
+        rng.shuffle(start_positions)
+
+        for start_r, start_c in start_positions[:30]:
+            for dr, dc in directions:
+                cells = []
+                prev_val = 0
+
+                for i in range(thermo_length):
+                    r, c = start_r + i * dr, start_c + i * dc
+                    if 0 <= r < 9 and 0 <= c < 9 and (r, c) not in used_cells:
+                        val = grid[r][c]
+                        if val > prev_val:
+                            cells.append((r, c))
+                            prev_val = val
+                        else:
+                            break
+                    else:
+                        break
+
+                if len(cells) >= 4:
+                    used_cells.update(cells)
+                    return Constraint(
+                        constraint_type=ConstraintType.THERMOMETER,
+                        cells=cells,
+                        source_aspect='motion',
+                        planets=[planet],
+                        description=f"{planet} in motion: values increase along path"
+                    )
+
+        return None
 
     @classmethod
     def get_hint(

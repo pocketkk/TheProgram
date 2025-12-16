@@ -17,11 +17,20 @@ import {
   HelpCircle,
   Sparkles,
   Undo2,
-  PenLine
+  Redo2,
+  Settings,
+  Maximize2,
+  ClipboardList,
+  History,
+  Grid3X3,
+  Delete,
+  Palette,
+  CornerDownRight,
+  Type
 } from 'lucide-react'
-import { SudokuGrid, type PencilMarks } from './components/SudokuGrid'
+import { SudokuGrid, type CellMarks } from './components/SudokuGrid'
 import { ConstraintLegend } from './components/ConstraintLegend'
-import type { CellSelection, Difficulty, SolutionError } from './types'
+import type { Difficulty, SolutionError, MarkMode } from './types'
 import * as sudokuApi from '@/lib/api/sudoku'
 
 type GameState = 'loading' | 'playing' | 'checking' | 'complete' | 'error'
@@ -35,15 +44,16 @@ export const SudokuPage = () => {
 
   // UI state
   const [gameState, setGameState] = useState<GameState>('loading')
-  const [selectedCell, setSelectedCell] = useState<CellSelection>(null)
+  const [selectedCells, setSelectedCells] = useState<Set<string>>(new Set())
   const [errors, setErrors] = useState<SolutionError[]>([])
   const [hint, setHint] = useState<sudokuApi.HintResponse | null>(null)
   const [legendExpanded, setLegendExpanded] = useState(true)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
-  // Pencil marks (candidates)
-  const [pencilMarks, setPencilMarks] = useState<PencilMarks>(new Map())
-  const [pencilMode, setPencilMode] = useState(false)
+  // Marks state (corner and center)
+  const [cornerMarks, setCornerMarks] = useState<CellMarks>(new Map())
+  const [centerMarks, setCenterMarks] = useState<CellMarks>(new Map())
+  const [markMode, setMarkMode] = useState<MarkMode>('digit')
 
   // Settings
   const [difficulty, setDifficulty] = useState<Difficulty>('medium')
@@ -60,7 +70,9 @@ export const SudokuPage = () => {
     setHint(null)
     setErrorMessage(null)
     setHistory([])
-    setPencilMarks(new Map())
+    setCornerMarks(new Map())
+    setCenterMarks(new Map())
+    setSelectedCells(new Set())
 
     try {
       const newPuzzle = await sudokuApi.generatePuzzle({ difficulty: diff })
@@ -80,7 +92,9 @@ export const SudokuPage = () => {
     setHint(null)
     setErrorMessage(null)
     setHistory([])
-    setPencilMarks(new Map())
+    setCornerMarks(new Map())
+    setCenterMarks(new Map())
+    setSelectedCells(new Set())
 
     try {
       const newPuzzle = await sudokuApi.getDailyPuzzle(difficulty)
@@ -94,15 +108,33 @@ export const SudokuPage = () => {
     }
   }
 
-  const handleCellSelect = useCallback((row: number, col: number) => {
-    setSelectedCell({ row, col })
-    setHint(null) // Clear hint when selecting a new cell
+  const handleCellSelect = useCallback((row: number, col: number, addToSelection?: boolean) => {
+    if (addToSelection) {
+      setSelectedCells(prev => {
+        const newSet = new Set(prev)
+        const key = `${row}-${col}`
+        if (newSet.has(key)) {
+          newSet.delete(key)
+        } else {
+          newSet.add(key)
+        }
+        return newSet
+      })
+    } else {
+      setSelectedCells(new Set([`${row}-${col}`]))
+    }
+    setHint(null)
+  }, [])
+
+  const handleSelectionChange = useCallback((cells: Set<string>) => {
+    setSelectedCells(cells)
+    setHint(null)
   }, [])
 
   const handleCellInput = useCallback((value: number) => {
-    if (!selectedCell || !puzzle) return
+    if (selectedCells.size !== 1 || !puzzle) return
 
-    const { row, col } = selectedCell
+    const [row, col] = Array.from(selectedCells)[0].split('-').map(Number)
 
     // Don't modify fixed cells
     if (originalGrid[row][col] !== 0) return
@@ -117,11 +149,17 @@ export const SudokuPage = () => {
       return newGrid
     })
 
-    // Clear pencil marks for this cell when entering a value
+    // Clear marks for this cell when entering a value
     if (value !== 0) {
-      setPencilMarks(prev => {
+      const key = `${row}-${col}`
+      setCornerMarks(prev => {
         const newMarks = new Map(prev)
-        newMarks.delete(`${row}-${col}`)
+        newMarks.delete(key)
+        return newMarks
+      })
+      setCenterMarks(prev => {
+        const newMarks = new Map(prev)
+        newMarks.delete(key)
         return newMarks
       })
     }
@@ -130,25 +168,35 @@ export const SudokuPage = () => {
     setErrors(prev => prev.filter(e =>
       !e.cell || e.cell[0] !== row || e.cell[1] !== col
     ))
-  }, [selectedCell, originalGrid, grid, puzzle])
+  }, [selectedCells, originalGrid, grid, puzzle])
 
-  const handlePencilMarkToggle = useCallback((row: number, col: number, value: number) => {
-    setPencilMarks(prev => {
+  const handleMarkToggle = useCallback((cells: Set<string>, value: number, markType: 'corner' | 'center') => {
+    const setMarks = markType === 'corner' ? setCornerMarks : setCenterMarks
+
+    setMarks(prev => {
       const newMarks = new Map(prev)
-      const key = `${row}-${col}`
-      const cellMarks = new Set(prev.get(key) || [])
 
-      if (cellMarks.has(value)) {
-        cellMarks.delete(value)
-      } else {
-        cellMarks.add(value)
-      }
+      // Check if we should add or remove - if ALL cells have this mark, remove it; otherwise add it
+      const allHaveMark = Array.from(cells).every(key => {
+        const cellMarks = prev.get(key)
+        return cellMarks && cellMarks.has(value)
+      })
 
-      if (cellMarks.size === 0) {
-        newMarks.delete(key)
-      } else {
-        newMarks.set(key, cellMarks)
-      }
+      cells.forEach(key => {
+        const cellMarks = new Set(prev.get(key) || [])
+
+        if (allHaveMark) {
+          cellMarks.delete(value)
+        } else {
+          cellMarks.add(value)
+        }
+
+        if (cellMarks.size === 0) {
+          newMarks.delete(key)
+        } else {
+          newMarks.set(key, cellMarks)
+        }
+      })
 
       return newMarks
     })
@@ -169,7 +217,7 @@ export const SudokuPage = () => {
     try {
       const hintResponse = await sudokuApi.getHint(puzzle.puzzle_id, grid)
       setHint(hintResponse)
-      setSelectedCell({ row: hintResponse.cell[0], col: hintResponse.cell[1] })
+      setSelectedCells(new Set([`${hintResponse.cell[0]}-${hintResponse.cell[1]}`]))
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Failed to get hint')
     }
@@ -211,10 +259,51 @@ export const SudokuPage = () => {
     loadNewPuzzle(diff)
   }
 
+  // Handle numpad click based on current mode
+  const handleNumpadClick = useCallback((num: number) => {
+    if (selectedCells.size === 0) return
+
+    // Get first selected cell to check if it's fixed
+    const firstKey = Array.from(selectedCells)[0]
+    const [firstRow, firstCol] = firstKey.split('-').map(Number)
+
+    // For single selection with digit mode, enter the digit
+    if (markMode === 'digit' && selectedCells.size === 1) {
+      if (originalGrid[firstRow][firstCol] === 0) {
+        handleCellInput(num)
+      }
+      return
+    }
+
+    // For corner/center mode or multi-selection, toggle marks
+    const validCells = new Set<string>()
+    selectedCells.forEach(key => {
+      const [r, c] = key.split('-').map(Number)
+      if (originalGrid[r][c] === 0 && grid[r][c] === 0) {
+        validCells.add(key)
+      }
+    })
+
+    if (validCells.size > 0) {
+      handleMarkToggle(validCells, num, markMode === 'center' ? 'center' : 'corner')
+    }
+  }, [selectedCells, markMode, originalGrid, grid, handleCellInput, handleMarkToggle])
+
   // Calculate progress
   const filledCells = grid.flat().filter(v => v !== 0).length
   const totalCells = 81
   const progress = Math.round((filledCells / totalCells) * 100)
+
+  // Get first selected cell for checking if input is allowed
+  const getFirstSelectedCell = () => {
+    if (selectedCells.size === 0) return null
+    const first = Array.from(selectedCells)[0]
+    const [row, col] = first.split('-').map(Number)
+    return { row, col }
+  }
+
+  const firstSelected = getFirstSelectedCell()
+  const canInput = firstSelected && originalGrid[firstSelected.row]?.[firstSelected.col] === 0
 
   return (
     <div className="space-y-6">
@@ -325,12 +414,14 @@ export const SudokuPage = () => {
                 grid={grid}
                 originalGrid={originalGrid}
                 constraints={puzzle.constraints}
-                selectedCell={selectedCell}
+                selectedCells={selectedCells}
                 onCellSelect={handleCellSelect}
+                onSelectionChange={handleSelectionChange}
                 onCellInput={handleCellInput}
-                pencilMarks={pencilMarks}
-                onPencilMarkToggle={handlePencilMarkToggle}
-                pencilMode={pencilMode}
+                cornerMarks={cornerMarks}
+                centerMarks={centerMarks}
+                onMarkToggle={handleMarkToggle}
+                markMode={markMode}
                 errors={errors}
                 highlightedCells={hint ? [hint.cell] : []}
                 isComplete={gameState === 'complete'}
@@ -366,136 +457,215 @@ export const SudokuPage = () => {
             </div>
           )}
 
-          {/* Controls */}
+          {/* Compact Control Panel */}
           {puzzle && gameState !== 'loading' && (
-            <div className="mt-4 flex items-center gap-2 flex-wrap">
-              <button
-                onClick={() => loadNewPuzzle()}
-                className="flex items-center gap-2 px-4 py-2 bg-gray-800
-                           hover:bg-gray-700 rounded-lg transition-colors"
-              >
-                <RefreshCw className="w-4 h-4" />
-                New Puzzle
-              </button>
+            <div className="mt-4 flex items-start gap-2">
+              {/* Left toolbar - 2 columns of utility icons */}
+              <div className="grid grid-cols-2 gap-2">
+                {/* Row 1 */}
+                <button
+                  onClick={() => {/* settings - future */}}
+                  className="w-11 h-11 flex items-center justify-center bg-gray-700 hover:bg-gray-600
+                             rounded-xl text-gray-300 transition-colors"
+                  title="Settings"
+                >
+                  <Settings className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={handleUndo}
+                  disabled={history.length === 0}
+                  className="w-11 h-11 flex items-center justify-center bg-gray-700 hover:bg-gray-600
+                             rounded-xl text-gray-300 transition-colors
+                             disabled:opacity-40 disabled:cursor-not-allowed"
+                  title="Undo"
+                >
+                  <Undo2 className="w-5 h-5" />
+                </button>
+                {/* Row 2 */}
+                <button
+                  onClick={() => {/* fullscreen - future */}}
+                  className="w-11 h-11 flex items-center justify-center bg-gray-700 hover:bg-gray-600
+                             rounded-xl text-gray-300 transition-colors"
+                  title="Fullscreen"
+                >
+                  <Maximize2 className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={() => {/* redo - future */}}
+                  className="w-11 h-11 flex items-center justify-center bg-gray-700 hover:bg-gray-600
+                             rounded-xl text-gray-300 transition-colors opacity-40"
+                  title="Redo"
+                  disabled
+                >
+                  <Redo2 className="w-5 h-5" />
+                </button>
+                {/* Row 3 */}
+                <button
+                  onClick={() => {/* notes - future */}}
+                  className="w-11 h-11 flex items-center justify-center bg-gray-700 hover:bg-gray-600
+                             rounded-xl text-gray-300 transition-colors"
+                  title="Notes"
+                >
+                  <ClipboardList className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={handleCheckSolution}
+                  disabled={gameState === 'checking'}
+                  className="w-11 h-11 flex items-center justify-center bg-gray-700 hover:bg-gray-600
+                             rounded-xl text-gray-300 transition-colors"
+                  title="Check Solution"
+                >
+                  <Check className="w-5 h-5" />
+                </button>
+                {/* Row 4 */}
+                <button
+                  onClick={handleGetHint}
+                  className="w-11 h-11 flex items-center justify-center bg-gray-700 hover:bg-gray-600
+                             rounded-xl text-gray-300 transition-colors"
+                  title="Get Hint"
+                >
+                  <HelpCircle className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={() => loadNewPuzzle()}
+                  className="w-11 h-11 flex items-center justify-center bg-gray-700 hover:bg-gray-600
+                             rounded-xl text-gray-300 transition-colors"
+                  title="New Puzzle"
+                >
+                  <Grid3X3 className="w-5 h-5" />
+                </button>
+                {/* Row 5 */}
+                <button
+                  onClick={() => {/* history - future */}}
+                  className="w-11 h-11 flex items-center justify-center bg-gray-700 hover:bg-gray-600
+                             rounded-xl text-gray-300 transition-colors"
+                  title="History"
+                >
+                  <History className="w-5 h-5" />
+                </button>
+                <div /> {/* Empty spacer */}
+              </div>
 
-              <button
-                onClick={loadDailyPuzzle}
-                className="flex items-center gap-2 px-4 py-2 bg-gray-800
-                           hover:bg-gray-700 rounded-lg transition-colors"
-              >
-                <Calendar className="w-4 h-4" />
-                Daily
-              </button>
+              {/* Center - Number pad */}
+              <div className="flex flex-col gap-2">
+                <div className="grid grid-cols-3 gap-2">
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
+                    <button
+                      key={num}
+                      onClick={() => handleNumpadClick(num)}
+                      disabled={selectedCells.size === 0 || !canInput}
+                      className={`w-12 h-12 flex items-center justify-center
+                                 disabled:opacity-30 disabled:cursor-not-allowed
+                                 rounded-xl text-2xl font-semibold transition-colors
+                                 ${markMode === 'corner'
+                                   ? 'bg-blue-600 hover:bg-blue-500 text-white'
+                                   : markMode === 'center'
+                                     ? 'bg-amber-600 hover:bg-amber-500 text-white'
+                                     : 'bg-purple-600 hover:bg-purple-500 text-white'}`}
+                    >
+                      {num}
+                    </button>
+                  ))}
+                </div>
+                {/* Bottom row: 0 and delete */}
+                <div className="grid grid-cols-3 gap-2">
+                  <div /> {/* Empty spacer */}
+                  <button
+                    onClick={() => handleCellInput(0)}
+                    disabled={selectedCells.size !== 1 || !canInput}
+                    className="w-12 h-12 flex items-center justify-center bg-purple-600 hover:bg-purple-500
+                               disabled:opacity-30 disabled:cursor-not-allowed
+                               rounded-xl text-2xl font-semibold text-white transition-colors"
+                  >
+                    0
+                  </button>
+                  <button
+                    onClick={() => handleCellInput(0)}
+                    disabled={selectedCells.size !== 1 || !canInput}
+                    className="w-12 h-12 flex items-center justify-center bg-purple-600 hover:bg-purple-500
+                               disabled:opacity-30 disabled:cursor-not-allowed
+                               rounded-xl text-white transition-colors"
+                    title="Clear cell"
+                  >
+                    <Delete className="w-6 h-6" />
+                  </button>
+                </div>
+              </div>
 
-              <button
-                onClick={handleUndo}
-                disabled={history.length === 0}
-                className="flex items-center gap-2 px-4 py-2 bg-gray-800
-                           hover:bg-gray-700 rounded-lg transition-colors
-                           disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <Undo2 className="w-4 h-4" />
-                Undo
-              </button>
-
-              <button
-                onClick={() => {
-                  setGrid(originalGrid.map(row => [...row]))
-                  setHistory([])
-                  setErrors([])
-                  setHint(null)
-                  setPencilMarks(new Map())
-                  setGameState('playing')
-                }}
-                className="flex items-center gap-2 px-4 py-2 bg-orange-600/20
-                           hover:bg-orange-600/30 text-orange-400 rounded-lg transition-colors"
-              >
-                Reset
-              </button>
-
-              <button
-                onClick={() => setPencilMode(!pencilMode)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors
-                           ${pencilMode
-                             ? 'bg-blue-600 text-white'
-                             : 'bg-gray-800 hover:bg-gray-700 text-gray-400'
-                           }`}
-                title="Toggle pencil mode (or hold Shift while typing)"
-              >
-                <PenLine className="w-4 h-4" />
-                Pencil
-              </button>
-
-              <button
-                onClick={handleGetHint}
-                className="flex items-center gap-2 px-4 py-2 bg-yellow-600/20
-                           hover:bg-yellow-600/30 text-yellow-400 rounded-lg transition-colors"
-              >
-                <Lightbulb className="w-4 h-4" />
-                Hint
-              </button>
-
-              <button
-                onClick={handleCheckSolution}
-                disabled={gameState === 'checking'}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600/20
-                           hover:bg-blue-600/30 text-blue-400 rounded-lg transition-colors"
-              >
-                <Check className="w-4 h-4" />
-                Check
-              </button>
-
-              <button
-                onClick={handleRevealSolution}
-                className="flex items-center gap-2 px-4 py-2 bg-gray-800
-                           hover:bg-gray-700 text-gray-400 rounded-lg transition-colors"
-              >
-                <Eye className="w-4 h-4" />
-                Reveal
-              </button>
+              {/* Right toolbar - mode toggles and features */}
+              <div className="flex flex-col gap-2">
+                {/* Digit mode */}
+                <button
+                  onClick={() => setMarkMode('digit')}
+                  className={`w-11 h-11 flex items-center justify-center rounded-xl transition-colors
+                             border ${markMode === 'digit'
+                               ? 'bg-purple-600 border-purple-400 text-white'
+                               : 'bg-gray-700 hover:bg-gray-600 border-gray-500 text-gray-300'}`}
+                  title="Digit Mode"
+                >
+                  <Type className="w-5 h-5" />
+                </button>
+                {/* Corner marks mode */}
+                <button
+                  onClick={() => setMarkMode('corner')}
+                  className={`w-11 h-11 flex items-center justify-center rounded-xl transition-colors
+                             border ${markMode === 'corner'
+                               ? 'bg-blue-600 border-blue-400 text-white'
+                               : 'bg-gray-700 hover:bg-gray-600 border-gray-500 text-gray-300'}`}
+                  title="Corner Marks Mode (Shift+number)"
+                >
+                  <CornerDownRight className="w-5 h-5" />
+                </button>
+                {/* Center marks mode */}
+                <button
+                  onClick={() => setMarkMode('center')}
+                  className={`w-11 h-11 flex items-center justify-center rounded-xl transition-colors
+                             border ${markMode === 'center'
+                               ? 'bg-amber-600 border-amber-400 text-white'
+                               : 'bg-gray-700 hover:bg-gray-600 border-gray-500 text-gray-300'}`}
+                  title="Center Marks Mode (Ctrl+number)"
+                >
+                  <div className="text-[9px] font-bold leading-tight">
+                    <div>123</div>
+                  </div>
+                </button>
+                {/* Reveal solution */}
+                <button
+                  onClick={handleRevealSolution}
+                  className="w-11 h-11 flex items-center justify-center bg-gray-700 hover:bg-gray-600
+                             rounded-xl text-gray-300 transition-colors border border-gray-500"
+                  title="Reveal Solution"
+                >
+                  <Eye className="w-5 h-5" />
+                </button>
+                {/* Daily puzzle */}
+                <button
+                  onClick={loadDailyPuzzle}
+                  className="w-11 h-11 flex items-center justify-center bg-gray-700 hover:bg-gray-600
+                             rounded-xl text-gray-300 transition-colors border border-gray-500"
+                  title="Daily Puzzle"
+                >
+                  <Calendar className="w-5 h-5" />
+                </button>
+              </div>
             </div>
           )}
 
-          {/* Number pad for touch input */}
+          {/* Mode indicator */}
           {puzzle && gameState !== 'loading' && (
-            <div className="mt-4">
-              {pencilMode && (
-                <p className="text-xs text-blue-400 mb-2 text-center">
-                  Pencil mode: tap numbers to toggle candidates
-                </p>
+            <div className="mt-2 text-center text-sm">
+              {markMode === 'digit' && (
+                <span className="text-purple-400">Digit mode - click to enter numbers</span>
               )}
-              <div className="grid grid-cols-5 gap-2">
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
-                  <button
-                    key={num}
-                    onClick={() => {
-                      if (!selectedCell) return
-                      const { row, col } = selectedCell
-                      if (pencilMode && grid[row][col] === 0) {
-                        handlePencilMarkToggle(row, col, num)
-                      } else {
-                        handleCellInput(num)
-                      }
-                    }}
-                    disabled={!selectedCell || originalGrid[selectedCell.row]?.[selectedCell.col] !== 0}
-                    className={`w-12 h-12 hover:bg-gray-700
-                               disabled:opacity-30 disabled:cursor-not-allowed
-                               rounded-lg text-xl font-mono transition-colors
-                               ${pencilMode ? 'bg-blue-900/30 text-blue-300' : 'bg-gray-800 text-purple-300'}`}
-                  >
-                    {num}
-                  </button>
-                ))}
-                <button
-                  onClick={() => handleCellInput(0)}
-                  disabled={!selectedCell || originalGrid[selectedCell.row]?.[selectedCell.col] !== 0}
-                  className="w-12 h-12 bg-gray-800 hover:bg-gray-700
-                             disabled:opacity-30 disabled:cursor-not-allowed
-                             rounded-lg text-sm text-gray-400 transition-colors"
-                >
-                  Clear
-                </button>
-              </div>
+              {markMode === 'corner' && (
+                <span className="text-blue-400">Corner mode - drag to select, click digits for corner marks</span>
+              )}
+              {markMode === 'center' && (
+                <span className="text-amber-400">Center mode - drag to select, click digits for center marks</span>
+              )}
+              {selectedCells.size > 1 && (
+                <span className="ml-2 text-gray-500">({selectedCells.size} cells selected)</span>
+              )}
             </div>
           )}
 
@@ -616,12 +786,13 @@ export const SudokuPage = () => {
             </h3>
             <ul className="text-sm text-gray-400 space-y-2">
               <li>* Click a cell and type 1-9 to enter a digit</li>
-              <li>* Shift+number adds pencil marks (candidates)</li>
-              <li>* Or toggle Pencil mode button for touch input</li>
-              <li>* Use arrow keys to navigate</li>
+              <li>* Drag to select multiple cells</li>
+              <li>* Shift+click to add cells to selection</li>
+              <li>* Corner mode: add corner pencil marks</li>
+              <li>* Center mode: add center candidates</li>
+              <li>* Keyboard: Shift+num = corner, Ctrl+num = center</li>
+              <li>* Arrow keys to navigate</li>
               <li>* Backspace or 0 clears a cell</li>
-              <li>* Fixed (white) numbers cannot be changed</li>
-              <li>* Colored lines show variant constraints</li>
             </ul>
           </div>
         </div>

@@ -12,7 +12,7 @@ from typing import Dict, Optional
 import uuid
 import hashlib
 
-from app.core.database import get_db
+from app.core.database_sqlite import get_db
 from app.models.birth_data import BirthData
 from app.services.sudoku_generator import (
     SudokuGenerator,
