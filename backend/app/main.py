@@ -153,6 +153,17 @@ async def startup_event():
                 db.add(config)
                 db.commit()
                 logger.info("Created initial application configuration")
+
+            # Data migration: mark existing birth data as primary if none are marked
+            from app.models.birth_data import BirthData
+            has_primary = db.query(BirthData).filter(BirthData.is_primary == True).first()
+            if not has_primary:
+                # Mark the most recent birth data as primary (user's own chart)
+                most_recent = db.query(BirthData).order_by(BirthData.created_at.desc()).first()
+                if most_recent:
+                    most_recent.is_primary = True
+                    db.commit()
+                    logger.info(f"Marked birth data {most_recent.id[:8]}... as primary")
         finally:
             db.close()
 

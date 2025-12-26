@@ -145,8 +145,10 @@ export const OnboardingPage = ({ onComplete }: OnboardingPageProps) => {
       const stateProvince = locationParts.length > 2 ? locationParts[1] : null
       const country = locationParts[locationParts.length - 1] || null
 
-      // Create birth data
+      // Create birth data - mark as primary (user's own chart)
       const birthData = await createBirthData({
+        name,  // Store user's name with their birth data
+        is_primary: true,  // This is the user's own chart
         birth_date: birthDate,
         birth_time: timeUnknown ? null : `${birthTime}:00`,
         time_unknown: timeUnknown,

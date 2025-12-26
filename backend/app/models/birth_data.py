@@ -2,9 +2,10 @@
 BirthData model for storing birth information
 
 Stores all information needed for astrological chart calculations:
-date, time, location, timezone, etc.
+date, time, location, timezone, etc. Also stores person identification
+for managing multiple people's charts.
 """
-from sqlalchemy import Column, String, Float, Integer, Boolean, Index, CheckConstraint
+from sqlalchemy import Column, String, Float, Integer, Boolean, Text, Index, CheckConstraint
 from sqlalchemy.orm import relationship
 
 from app.models.base import BaseModel
@@ -16,9 +17,15 @@ class BirthData(BaseModel):
 
     Stores birth information required for chart calculations.
     Single-user mode - no client associations.
+    Supports multiple people (friends, family, POIs) with notes.
 
     Fields:
         id: UUID primary key (inherited)
+        name: Person's name (e.g., "Mom", "Alex", "Taylor Swift")
+        relationship_type: Category (family, friend, partner, client, celebrity, historical, other)
+        notes: Personal notes about this person's chart
+        is_primary: True if this is the user's own birth data
+        color: Hex color for visual theming (e.g., "#7C3AED")
         birth_date: ISO 8601 date (YYYY-MM-DD)
         birth_time: ISO 8601 time (HH:MM:SS) or NULL if unknown
         time_unknown: Boolean flag for unknown birth time
@@ -45,8 +52,21 @@ class BirthData(BaseModel):
         DD: Dirty data, conflicting sources
         X: Time unknown
 
+    Relationship Types:
+        family: Family members
+        friend: Friends
+        partner: Romantic partners
+        client: Professional clients
+        celebrity: Public figures
+        historical: Historical figures
+        other: Other
+
     Example:
         birth_data = BirthData(
+            name="Alex",
+            relationship_type="friend",
+            is_primary=False,
+            color="#3B82F6",
             birth_date="1990-01-15",
             birth_time="14:30:00",
             time_unknown=False,
@@ -60,6 +80,38 @@ class BirthData(BaseModel):
         )
     """
     __tablename__ = 'birth_data'
+
+    # Person identification
+    name = Column(
+        String,
+        nullable=True,
+        comment="Person's name"
+    )
+
+    relationship_type = Column(
+        String,
+        nullable=True,
+        comment="Relationship: family, friend, partner, client, celebrity, historical, other"
+    )
+
+    notes = Column(
+        Text,
+        nullable=True,
+        comment="Personal notes about this person's chart"
+    )
+
+    is_primary = Column(
+        Boolean,
+        nullable=False,
+        default=False,
+        comment="True if this is the user's own birth data"
+    )
+
+    color = Column(
+        String,
+        nullable=True,
+        comment="Hex color for visual theming (e.g., '#7C3AED')"
+    )
 
     # Birth date and time
     birth_date = Column(
@@ -154,12 +206,14 @@ class BirthData(BaseModel):
         CheckConstraint('latitude >= -90 AND latitude <= 90', name='ck_birth_data_latitude'),
         CheckConstraint('longitude >= -180 AND longitude <= 180', name='ck_birth_data_longitude'),
         Index('idx_birth_data_birth_date', 'birth_date'),
+        Index('idx_birth_data_is_primary', 'is_primary'),
     )
 
     def __repr__(self):
         """String representation"""
+        name_part = f"name='{self.name}', " if self.name else ""
         location = self.location_string or "Unknown location"
-        return f"<BirthData(id={self.id[:8]}..., date={self.birth_date}, location='{location}')>"
+        return f"<BirthData(id={self.id[:8]}..., {name_part}date={self.birth_date}, location='{location}')>"
 
     @property
     def location_string(self) -> str:

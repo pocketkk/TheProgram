@@ -21,11 +21,17 @@ import { PatternDisplay } from './components/patterns/PatternDisplay'
 import { BirthDataEditor } from './components/BirthDataEditor'
 import { ExportDialog } from './components/ExportDialog'
 import { GenerateInterpretationsButton } from './components/GenerateInterpretationsButton'
+import { PeopleSidebar } from './components/PeopleSidebar'
+import { AddPersonModal } from './components/AddPersonModal'
+import { GuestChartBanner } from './components/GuestChartBanner'
+import { ChartGlowEffect } from './components/ChartGlowEffect'
+import { NotesPanel } from './components/NotesPanel'
 import type { ExportSettings } from './components/ExportDialog'
 import { Button } from '@/components/ui'
 import { exportChartAsPNG, downloadBlob, generateFilename } from './utils/export'
 import { exportChartAsPDF } from './utils/exportPDF'
 import { useChartStore } from './stores/chartStore'
+import { usePeopleStore } from './stores/peopleStore'
 import type { BirthData } from '@/lib/astrology/types'
 import type { ChartType } from './stores/chartStore'
 import { PLANETS } from '@/lib/astrology/types'
@@ -36,6 +42,7 @@ import { getChart, calculateChart, getOrCreateChart, type ChartResponse } from '
 import { generateChartInterpretations } from '@/lib/api/interpretations'
 import type { GenerateInterpretationRequest } from '@/types/interpretation'
 import { createBirthData } from '@/lib/api/birthData'
+import { getPersonColor } from './constants/personColors'
 
 // Default birth data
 const DEFAULT_BIRTH_DATA: BirthData = {
@@ -117,6 +124,23 @@ export function BirthChartPage({ chartId: chartIdProp }: BirthChartPageProps = {
   const [showFilterPanel, setShowFilterPanel] = useState(false)
   const [chartType, setChartType] = useState<ChartType>('natal')
   const [requestedTransitDate, setRequestedTransitDate] = useState<string | null>(null) // For companion-requested transit dates
+  const [isAddPersonModalOpen, setIsAddPersonModalOpen] = useState(false)
+
+  // People store for managing multiple charts
+  const {
+    people,
+    selectedPersonId,
+    loadPeople,
+    selectPerson,
+    getSelectedPerson,
+    isViewingPrimary,
+    getPrimaryPerson,
+  } = usePeopleStore()
+
+  // Get current person being viewed
+  const selectedPerson = getSelectedPerson()
+  const isGuestChart = !isViewingPrimary()
+  const personColor = selectedPerson ? getPersonColor(selectedPerson.color, selectedPerson.relationship_type) : null
 
   // Debug: Track render count
   const renderCount = useRef(0)
@@ -148,6 +172,64 @@ export function BirthChartPage({ chartId: chartIdProp }: BirthChartPageProps = {
       console.error('Error saving location name to localStorage:', err)
     }
   }, [locationName])
+
+  // Load people list on mount
+  useEffect(() => {
+    loadPeople()
+  }, [loadPeople])
+
+  // Load chart when selected person changes
+  useEffect(() => {
+    const loadSelectedPersonChart = async () => {
+      if (!selectedPerson) return
+
+      // Update birth data from selected person
+      if (selectedPerson.birth_date) {
+        const birthDate = new Date(selectedPerson.birth_date)
+        // Add birth time if available
+        if (selectedPerson.birth_time) {
+          const [hours, minutes, seconds] = selectedPerson.birth_time.split(':').map(Number)
+          birthDate.setHours(hours || 0, minutes || 0, seconds || 0)
+        }
+
+        setBirthData({
+          date: birthDate,
+          latitude: Number(selectedPerson.latitude),
+          longitude: Number(selectedPerson.longitude),
+        })
+
+        // Update location name
+        const locationParts = [
+          selectedPerson.city,
+          selectedPerson.state_province,
+          selectedPerson.country,
+        ].filter(Boolean)
+        setLocationName(locationParts.join(', ') || 'Unknown Location')
+      }
+
+      // Try to load existing chart for this person
+      setIsLoadingChart(true)
+      try {
+        // Use getOrCreateChart to either find existing or create new natal chart
+        const chart = await getOrCreateChart({
+          birth_data_id: selectedPerson.id,
+          chart_type: 'natal',
+          astro_system: zodiacSystem === 'vedic' ? 'vedic' : 'western',
+          house_system: houseSystem,
+          zodiac_type: zodiacSystem === 'vedic' ? 'sidereal' : 'tropical',
+          ayanamsa: zodiacSystem === 'vedic' ? ayanamsa : undefined,
+        })
+        setSavedChart(chart)
+      } catch (error) {
+        console.error('[BirthChartPage] Error loading chart for selected person:', error)
+        setSavedChart(null)
+      } finally {
+        setIsLoadingChart(false)
+      }
+    }
+
+    loadSelectedPersonChart()
+  }, [selectedPersonId, selectedPerson?.id])
 
   // Save chart ID to localStorage whenever savedChart changes
   useEffect(() => {
@@ -1048,15 +1130,28 @@ export function BirthChartPage({ chartId: chartIdProp }: BirthChartPageProps = {
     }
   }
 
+  // Handler for returning to primary chart
+  const handleReturnToMyChart = () => {
+    const primary = getPrimaryPerson()
+    if (primary) {
+      selectPerson(primary.id)
+    }
+  }
+
   return (
     <InterpretationsProvider chartId={activeChartId} zodiacSystem={zodiacSystem}>
       <motion.div
-        className="min-h-screen bg-gradient-to-br from-slate-950 via-cosmic-950 to-slate-900"
+        className="min-h-screen bg-gradient-to-br from-slate-950 via-cosmic-950 to-slate-900 flex"
         variants={pageVariants}
         initial="initial"
         animate="animate"
         exit="exit"
       >
+      {/* People Sidebar */}
+      <PeopleSidebar onAddPerson={() => setIsAddPersonModalOpen(true)} />
+
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col min-w-0">
       {/* Header */}
       <div className="border-b border-cosmic-700/50 bg-cosmic-900/30 backdrop-blur-sm sticky top-0 z-10">
         <div className="max-w-full mx-auto px-6 py-2">
@@ -1320,43 +1415,53 @@ export function BirthChartPage({ chartId: chartIdProp }: BirthChartPageProps = {
         </div>
       </div>
 
+      {/* Guest Chart Banner - shows when viewing someone else's chart */}
+      {isGuestChart && selectedPerson && (
+        <GuestChartBanner
+          person={selectedPerson}
+          onReturnToMyChart={handleReturnToMyChart}
+        />
+      )}
+
       {/* Main Content */}
       <div className="max-w-full mx-auto px-6 py-4">
         <div className={`flex ${responsiveConfig.stackLayout ? 'flex-col' : 'flex-row'} gap-12`}>
           {/* Left Column: Chart Wheel and Key Info */}
           <div className={`flex flex-col ${responsiveConfig.stackLayout ? 'w-full' : 'flex-shrink-0'}`} style={{ width: responsiveConfig.stackLayout ? '100%' : `${responsiveConfig.chartSize + 40}px` }}>
-            {/* Chart Wheel */}
-            <div className="bg-gradient-to-br from-cosmic-900/50 to-cosmic-800/50 rounded-2xl p-5 border border-cosmic-700/50 backdrop-blur-sm">
-              {/* Debug: Log chart data before rendering */}
-              {(() => {
-                console.log('[BirthChartPage] Rendering BirthChartWheel with chart:', {
-                  chartType,
-                  hasChart: !!chart,
-                  planetsCount: chart?.planets?.length ?? 0,
-                  housesCount: chart?.houses?.length ?? 0,
-                  ascendant: chart?.ascendant,
-                  requestedTransitDate
-                })
-                return null
-              })()}
-              {chart && chart.planets && chart.planets.length > 0 ? (
-                <BirthChartWheel
-                  ref={chartWheelRef}
-                  chart={chart}
-                  showAspects={showAspects && responsiveConfig.features.showAspectLines}
-                  showHouseNumbers={showHouseNumbers && responsiveConfig.features.showHouseNumbers}
-                  size={responsiveConfig.chartSize}
-                />
-              ) : (
-                <div className="flex items-center justify-center" style={{ width: responsiveConfig.chartSize, height: responsiveConfig.chartSize }}>
-                  <div className="text-cosmic-400 text-center">
-                    <div className="animate-spin w-8 h-8 border-2 border-cosmic-500 border-t-transparent rounded-full mx-auto mb-2"></div>
-                    <p>Loading chart data...</p>
-                    <p className="text-xs mt-1">Type: {chartType} | Transit Date: {requestedTransitDate || 'none'}</p>
+            {/* Chart Wheel with glow effect for guest charts */}
+            <ChartGlowEffect color={personColor} enabled={isGuestChart}>
+              <div className="bg-gradient-to-br from-cosmic-900/50 to-cosmic-800/50 rounded-2xl p-5 border border-cosmic-700/50 backdrop-blur-sm">
+                {/* Debug: Log chart data before rendering */}
+                {(() => {
+                  console.log('[BirthChartPage] Rendering BirthChartWheel with chart:', {
+                    chartType,
+                    hasChart: !!chart,
+                    planetsCount: chart?.planets?.length ?? 0,
+                    housesCount: chart?.houses?.length ?? 0,
+                    ascendant: chart?.ascendant,
+                    requestedTransitDate
+                  })
+                  return null
+                })()}
+                {chart && chart.planets && chart.planets.length > 0 ? (
+                  <BirthChartWheel
+                    ref={chartWheelRef}
+                    chart={chart}
+                    showAspects={showAspects && responsiveConfig.features.showAspectLines}
+                    showHouseNumbers={showHouseNumbers && responsiveConfig.features.showHouseNumbers}
+                    size={responsiveConfig.chartSize}
+                  />
+                ) : (
+                  <div className="flex items-center justify-center" style={{ width: responsiveConfig.chartSize, height: responsiveConfig.chartSize }}>
+                    <div className="text-cosmic-400 text-center">
+                      <div className="animate-spin w-8 h-8 border-2 border-cosmic-500 border-t-transparent rounded-full mx-auto mb-2"></div>
+                      <p>Loading chart data...</p>
+                      <p className="text-xs mt-1">Type: {chartType} | Transit Date: {requestedTransitDate || 'none'}</p>
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            </ChartGlowEffect>
 
             {/* Key Points */}
             <div className="mt-2 grid grid-cols-2 gap-2">
@@ -1554,6 +1659,21 @@ export function BirthChartPage({ chartId: chartIdProp }: BirthChartPageProps = {
         onOpenChange={setExportDialogOpen}
         onExport={handleExport}
         isExporting={isExporting}
+      />
+
+      {/* Notes Panel - shown for all people */}
+      {selectedPerson && (
+        <div className="max-w-full mx-auto px-6 pb-6">
+          <NotesPanel person={selectedPerson} />
+        </div>
+      )}
+
+      </div>{/* End of Main Content Area wrapper */}
+
+      {/* Add Person Modal */}
+      <AddPersonModal
+        isOpen={isAddPersonModalOpen}
+        onClose={() => setIsAddPersonModalOpen(false)}
       />
     </motion.div>
     </InterpretationsProvider>

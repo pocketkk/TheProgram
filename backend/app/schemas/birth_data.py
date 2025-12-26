@@ -1,17 +1,34 @@
 """
 Birth data-related Pydantic schemas (single-user mode)
 
-Same as multi-user schemas - birth data already doesn't have user_id
+Same as multi-user schemas - birth data already doesn't have user_id.
+Supports multiple people (friends, family, POIs) with notes.
 """
-from typing import Optional
+from typing import Optional, Literal
 from pydantic import BaseModel, Field, validator
 from datetime import date, time, datetime
 from decimal import Decimal
 from uuid import UUID
 
 
+# Valid relationship types
+RELATIONSHIP_TYPES = ["family", "friend", "partner", "client", "celebrity", "historical", "other"]
+RelationshipType = Literal["family", "friend", "partner", "client", "celebrity", "historical", "other"]
+
+
 class BirthDataBase(BaseModel):
     """Base birth data schema with common fields"""
+    # Person identification
+    name: Optional[str] = Field(None, max_length=255, description="Person's name")
+    relationship_type: Optional[str] = Field(
+        None,
+        description="Relationship type: family, friend, partner, client, celebrity, historical, other"
+    )
+    notes: Optional[str] = Field(None, description="Personal notes about this person's chart")
+    is_primary: bool = Field(False, description="True if this is the user's own birth data")
+    color: Optional[str] = Field(None, max_length=50, description="Hex color for visual theming (e.g., '#7C3AED')")
+
+    # Birth info
     birth_date: date = Field(..., description="Birth date")
     birth_time: Optional[time] = Field(None, description="Birth time (if known)")
     time_unknown: bool = Field(False, description="Flag indicating if birth time is unknown")
@@ -24,6 +41,15 @@ class BirthDataBase(BaseModel):
     country: Optional[str] = Field(None, max_length=100, description="Country")
     rodden_rating: Optional[str] = Field(None, max_length=2, description="Rodden rating (AA, A, B, C, DD, X)")
     gender: Optional[str] = Field(None, max_length=20, description="Gender")
+
+    @validator("relationship_type")
+    def validate_relationship_type(cls, v):
+        """Validate relationship type is one of the valid values"""
+        if v is None:
+            return v
+        if v.lower() not in RELATIONSHIP_TYPES:
+            raise ValueError(f"relationship_type must be one of: {', '.join(RELATIONSHIP_TYPES)}")
+        return v.lower()
 
     @validator("rodden_rating")
     def validate_rodden_rating(cls, v):
@@ -50,6 +76,14 @@ class BirthDataCreate(BirthDataBase):
 
 class BirthDataUpdate(BaseModel):
     """Schema for updating birth data"""
+    # Person identification
+    name: Optional[str] = Field(None, max_length=255, description="Person's name")
+    relationship_type: Optional[str] = Field(None, description="Relationship type")
+    notes: Optional[str] = Field(None, description="Personal notes about this person's chart")
+    is_primary: Optional[bool] = Field(None, description="True if this is the user's own birth data")
+    color: Optional[str] = Field(None, max_length=50, description="Hex color for visual theming")
+
+    # Birth info
     birth_date: Optional[date] = Field(None, description="Birth date")
     birth_time: Optional[time] = Field(None, description="Birth time")
     time_unknown: Optional[bool] = Field(None, description="Flag indicating if birth time is unknown")
@@ -62,6 +96,15 @@ class BirthDataUpdate(BaseModel):
     country: Optional[str] = Field(None, max_length=100, description="Country")
     rodden_rating: Optional[str] = Field(None, max_length=2, description="Rodden rating")
     gender: Optional[str] = Field(None, max_length=20, description="Gender")
+
+    @validator("relationship_type")
+    def validate_relationship_type(cls, v):
+        """Validate relationship type"""
+        if v is None:
+            return v
+        if v.lower() not in RELATIONSHIP_TYPES:
+            raise ValueError(f"relationship_type must be one of: {', '.join(RELATIONSHIP_TYPES)}")
+        return v.lower()
 
     @validator("rodden_rating")
     def validate_rodden_rating(cls, v):
