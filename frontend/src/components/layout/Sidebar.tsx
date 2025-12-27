@@ -40,7 +40,7 @@ type NavigationItem = {
 const navigation: NavigationItem[] = [
   // Main section
   { name: 'Dashboard', icon: LayoutDashboard, page: 'dashboard', section: 'main' },
-  { name: 'Birth Chart', icon: Star, page: 'birthchart', section: 'main' },
+  { name: 'Astrology', icon: Star, page: 'astrology', section: 'main' },
   { name: 'Vedic', icon: Grid3X3, page: 'vedic', section: 'main' },
   { name: 'Cosmic Visualizer', icon: Calculator, page: 'charts', section: 'main' },
   // Exploration section (Phase 2)

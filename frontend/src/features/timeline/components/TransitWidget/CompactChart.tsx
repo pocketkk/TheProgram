@@ -3,7 +3,7 @@
  * Responsive transit chart that fills its container, with expand button
  */
 import { useRef, useState, useEffect } from 'react'
-import { BirthChartWheel } from '@/features/birthchart/components/BirthChartWheel'
+import { BirthChartWheel } from '@/features/astrology/components/BirthChartWheel'
 import { useTransitsForDate } from './useTransitsForDate'
 import { Maximize2 } from 'lucide-react'
 

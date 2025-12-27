@@ -53,7 +53,7 @@ const DEFAULT_BIRTH_DATA: BirthData = {
 
 const DEFAULT_LOCATION_NAME = 'Eugene, Oregon'
 
-export interface BirthChartPageProps {
+export interface AstrologyPageProps {
   /**
    * Optional chart ID to load from database
    * If provided, chart will be loaded from the database instead of calculating client-side
@@ -61,7 +61,7 @@ export interface BirthChartPageProps {
   chartId?: string | null
 }
 
-export function BirthChartPage({ chartId: chartIdProp }: BirthChartPageProps = {}) {
+export function AstrologyPage({ chartId: chartIdProp }: AstrologyPageProps = {}) {
   // Get chart ID from prop or localStorage
   const [chartId] = useState<string | undefined>(() => {
     if (chartIdProp) {
@@ -1549,7 +1549,7 @@ export function BirthChartPage({ chartId: chartIdProp }: BirthChartPageProps = {
               </button>
             </div>
 
-            {/* Generate Interpretations Button */}
+            {/* Generate Interpretations Button - Hidden: using Guide agent for AI readings instead
             <div className="mb-3">
               <GenerateInterpretationsButton
                 onClick={handleGenerateInterpretations}
@@ -1562,6 +1562,7 @@ export function BirthChartPage({ chartId: chartIdProp }: BirthChartPageProps = {
                 </div>
               )}
             </div>
+            */}
 
             {/* Tab Content */}
             <div className="flex-1 overflow-y-auto pr-3" style={{ maxHeight: 'calc(100vh - 400px)', minHeight: '400px' }}>

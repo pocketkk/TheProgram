@@ -10,7 +10,7 @@ import {
   DialogTitle,
   DialogDescription
 } from '@/components/ui/Dialog'
-import { BirthChartWheel } from '@/features/birthchart/components/BirthChartWheel'
+import { BirthChartWheel } from '@/features/astrology/components/BirthChartWheel'
 import { useTransitsForDate } from './useTransitsForDate'
 import { formatTransit, getPlanetSymbol, getSignificanceColor } from '@/lib/api/transits'
 

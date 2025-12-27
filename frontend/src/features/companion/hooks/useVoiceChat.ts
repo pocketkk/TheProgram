@@ -4,7 +4,7 @@
  */
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useCompanionStore } from '../stores/companionStore'
-import { useChartStore } from '@/features/birthchart/stores/chartStore'
+import { useChartStore } from '@/features/astrology/stores/chartStore'
 
 // Audio configuration
 const INPUT_SAMPLE_RATE = 16000 // 16kHz for input

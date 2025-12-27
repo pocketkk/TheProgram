@@ -16,7 +16,7 @@
  */
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useCompanionStore } from '../stores/companionStore'
-import { useChartStore } from '@/features/birthchart/stores/chartStore'
+import { useChartStore } from '@/features/astrology/stores/chartStore'
 import { captureScreenshot, captureChartWheel, captureCurrentView } from '@/lib/utils/screenshot'
 
 // Audio configuration

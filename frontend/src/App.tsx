@@ -17,7 +17,7 @@ import { OnboardingPage } from './features/onboarding'
 import { SettingsPage } from './features/settings/SettingsPage'
 import { DashboardPage } from './features/dashboard/DashboardPage'
 import { CosmicVisualizerPage } from './features/cosmos/CosmicVisualizerPage'
-import { BirthChartPage } from './features/birthchart'
+import { AstrologyPage } from './features/astrology'
 import { FloatingCompanion } from './features/companion'
 import { AppLayout } from './components/layout/AppLayout'
 import { ErrorBoundary } from './components/common/ErrorBoundary'
@@ -158,9 +158,9 @@ function App() {
             <CosmicVisualizerPage />
           </ErrorBoundary>
         )}
-        {currentPage === 'birthchart' && (
-          <ErrorBoundary featureName="Birth Chart">
-            <BirthChartPage chartId={null} />
+        {currentPage === 'astrology' && (
+          <ErrorBoundary featureName="Astrology">
+            <AstrologyPage chartId={null} />
           </ErrorBoundary>
         )}
         {currentPage === 'journal' && (

@@ -13,7 +13,7 @@
  */
 
 import { AnimatePresence, motion, type Variants } from 'framer-motion'
-import { getAnimationConfig, withReducedMotion } from '@/features/birthchart/animations/chartAnimations'
+import { getAnimationConfig, withReducedMotion } from '@/features/astrology/animations/chartAnimations'
 
 export interface ExpandTransitionProps {
   isOpen: boolean

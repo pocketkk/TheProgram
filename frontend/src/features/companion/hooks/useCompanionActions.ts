@@ -5,7 +5,7 @@
 
 import { useCallback, useEffect, useRef } from 'react'
 import { useCompanionStore } from '../stores/companionStore'
-import { useChartStore } from '@/features/birthchart/stores/chartStore'
+import { useChartStore } from '@/features/astrology/stores/chartStore'
 import { useTransitStore } from '@/store/transitStore'
 import type { AspectPattern } from '@/lib/astrology/patterns'
 import { captureScreenshot, captureChartWheel, captureCurrentView } from '@/lib/utils/screenshot'

@@ -11,7 +11,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { BirthChartPage } from '@/features/birthchart/BirthChartPage'
+import { BirthChartPage } from '@/features/astrology/BirthChartPage'
 import { renderWithProviders } from '@/tests/utils/testUtils'
 import { useAuthStore } from '@/store/authStore'
 import { setMockPasswordState } from '@/tests/mocks/handlers'
