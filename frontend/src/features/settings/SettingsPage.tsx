@@ -11,12 +11,14 @@ import {
   Sparkles,
   Info,
   Newspaper,
+  Rss,
 } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
 import { ApiKeySettings } from './components/ApiKeySettings'
 import { GoogleApiKeySettings } from './components/GoogleApiKeySettings'
 import { NewspaperStyleSettings } from './components/NewspaperStyleSettings'
 import { NewsSourcesSettings } from './components/NewsSourcesSettings'
+import { RssFeedsSettings } from './components/RssFeedsSettings'
 
 export function SettingsPage() {
   return (
@@ -124,6 +126,30 @@ export function SettingsPage() {
             </CardHeader>
             <CardContent>
               <NewsSourcesSettings />
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* RSS Feeds */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.45 }}
+          className="lg:col-span-2"
+        >
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-3 mb-2">
+                <Rss className="h-5 w-5 text-cosmic-400" />
+                <CardTitle>RSS Feeds</CardTitle>
+              </div>
+              <CardDescription>
+                Subscribe to blogs, news sites, and newsletters. Your feeds appear
+                in the Chronicle alongside historical news.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <RssFeedsSettings />
             </CardContent>
           </Card>
         </motion.div>
