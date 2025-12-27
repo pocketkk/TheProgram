@@ -10,9 +10,10 @@ import type { NewspaperArticle } from './types';
 interface ArticleGridProps {
   articles: NewspaperArticle[];
   style: 'victorian' | 'modern';
+  onFeedback?: (articleId: string, feedback: 'more' | 'less') => void;
 }
 
-export function ArticleGrid({ articles, style }: ArticleGridProps) {
+export function ArticleGrid({ articles, style, onFeedback }: ArticleGridProps) {
   if (articles.length === 0) {
     return (
       <div className="text-center py-12">
@@ -30,10 +31,11 @@ export function ArticleGrid({ articles, style }: ArticleGridProps) {
     >
       {articles.map((article, index) => (
         <ArticleCard
-          key={`${article.year}-${index}`}
+          key={article.id || `${article.year}-${index}`}
           article={article}
           style={style}
           index={index}
+          onFeedback={onFeedback}
         />
       ))}
     </div>

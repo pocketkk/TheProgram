@@ -45,6 +45,16 @@ from app.models.artwork import Artwork
 from app.models.rss_feed import RssFeed
 from app.models.rss_article import RssArticle
 
+# Cosmic Chronicle: Weather
+from app.models.weather_location import WeatherLocation
+
+# Cosmic Chronicle: Sports
+from app.models.sports_favorite import SportsFavorite
+
+# Cosmic Chronicle: Personal Algorithm
+from app.models.reading_history import ReadingHistory
+from app.models.interest_profile import InterestProfile
+
 __all__ = [
     # Base classes
     'Base',
@@ -90,4 +100,14 @@ __all__ = [
     # Cosmic Chronicle: RSS feeds
     'RssFeed',
     'RssArticle',
+
+    # Cosmic Chronicle: Weather
+    'WeatherLocation',
+
+    # Cosmic Chronicle: Sports
+    'SportsFavorite',
+
+    # Cosmic Chronicle: Personal Algorithm
+    'ReadingHistory',
+    'InterestProfile',
 ]

@@ -12,6 +12,9 @@ import {
   Info,
   Newspaper,
   Rss,
+  Cloud,
+  Trophy,
+  Brain,
 } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
 import { ApiKeySettings } from './components/ApiKeySettings'
@@ -19,6 +22,9 @@ import { GoogleApiKeySettings } from './components/GoogleApiKeySettings'
 import { NewspaperStyleSettings } from './components/NewspaperStyleSettings'
 import { NewsSourcesSettings } from './components/NewsSourcesSettings'
 import { RssFeedsSettings } from './components/RssFeedsSettings'
+import { WeatherSettings } from './components/WeatherSettings'
+import { SportsSettings } from './components/SportsSettings'
+import { ReadingPreferencesSettings } from './components/ReadingPreferencesSettings'
 
 export function SettingsPage() {
   return (
@@ -154,11 +160,82 @@ export function SettingsPage() {
           </Card>
         </motion.div>
 
-        {/* Security & Privacy */}
+        {/* Weather */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
+          className="lg:col-span-2"
+        >
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-3 mb-2">
+                <Cloud className="h-5 w-5 text-cosmic-400" />
+                <CardTitle>Weather</CardTitle>
+              </div>
+              <CardDescription>
+                Configure OpenWeatherMap integration for weather data in your Chronicle.
+                Manage your saved locations for quick access.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <WeatherSettings />
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Sports */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.55 }}
+          className="lg:col-span-2"
+        >
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-3 mb-2">
+                <Trophy className="h-5 w-5 text-cosmic-400" />
+                <CardTitle>Sports</CardTitle>
+              </div>
+              <CardDescription>
+                Follow your favorite teams. Their scores will appear in the Chronicle sports ticker.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <SportsSettings />
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Reading Preferences */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
+          className="lg:col-span-2"
+        >
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-3 mb-2">
+                <Brain className="h-5 w-5 text-cosmic-400" />
+                <CardTitle>Reading Preferences</CardTitle>
+              </div>
+              <CardDescription>
+                Your personal algorithm learns from your reading habits.
+                View statistics, manage interests, and control your data.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ReadingPreferencesSettings />
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Security & Privacy */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.65 }}
         >
           <Card>
             <CardHeader>

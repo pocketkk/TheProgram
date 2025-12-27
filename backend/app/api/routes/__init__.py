@@ -17,8 +17,11 @@ from . import (
     journal,
     timeline,
     timeline_historical,
-    # Cosmic Chronicle: RSS feeds
+    # Cosmic Chronicle: RSS feeds, weather, sports, interests
     feeds,
+    weather,
+    sports,
+    interests,
     # Phase 3: Advanced features
     transits,
     tarot,
@@ -56,8 +59,11 @@ router.include_router(journal.router, prefix="/journal", tags=["Journal"])
 router.include_router(timeline.router, prefix="/timeline", tags=["Timeline"])
 router.include_router(timeline_historical.router, prefix="/timeline-historical", tags=["Timeline Historical"])
 
-# Cosmic Chronicle: RSS feeds
+# Cosmic Chronicle: RSS feeds, weather, sports, interests
 router.include_router(feeds.router, prefix="/chronicle", tags=["Cosmic Chronicle"])
+router.include_router(weather.router, prefix="/chronicle", tags=["Cosmic Chronicle"])
+router.include_router(sports.router, prefix="/chronicle", tags=["Cosmic Chronicle"])
+router.include_router(interests.router, prefix="/chronicle", tags=["Cosmic Chronicle"])
 
 # Phase 3: Advanced Transit Analysis
 router.include_router(transits.router, prefix="/transits", tags=["Transits"])

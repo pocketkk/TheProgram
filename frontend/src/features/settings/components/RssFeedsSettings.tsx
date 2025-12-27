@@ -19,7 +19,101 @@ import {
   AlertCircle,
   ChevronDown,
   ChevronUp,
+  Sparkles,
+  Newspaper,
+  Leaf,
+  Cpu,
+  Music,
+  Briefcase,
+  Trophy,
 } from 'lucide-react'
+
+/**
+ * Curated feed suggestions organized by category
+ */
+const SUGGESTED_FEEDS = {
+  'Oregon Ducks': {
+    icon: Trophy,
+    color: 'text-green-400',
+    feeds: [
+      { url: 'https://www.addictedtoquack.com/rss/index.xml', title: 'Addicted to Quack', description: 'In-depth Oregon Ducks coverage and analysis' },
+      { url: 'https://media.rss.com/ducksrisingpodcast/feed.xml', title: 'Ducks Rising Podcast', description: 'Weekly Oregon football podcast' },
+      { url: 'https://247sports.com/college/oregon/Team.rss', title: '247Sports Oregon', description: 'Ducks recruiting and news' },
+    ]
+  },
+  'Plants & Gardening': {
+    icon: Leaf,
+    color: 'text-emerald-400',
+    feeds: [
+      { url: 'https://www.terrariumtribe.com/feed/', title: 'Terrarium Tribe', description: 'Terrarium guides and inspiration' },
+      { url: 'https://www.ohiotropics.com/feed/', title: 'Ohio Tropics', description: 'Tropical houseplants and orchids' },
+      { url: 'https://www.epicgardening.com/feed/', title: 'Epic Gardening', description: 'Urban gardening for everyone' },
+      { url: 'https://www.guide-to-houseplants.com/house-plants-blog.xml', title: 'Guide to Houseplants', description: 'Care tips and plant encyclopedia' },
+      { url: 'https://www.janeperrone.com/on-the-ledge?format=rss', title: 'On The Ledge', description: 'Houseplant podcast by Jane Perrone' },
+    ]
+  },
+  'Bonsai': {
+    icon: Leaf,
+    color: 'text-lime-400',
+    feeds: [
+      { url: 'https://bonsaitonight.com/feed/', title: 'Bonsai Tonight', description: 'Professional bonsai care and styling' },
+      { url: 'https://crataegus.com/blog/feed/', title: 'Crataegus Bonsai', description: 'Michael Hagedorn\'s bonsai insights' },
+      { url: 'https://adamaskwhy.com/feed/', title: 'Adam\'s Art and Bonsai', description: 'Bonsai workshops and demonstrations' },
+      { url: 'https://www.kaizenbonsai.com/blog/feed/', title: 'Kaizen Bonsai', description: 'UK bonsai supplies and guides' },
+      { url: 'https://yamadori.co.uk/blog/feed/', title: 'Yamadori Bonsai', description: 'Collecting and styling native trees' },
+    ]
+  },
+  'Tech News': {
+    icon: Cpu,
+    color: 'text-blue-400',
+    feeds: [
+      { url: 'https://techcrunch.com/feed/', title: 'TechCrunch', description: 'Startup and technology news' },
+      { url: 'https://www.theverge.com/rss/index.xml', title: 'The Verge', description: 'Tech, science, art, and culture' },
+      { url: 'https://www.wired.com/feed/rss', title: 'Wired', description: 'Technology and culture magazine' },
+      { url: 'https://arstechnica.com/feed/', title: 'Ars Technica', description: 'In-depth tech analysis' },
+      { url: 'https://feeds.macrumors.com/MacRumors-All', title: 'MacRumors', description: 'Apple news and rumors' },
+      { url: 'https://www.androidcentral.com/feed', title: 'Android Central', description: 'Android news and reviews' },
+      { url: 'https://news.ycombinator.com/rss', title: 'Hacker News', description: 'Tech and startup community' },
+    ]
+  },
+  'Music': {
+    icon: Music,
+    color: 'text-purple-400',
+    feeds: [
+      { url: 'https://pitchfork.com/feed/feed-news/rss', title: 'Pitchfork News', description: 'Music news and reviews' },
+      { url: 'https://www.stereogum.com/feed/', title: 'Stereogum', description: 'Indie and alternative music' },
+      { url: 'https://www.billboard.com/feed/', title: 'Billboard', description: 'Music industry news and charts' },
+      { url: 'https://www.nme.com/news/music/feed', title: 'NME', description: 'Music news and reviews' },
+      { url: 'https://indieshuffle.com/feed/', title: 'Indie Shuffle', description: 'Discover new indie music' },
+      { url: 'https://edmidentity.com/feed/', title: 'EDM Identity', description: 'Electronic dance music' },
+      { url: 'https://www.albumoftheyear.org/rss/releases.xml', title: 'Album of the Year', description: 'New album releases' },
+    ]
+  },
+  'Business & Startups': {
+    icon: Briefcase,
+    color: 'text-amber-400',
+    feeds: [
+      { url: 'https://feeds.hbr.org/harvardbusiness', title: 'Harvard Business Review', description: 'Business insights and analysis' },
+      { url: 'https://www.entrepreneur.com/latest.rss', title: 'Entrepreneur', description: 'Startup advice and news' },
+      { url: 'https://steveblank.com/feed/', title: 'Steve Blank', description: 'Lean startup methodology' },
+      { url: 'https://feld.com/feed', title: 'Brad Feld', description: 'VC insights and startup advice' },
+      { url: 'https://seths.blog/feed/', title: 'Seth Godin', description: 'Marketing and business wisdom' },
+      { url: 'https://www.fastcompany.com/latest/rss', title: 'Fast Company', description: 'Business innovation' },
+      { url: 'https://a16z.com/feed/', title: 'a16z Blog', description: 'Andreessen Horowitz insights' },
+    ]
+  },
+  'General News': {
+    icon: Newspaper,
+    color: 'text-gray-400',
+    feeds: [
+      { url: 'https://www.theguardian.com/world/rss', title: 'The Guardian - World', description: 'International news' },
+      { url: 'https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml', title: 'NY Times', description: 'News from the New York Times' },
+      { url: 'https://feeds.bbci.co.uk/news/world/rss.xml', title: 'BBC World', description: 'World news from BBC' },
+      { url: 'https://www.npr.org/rss/rss.php?id=1001', title: 'NPR News', description: 'National Public Radio news' },
+      { url: 'https://www.reuters.com/rssFeed/worldNews', title: 'Reuters World', description: 'Global news coverage' },
+    ]
+  },
+}
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import {
@@ -55,6 +149,11 @@ export function RssFeedsSettings() {
 
   // Expanded feeds list
   const [showAllFeeds, setShowAllFeeds] = useState(false)
+
+  // Discover feeds section
+  const [showDiscover, setShowDiscover] = useState(false)
+  const [expandedCategory, setExpandedCategory] = useState<string | null>(null)
+  const [addingFeed, setAddingFeed] = useState<string | null>(null)
 
   // Load feeds on mount
   useEffect(() => {
@@ -121,6 +220,53 @@ export function RssFeedsSettings() {
     } catch (err: any) {
       setError(err?.message || 'Failed to delete feed')
     }
+  }
+
+  const handleAddSuggestedFeed = async (
+    feedUrl: string,
+    feedTitle: string,
+    category: string
+  ) => {
+    clearFeedback()
+    setAddingFeed(feedUrl)
+    try {
+      // Try to discover the feed first
+      let title = feedTitle
+      let description: string | undefined
+      let siteUrl: string | undefined
+      let iconUrl: string | undefined
+
+      try {
+        const discovery = await discoverFeed(feedUrl)
+        title = discovery.title || feedTitle
+        description = discovery.description || undefined
+        siteUrl = discovery.site_url || undefined
+        iconUrl = discovery.icon_url || undefined
+      } catch {
+        // If discovery fails, use provided title
+      }
+
+      await createFeed({
+        url: feedUrl,
+        title,
+        description,
+        site_url: siteUrl,
+        icon_url: iconUrl,
+        category,
+      })
+
+      setSuccessMessage(`Subscribed to "${title}"`)
+      await loadFeeds()
+    } catch (err: any) {
+      setError(err?.message || 'Failed to add feed')
+    } finally {
+      setAddingFeed(null)
+    }
+  }
+
+  // Check if a feed URL is already subscribed
+  const isSubscribed = (url: string) => {
+    return feeds.some(f => f.url === url)
   }
 
   const handleRefreshAll = async () => {
@@ -272,6 +418,106 @@ export function RssFeedsSettings() {
             </Button>
           </div>
         </div>
+      </div>
+
+      {/* Discover Feeds */}
+      <div className="p-4 rounded-lg bg-gradient-to-br from-cosmic-900/40 to-purple-900/20 border border-purple-700/30">
+        <button
+          onClick={() => setShowDiscover(!showDiscover)}
+          className="w-full flex items-center justify-between"
+        >
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-purple-400" />
+            <h4 className="text-sm font-medium">Discover Feeds</h4>
+            <span className="px-2 py-0.5 rounded-full bg-purple-500/20 text-xs text-purple-300">
+              {Object.values(SUGGESTED_FEEDS).reduce((acc, cat) => acc + cat.feeds.length, 0)} curated
+            </span>
+          </div>
+          {showDiscover ? (
+            <ChevronUp className="h-4 w-4 text-gray-400" />
+          ) : (
+            <ChevronDown className="h-4 w-4 text-gray-400" />
+          )}
+        </button>
+
+        {showDiscover && (
+          <div className="mt-4 space-y-3">
+            <p className="text-xs text-gray-400">
+              Browse curated feeds by category. Click + to subscribe.
+            </p>
+
+            {Object.entries(SUGGESTED_FEEDS).map(([categoryName, category]) => {
+              const CategoryIcon = category.icon
+              const isExpanded = expandedCategory === categoryName
+
+              return (
+                <div
+                  key={categoryName}
+                  className="rounded-lg bg-cosmic-800/30 border border-cosmic-700/30 overflow-hidden"
+                >
+                  <button
+                    onClick={() => setExpandedCategory(isExpanded ? null : categoryName)}
+                    className="w-full flex items-center justify-between p-3 hover:bg-cosmic-700/20 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <CategoryIcon className={`h-4 w-4 ${category.color}`} />
+                      <span className="text-sm font-medium">{categoryName}</span>
+                      <span className="text-xs text-gray-500">
+                        ({category.feeds.length} feeds)
+                      </span>
+                    </div>
+                    {isExpanded ? (
+                      <ChevronUp className="h-4 w-4 text-gray-400" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4 text-gray-400" />
+                    )}
+                  </button>
+
+                  {isExpanded && (
+                    <div className="px-3 pb-3 space-y-2">
+                      {category.feeds.map((feed) => {
+                        const subscribed = isSubscribed(feed.url)
+                        const isAdding = addingFeed === feed.url
+
+                        return (
+                          <div
+                            key={feed.url}
+                            className="flex items-center justify-between p-2 rounded bg-cosmic-900/30"
+                          >
+                            <div className="flex-1 min-w-0 mr-3">
+                              <p className="text-sm font-medium truncate">{feed.title}</p>
+                              <p className="text-xs text-gray-500 truncate">{feed.description}</p>
+                            </div>
+                            {subscribed ? (
+                              <span className="flex items-center gap-1 px-2 py-1 rounded bg-green-500/20 text-xs text-green-400">
+                                <Check className="h-3 w-3" />
+                                Added
+                              </span>
+                            ) : (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleAddSuggestedFeed(feed.url, feed.title, categoryName)}
+                                disabled={isAdding}
+                                className="h-7 px-2"
+                              >
+                                {isAdding ? (
+                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                ) : (
+                                  <Plus className="h-3 w-3" />
+                                )}
+                              </Button>
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        )}
       </div>
 
       {/* Current Feeds List */}

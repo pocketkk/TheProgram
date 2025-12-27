@@ -16,9 +16,10 @@ import type { NewspaperContent } from './types';
 interface NewspaperFrameProps {
   content: NewspaperContent;
   isLoading?: boolean;
+  onArticleFeedback?: (articleId: string, feedback: 'more' | 'less') => void;
 }
 
-export function NewspaperFrame({ content, isLoading }: NewspaperFrameProps) {
+export function NewspaperFrame({ content, isLoading, onArticleFeedback }: NewspaperFrameProps) {
   const [activeSection, setActiveSection] = useState(content.sections[0]?.name || '');
   const [flipDirection, setFlipDirection] = useState<'next' | 'prev'>('next');
 
@@ -122,7 +123,11 @@ export function NewspaperFrame({ content, isLoading }: NewspaperFrameProps) {
 
           {/* Article content with page flip animation */}
           <PageFlip direction={flipDirection} pageKey={`${activeSection}-${currentPage}`}>
-            <ArticleGrid articles={currentArticles} style={content.style} />
+            <ArticleGrid
+              articles={currentArticles}
+              style={content.style}
+              onFeedback={onArticleFeedback}
+            />
           </PageFlip>
 
           {/* Page controls */}
