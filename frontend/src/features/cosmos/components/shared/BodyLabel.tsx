@@ -14,7 +14,8 @@ export const BodyLabel: React.FC<BodyLabelProps> = ({
   isRetrograde = false,
   position,
 }) => {
-  const labelPosition: [number, number, number] = position || [0, radius * 7, 0]
+  // Compact label positioning - closer to the body
+  const labelPosition: [number, number, number] = position || [0, radius * 4, 0]
 
   return (
     <Html
@@ -29,26 +30,27 @@ export const BodyLabel: React.FC<BodyLabelProps> = ({
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '8px',
+          gap: '4px',
           whiteSpace: 'nowrap',
-          padding: '6px 12px',
-          border: '2px solid #4a1d6f',
-          borderRadius: '8px',
-          backgroundColor: 'rgba(20, 10, 30, 0.8)',
+          padding: '3px 6px',
+          border: '1px solid rgba(74, 29, 111, 0.6)',
+          borderRadius: '4px',
+          backgroundColor: 'rgba(20, 10, 30, 0.75)',
+          opacity: 0.9,
         }}
       >
         <AstroSymbol
           planet={name.toLowerCase()}
-          size={28}
-          color={isRetrograde ? '#FF6B6B' : 'white'}
+          size={14}
+          color={isRetrograde ? '#FF6B6B' : 'rgba(255, 255, 255, 0.9)'}
         />
         <span
           style={{
-            color: isRetrograde ? '#FF6B6B' : 'white',
-            fontSize: '26px',
-            fontWeight: '600',
-            textShadow: '0 0 8px rgba(0, 0, 0, 0.9), 0 2px 4px rgba(0, 0, 0, 0.9)',
-            letterSpacing: '0.5px',
+            color: isRetrograde ? '#FF6B6B' : 'rgba(255, 255, 255, 0.9)',
+            fontSize: '12px',
+            fontWeight: '500',
+            textShadow: '0 1px 2px rgba(0, 0, 0, 0.8)',
+            letterSpacing: '0.3px',
           }}
         >
           {name}{isRetrograde ? ' ℞' : ''}

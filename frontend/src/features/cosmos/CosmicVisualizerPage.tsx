@@ -78,10 +78,10 @@ const createInitialBodyStates = (): Record<string, BodyState> => {
         visibility: {
           body: true,
           orbit: true,
-          label: true,
+          label: false, // Labels off by default - press L to toggle
           trail: false, // Trails off by default
-          footprint: true,
-          projectionLine: true,
+          footprint: false, // Footprints off by default - cleaner view
+          projectionLine: false, // Projection lines off by default
           glow: true,
           rings: true,
         },
@@ -278,15 +278,15 @@ export const CosmicVisualizerPage = () => {
   // View preset tracking
   const [activePreset, setActivePreset] = useState<string | null>(null)
 
-  // Collapsed sections state
+  // Collapsed sections state - default to minimal UI for immersive view
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({
-    'display-options': false,
-    'per-planet-controls': false,
+    'display-options': true,  // Collapsed by default
+    'per-planet-controls': true,  // Collapsed by default
     'view-mode': false,
     'birth-chart': true,  // Collapsed by default
-    'visual-effects': false,
-    'view-presets': false,
-    'bottom-panel': false,  // Time controls - expanded by default
+    'visual-effects': true,  // Collapsed by default
+    'view-presets': true,  // Collapsed by default
+    'bottom-panel': true,  // Time controls collapsed by default - cleaner view
   })
 
   /**
@@ -981,28 +981,23 @@ export const CosmicVisualizerPage = () => {
 
   return (
     <div className="h-full flex flex-col overflow-hidden">
-      {/* Header */}
+      {/* Header - Subtle, minimal chrome */}
       <motion.div
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="glass-strong border-b border-cosmic-700/50 p-4"
+        className="bg-slate-900/40 backdrop-blur-sm border-b border-cosmic-700/30 px-4 py-2.5"
       >
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="rounded-lg bg-gradient-to-br from-cosmic-600 to-cosmic-500 p-2">
-              <Sparkles className="h-6 w-6 text-white" />
+          <div className="flex items-center gap-2.5">
+            <div className="rounded-md bg-gradient-to-br from-cosmic-600/80 to-cosmic-500/80 p-1.5">
+              <Sparkles className="h-4 w-4 text-white/90" />
             </div>
-            <div>
-              <h1 className="text-2xl font-heading font-bold text-gradient-celestial">
-                Cosmic Visualizer
-              </h1>
-              <p className="text-sm text-gray-400">
-                Explore the solar system through time
-              </p>
-            </div>
+            <h1 className="text-lg font-heading font-semibold text-white/90">
+              Cosmic Visualizer
+            </h1>
           </div>
 
-          {/* View controls */}
+          {/* Minimal toolbar - most controls in Settings panel */}
           <div className="flex items-center gap-2">
             <Button
               variant={cameraMode === 'earth' ? 'primary' : 'outline'}
@@ -1025,118 +1020,15 @@ export const CosmicVisualizerPage = () => {
               <option value="heliocentric">☉ Heliocentric</option>
               <option value="geocentric">🌍 Geocentric</option>
             </select>
-            <Button
-              variant={showHouses ? 'primary' : 'outline'}
-              size="sm"
-              onClick={() => setShowHouses(!showHouses)}
-            >
-              {showHouses ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-              Houses
-            </Button>
-            <Button
-              variant={showFootprints ? 'primary' : 'outline'}
-              size="sm"
-              onClick={() => setShowFootprints(!showFootprints)}
-            >
-              {showFootprints ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-              Footprints
-            </Button>
 
-            {/* Distance Measurement Tool */}
-            <div className="h-6 w-px bg-cosmic-700/50 mx-1" />
-            <Button
-              variant={measurementMode ? 'primary' : 'outline'}
-              size="sm"
-              onClick={() => {
-                setMeasurementMode(prev => !prev)
-                setSelectedForMeasurement([])
-              }}
-              className="gap-1.5"
-              title={measurementMode ? 'Exit measurement mode' : 'Measure distance between bodies'}
-            >
-              <Ruler className="h-4 w-4" />
-              {measurementMode ? 'Measuring' : 'Measure'}
-            </Button>
-
-            {/* Camera Controls */}
-            <div className="h-6 w-px bg-cosmic-700/50 mx-1" />
-            <Button
-              variant={cameraLocked ? 'outline' : 'primary'}
-              size="sm"
-              onClick={() => setCameraLocked(!cameraLocked)}
-              className="gap-1.5"
-            >
-              {cameraLocked ? <Lock className="h-4 w-4" /> : <Unlock className="h-4 w-4" />}
-              {cameraLocked ? 'Locked' : 'Free'}
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setResetCameraTrigger(prev => prev + 1)}
-              className="gap-1.5"
-            >
-              <RotateCcw className="h-4 w-4" />
-              Reset
-            </Button>
-
-            {/* Birth Chart Controls */}
-            <div className="h-6 w-px bg-cosmic-700/50 mx-1" />
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowBirthChartForm(true)}
-              className="gap-1.5"
-            >
-              <Star className="h-4 w-4" />
-              New Chart
-            </Button>
-            <Button
-              variant={activeChart ? 'primary' : 'outline'}
-              size="sm"
-              onClick={() => setShowBirthChartManager(true)}
-              className="gap-1.5"
-            >
-              <BookOpen className="h-4 w-4" />
-              {activeChart ? activeChart.name : 'Charts'}
-            </Button>
-            {activeChart && (
-              <Button
-                variant={showNatalOverlay ? 'primary' : 'outline'}
-                size="sm"
-                onClick={() => setShowNatalOverlay(!showNatalOverlay)}
-              >
-                {showNatalOverlay ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-                Natal
-              </Button>
-            )}
-
-            <div className="h-6 w-px bg-cosmic-700/50 mx-1" />
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={exportToPNG}
-              className="gap-1.5"
-              title="Export current view as PNG"
-            >
-              <Download className="h-4 w-4" />
-              Export PNG
-            </Button>
+            {/* Settings toggle - all other controls accessible here */}
             <Button
               variant={showSettings ? 'primary' : 'outline'}
               size="sm"
               onClick={() => setShowSettings(!showSettings)}
+              title="Settings & Controls (S)"
             >
               <Settings className="h-4 w-4" />
-              Settings
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowKeyboardHelp(true)}
-              title="Keyboard Shortcuts (H or ?)"
-            >
-              <Keyboard className="h-4 w-4" />
-              Shortcuts
             </Button>
           </div>
         </div>
@@ -1601,6 +1493,53 @@ export const CosmicVisualizerPage = () => {
                     <option value="heliocentric">☉ Heliocentric</option>
                     <option value="geocentric">🌍 Geocentric</option>
                   </select>
+
+                  {/* Camera Controls */}
+                  <div className="mt-4 pt-3 border-t border-cosmic-700/30">
+                    <label className="block text-xs text-gray-400 mb-2">Camera Controls</label>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setCameraLocked(!cameraLocked)}
+                        className={`flex-1 px-3 py-2 rounded-lg text-sm transition-colors ${
+                          cameraLocked
+                            ? 'bg-cosmic-600 text-white'
+                            : 'bg-cosmic-900/50 text-gray-300 hover:bg-cosmic-800/50'
+                        }`}
+                      >
+                        {cameraLocked ? '🔒 Locked' : '🔓 Free'}
+                      </button>
+                      <button
+                        onClick={() => setResetCameraTrigger(prev => prev + 1)}
+                        className="px-3 py-2 rounded-lg bg-cosmic-900/50 text-gray-300 hover:bg-cosmic-800/50 text-sm transition-colors"
+                      >
+                        ↺ Reset
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Tools Section */}
+              <div className="mb-6">
+                <h4 className="text-sm font-semibold text-gray-300 mb-3 flex items-center gap-2">
+                  <Download className="h-4 w-4" />
+                  Tools
+                </h4>
+                <div className="space-y-2">
+                  <button
+                    onClick={exportToPNG}
+                    className="w-full flex items-center gap-2 px-3 py-2 rounded-lg bg-cosmic-900/50 text-gray-300 hover:bg-cosmic-800/50 text-sm transition-colors"
+                  >
+                    <Download className="h-4 w-4" />
+                    Export as PNG
+                  </button>
+                  <button
+                    onClick={() => setShowKeyboardHelp(true)}
+                    className="w-full flex items-center gap-2 px-3 py-2 rounded-lg bg-cosmic-900/50 text-gray-300 hover:bg-cosmic-800/50 text-sm transition-colors"
+                  >
+                    <Keyboard className="h-4 w-4" />
+                    Keyboard Shortcuts
+                  </button>
                 </div>
               </div>
 
