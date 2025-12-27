@@ -19,3 +19,6 @@ export { DayCell } from './components/MonthView/DayCell'
 export { DayViewLayout } from './components/DayView/DayViewLayout'
 export { NewspaperFrame } from './components/Newspaper/NewspaperFrame'
 export { TransitChartWidget } from './components/TransitWidget/TransitChartWidget'
+
+// Export hooks
+export { useRssArticles } from './hooks/useRssArticles'

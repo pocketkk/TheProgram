@@ -7,7 +7,13 @@ export interface NewspaperArticle {
   content: string;
   year: number;
   significance?: string;
-  source?: 'guardian' | 'nyt' | 'wikipedia' | 'system';
+  source?: 'guardian' | 'nyt' | 'wikipedia' | 'system' | 'rss';
+  /** URL for external articles (RSS, news sources) */
+  url?: string;
+  /** Feed name for RSS articles */
+  feedTitle?: string;
+  /** Article author */
+  author?: string;
 }
 
 export interface NewspaperSection {
