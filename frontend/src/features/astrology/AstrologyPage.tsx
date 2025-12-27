@@ -827,8 +827,8 @@ export function AstrologyPage({ chartId: chartIdProp }: AstrologyPageProps = {})
       case 'natal':
       default:
         return {
-          title: 'Birth Chart',
-          subtitle: 'Astrological Natal Chart Analysis',
+          title: 'Astrology',
+          subtitle: 'Natal Chart Analysis',
         }
     }
   }, [chartType, birthData])
