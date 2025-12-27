@@ -3,6 +3,8 @@
  */
 
 export interface NewspaperArticle {
+  /** Unique article ID for feedback tracking */
+  id?: string;
   headline: string;
   content: string;
   year: number;
@@ -14,6 +16,8 @@ export interface NewspaperArticle {
   feedTitle?: string;
   /** Article author */
   author?: string;
+  /** Image URL for article thumbnail */
+  imageUrl?: string;
 }
 
 export interface NewspaperSection {

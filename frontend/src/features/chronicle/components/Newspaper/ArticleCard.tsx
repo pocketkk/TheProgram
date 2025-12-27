@@ -2,10 +2,11 @@
  * Article Card Component
  *
  * Individual article display with headline, year, content, and optional significance.
- * Supports external links for RSS articles.
+ * Supports external links for RSS articles and feedback controls.
  */
 
-import { ExternalLink } from 'lucide-react';
+import { useState } from 'react';
+import { ExternalLink, ThumbsUp, ThumbsDown, Check } from 'lucide-react';
 import { motion } from 'framer-motion';
 import type { NewspaperArticle } from './types';
 
@@ -13,11 +14,20 @@ interface ArticleCardProps {
   article: NewspaperArticle;
   style: 'victorian' | 'modern';
   index: number;
+  onFeedback?: (articleId: string, feedback: 'more' | 'less') => void;
 }
 
-export function ArticleCard({ article, style, index }: ArticleCardProps) {
+export function ArticleCard({ article, style, index, onFeedback }: ArticleCardProps) {
+  const [feedbackGiven, setFeedbackGiven] = useState<'more' | 'less' | null>(null);
   const isVictorian = style === 'victorian';
-  const isRss = article.source === 'rss';
+  const hasId = !!article.id;
+
+  const handleFeedback = (feedback: 'more' | 'less') => {
+    if (article.id && onFeedback) {
+      onFeedback(article.id, feedback);
+      setFeedbackGiven(feedback);
+    }
+  };
 
   // Get source display info
   const getSourceBadge = () => {
@@ -60,13 +70,29 @@ export function ArticleCard({ article, style, index }: ArticleCardProps) {
         ease: 'easeOut',
       }}
       className={`
-        p-4 rounded-lg
+        rounded-lg overflow-hidden
         ${isVictorian
           ? 'bg-amber-400/30 border-2 border-amber-700/20'
           : 'bg-stone-400/30 border border-stone-500/30'
         }
       `}
     >
+      {/* Article image */}
+      {article.imageUrl && (
+        <div className="relative w-full h-40 overflow-hidden">
+          <img
+            src={article.imageUrl}
+            alt=""
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              // Hide broken images
+              (e.target as HTMLImageElement).style.display = 'none';
+            }}
+          />
+        </div>
+      )}
+
+      <div className="p-4">
       {/* Year and source badges */}
       <div className="flex items-center gap-2 mb-2 flex-wrap">
         <div
@@ -151,6 +177,61 @@ export function ArticleCard({ article, style, index }: ArticleCardProps) {
           {article.significance}
         </div>
       )}
+
+      {/* Feedback controls - only show if article has ID and callback */}
+      {hasId && onFeedback && (
+        <div
+          className={`
+            mt-3 pt-3 border-t flex items-center justify-between
+            ${isVictorian
+              ? 'border-amber-700/40'
+              : 'border-stone-500/50'
+            }
+          `}
+        >
+          <span className="text-xs text-stone-600">Found this interesting?</span>
+          <div className="flex items-center gap-2">
+            {feedbackGiven ? (
+              <span className="flex items-center gap-1 text-xs text-green-700">
+                <Check className="h-3.5 w-3.5" />
+                Thanks for the feedback!
+              </span>
+            ) : (
+              <>
+                <button
+                  onClick={() => handleFeedback('more')}
+                  className={`
+                    p-1.5 rounded transition-colors flex items-center gap-1 text-xs
+                    ${isVictorian
+                      ? 'hover:bg-amber-600/30 text-stone-700 hover:text-green-700'
+                      : 'hover:bg-stone-500/30 text-stone-600 hover:text-green-700'
+                    }
+                  `}
+                  title="More like this"
+                >
+                  <ThumbsUp className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">More</span>
+                </button>
+                <button
+                  onClick={() => handleFeedback('less')}
+                  className={`
+                    p-1.5 rounded transition-colors flex items-center gap-1 text-xs
+                    ${isVictorian
+                      ? 'hover:bg-amber-600/30 text-stone-700 hover:text-red-700'
+                      : 'hover:bg-stone-500/30 text-stone-600 hover:text-red-700'
+                    }
+                  `}
+                  title="Less like this"
+                >
+                  <ThumbsDown className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">Less</span>
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+      </div>
     </motion.article>
   );
 }

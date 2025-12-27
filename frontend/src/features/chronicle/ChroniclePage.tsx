@@ -1,12 +1,12 @@
 /**
- * Timeline Page - Walk Through Time
+ * Chronicle Page - Cosmic Chronicle
  *
  * Calendar view with historical newspaper, transits, and journal integration.
- * Part of Phase 3: Timeline Feature
+ * Personal news hub with AI-powered recommendations.
  */
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from 'react'
 import { motion } from 'framer-motion'
-import { CalendarDays, Loader2, Newspaper, Database, Globe, Sparkles, CheckCircle2, XCircle } from 'lucide-react'
+import { CalendarDays, Loader2, Newspaper, Database, Globe, Sparkles, CheckCircle2, XCircle, Keyboard } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui'
 import { useTimelineViewStore } from './stores/timelineViewStore'
 import { useJournalStore } from '@/store/journalStore'
@@ -17,6 +17,11 @@ import { DayViewLayout } from './components/DayView/DayViewLayout'
 import { NewspaperFrame } from './components/Newspaper/NewspaperFrame'
 import { TransitChartWidget } from './components/TransitWidget/TransitChartWidget'
 import { JournalEditor } from './components/JournalSidebar/JournalEditor'
+import { WeatherWidget } from './components/Weather'
+import { SportsWidget } from './components/Sports'
+import { ForYouSection } from './components/ForYou'
+import { AIInsightsPanel } from './components/AIInsights'
+import { useChronicleShortcuts, CHRONICLE_SHORTCUTS } from './hooks/useChronicleShortcuts'
 import type { DayIndicators } from './components/MonthView/types'
 import type { NewspaperContent } from './components/Newspaper/types'
 import { useUserProfileStore } from '@/store/userProfileStore'
@@ -28,6 +33,8 @@ import {
   type NewspaperProgressEvent,
   type NewspaperSourceCompleteEvent
 } from '@/lib/api/timelineHistorical'
+import { listArticles, type RssArticleWithFeed } from '@/lib/api/feeds'
+import { recordReading } from '@/lib/api/interests'
 
 // Progress state for streaming newspaper generation
 interface NewspaperLoadingState {
@@ -51,7 +58,11 @@ interface NewspaperLoadingState {
  * - Guide agent navigation support via custom events
  * - Integration with journalStore and transitStore
  */
-export function ChroniclePage() {
+interface ChroniclePageProps {
+  onNavigate?: (page: string) => void
+}
+
+export function ChroniclePage({ onNavigate }: ChroniclePageProps) {
   const {
     currentMonth,
     currentYear,
@@ -73,6 +84,9 @@ export function ChroniclePage() {
   // Day indicators (transits, events, journals)
   const [dayData, setDayData] = useState<Record<string, DayIndicators>>({})
   const [isLoadingIndicators, setIsLoadingIndicators] = useState(false)
+
+  // RSS articles for "For You" section
+  const [rssArticles, setRssArticles] = useState<RssArticleWithFeed[]>([])
 
   // Newspaper data with streaming progress
   const [newspaperData, setNewspaperData] = useState<NewspaperContent | null>(null)
@@ -115,6 +129,20 @@ export function ChroniclePage() {
       setBirthDataId(birthDataId)
     }
   }, [birthDataId, setBirthDataId])
+
+  // Fetch RSS articles for "For You" section
+  useEffect(() => {
+    const fetchRssArticles = async () => {
+      try {
+        const response = await listArticles({ limit: 50, is_read: false })
+        setRssArticles(response.articles)
+      } catch (error) {
+        // RSS feeds may not be set up yet - that's fine
+        console.debug('No RSS articles available:', error)
+      }
+    }
+    fetchRssArticles()
+  }, [])
 
   // Listen for Guide navigation events
   useEffect(() => {
@@ -350,6 +378,118 @@ export function ChroniclePage() {
     selectDay(null)
   }
 
+  // Handle feed refresh
+  const handleRefreshFeeds = useCallback(async () => {
+    try {
+      const response = await listArticles({ limit: 50, is_read: false })
+      setRssArticles(response.articles)
+    } catch (error) {
+      console.debug('Failed to refresh articles:', error)
+    }
+  }, [])
+
+  // Keyboard shortcuts
+  useChronicleShortcuts({
+    onToday: goToToday,
+    onPrevMonth: prevMonth,
+    onNextMonth: nextMonth,
+    onCloseDay: handleCloseDayView,
+    onRefresh: handleRefreshFeeds,
+    enabled: true
+  })
+
+  // Handle article feedback from newspaper
+  const handleArticleFeedback = useCallback((articleId: string, feedback: 'more' | 'less') => {
+    // Find the article in newspaperData to get its details
+    const article = newspaperData?.sections
+      .flatMap(s => s.articles)
+      .find(a => a.id === articleId)
+
+    if (article) {
+      recordReading({
+        article_id: articleId,
+        source_type: article.source || 'newspaper',
+        title: article.headline,
+        url: article.url,
+        content: article.content,
+        feedback
+      }).catch(err => {
+        console.error('Failed to record feedback:', err)
+      })
+    }
+  }, [newspaperData])
+
+  // Strip HTML tags from RSS content
+  const stripHtml = useCallback((html: string): string => {
+    if (!html) return ''
+    // Create a temporary element to parse HTML and extract text
+    const tmp = document.createElement('div')
+    tmp.innerHTML = html
+    return tmp.textContent || tmp.innerText || ''
+  }, [])
+
+  // Create enhanced newspaper data with RSS section
+  const enhancedNewspaperData = useMemo((): NewspaperContent | null => {
+    if (!newspaperData || !selectedDay) return null
+
+    // Filter RSS articles to those published on the selected day
+    const selectedDate = new Date(selectedDay)
+    const dayStart = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate())
+    const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000)
+
+    const dayArticles = rssArticles.filter(article => {
+      if (!article.published_at) return false
+      const pubDate = new Date(article.published_at)
+      return pubDate >= dayStart && pubDate < dayEnd
+    })
+
+    // If no RSS articles for this day, return original newspaper data
+    if (dayArticles.length === 0) return newspaperData
+
+    // Sort articles to prioritize those with images, then by date
+    const sortedArticles = [...dayArticles].sort((a, b) => {
+      // Articles with images come first
+      const aHasImage = a.image_url ? 1 : 0
+      const bHasImage = b.image_url ? 1 : 0
+      if (aHasImage !== bHasImage) return bHasImage - aHasImage
+      // Then by published date (newest first)
+      return new Date(b.published_at || 0).getTime() - new Date(a.published_at || 0).getTime()
+    })
+
+    // Transform RSS articles to newspaper article format
+    const rssSection = {
+      name: 'YOUR FEEDS',
+      articles: sortedArticles.slice(0, 12).map(article => {
+        // Strip HTML from all content sources
+        const rawContent = article.preview || article.content || article.summary || ''
+        const content = stripHtml(rawContent)
+        // Truncate to ~200 chars for a nice preview
+        const truncatedContent = content.length > 200
+          ? content.substring(0, 200).trim() + '...'
+          : content
+
+        return {
+          id: article.id,
+          headline: stripHtml(article.title),
+          content: truncatedContent,
+          year: new Date(article.published_at || Date.now()).getFullYear(),
+          significance: article.feed_title || 'RSS Feed',
+          source: 'rss' as const,
+          url: article.url,
+          feedTitle: article.feed_title,
+          author: article.author || undefined,
+          imageUrl: article.image_url || undefined
+        }
+      })
+    }
+
+    // Add RSS section to the newspaper (after historical sections)
+    return {
+      ...newspaperData,
+      sections: [...newspaperData.sections, rssSection]
+    }
+  }, [newspaperData, rssArticles, selectedDay, stripHtml])
+
   // Handle go to specific date
   const handleGoToDate = () => {
     // TODO: Implement date picker dialog
@@ -374,22 +514,63 @@ export function ChroniclePage() {
           <div>
             <h1 className="text-3xl font-heading font-bold text-gradient-celestial flex items-center gap-3">
               <CalendarDays className="h-8 w-8 text-celestial-gold" />
-              Walk Through Time
+              Cosmic Chronicle
             </h1>
             <p className="text-gray-400 mt-2">
-              Explore history, transits, and your journey
+              Your personal news hub - explore history, transits, and your journey
             </p>
           </div>
-          {/* Profile indicator */}
-          {profile.birthLocation && (
-            <div className="flex items-center gap-2 px-3 py-1.5 glass-subtle rounded-lg">
-              <div className="w-2 h-2 rounded-full bg-celestial-gold animate-pulse" />
-              <span className="text-sm text-cosmic-200">
-                {profile.birthLocation}
-              </span>
+          <div className="flex items-center gap-4">
+            {/* Keyboard shortcuts hint */}
+            <div className="relative group hidden sm:block">
+              <button
+                className="p-2 text-gray-500 hover:text-gray-300 transition-colors"
+                title="Keyboard shortcuts"
+              >
+                <Keyboard className="h-4 w-4" />
+              </button>
+              <div className="absolute right-0 top-full mt-2 w-48 p-3 bg-cosmic-dark/95 backdrop-blur-sm rounded-lg border border-cosmic-light/20 shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
+                <p className="text-xs font-medium text-gray-400 mb-2">Keyboard Shortcuts</p>
+                <div className="space-y-1">
+                  {CHRONICLE_SHORTCUTS.map((shortcut) => (
+                    <div key={shortcut.key} className="flex items-center justify-between text-xs">
+                      <span className="text-gray-400">{shortcut.description}</span>
+                      <kbd className="px-1.5 py-0.5 bg-cosmic-light/10 rounded text-gray-300 font-mono">
+                        {shortcut.key}
+                      </kbd>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
-          )}
+            {/* Weather widget */}
+            <WeatherWidget
+              onConfigureClick={() => onNavigate?.('settings')}
+            />
+            {/* Profile indicator */}
+            {profile.birthLocation && (
+              <div className="flex items-center gap-2 px-3 py-1.5 glass-subtle rounded-lg">
+                <div className="w-2 h-2 rounded-full bg-celestial-gold animate-pulse" />
+                <span className="text-sm text-cosmic-200">
+                  {profile.birthLocation}
+                </span>
+              </div>
+            )}
+          </div>
         </div>
+      </motion.div>
+
+      {/* Sports Ticker */}
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="mb-6"
+      >
+        <SportsWidget
+          leagues={['nfl', 'nba', 'mlb', 'nhl']}
+          onConfigureClick={() => onNavigate?.('settings')}
+        />
       </motion.div>
 
       {/* Calendar or Day View */}
@@ -544,8 +725,12 @@ export function ChroniclePage() {
                 )}
               </motion.div>
             </div>
-          ) : newspaperData ? (
-            <NewspaperFrame content={newspaperData} isLoading={false} />
+          ) : enhancedNewspaperData ? (
+            <NewspaperFrame
+              content={enhancedNewspaperData}
+              isLoading={false}
+              onArticleFeedback={handleArticleFeedback}
+            />
           ) : (
             <div className="text-center py-12 text-gray-500">
               No newspaper data available for this date
@@ -553,35 +738,65 @@ export function ChroniclePage() {
           )}
         </DayViewLayout>
       ) : (
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              <MonthHeader
-                month={currentMonth}
-                year={currentYear}
-                onPrevMonth={prevMonth}
-                onNextMonth={nextMonth}
-                onToday={goToToday}
-                onGoToDate={handleGoToDate}
-              />
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {isLoadingIndicators ? (
-              <div className="flex items-center justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-celestial-gold" />
-              </div>
-            ) : (
-              <CalendarGrid
-                month={currentMonth}
-                year={currentYear}
-                onDayClick={handleDayClick}
-                selectedDay={selectedDay}
-                dayData={dayData}
-              />
-            )}
-          </CardContent>
-        </Card>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Calendar - 2/3 width on large screens */}
+          <div className="lg:col-span-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>
+                  <MonthHeader
+                    month={currentMonth}
+                    year={currentYear}
+                    onPrevMonth={prevMonth}
+                    onNextMonth={nextMonth}
+                    onToday={goToToday}
+                    onGoToDate={handleGoToDate}
+                  />
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {isLoadingIndicators ? (
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="h-8 w-8 animate-spin text-celestial-gold" />
+                  </div>
+                ) : (
+                  <CalendarGrid
+                    month={currentMonth}
+                    year={currentYear}
+                    onDayClick={handleDayClick}
+                    selectedDay={selectedDay}
+                    dayData={dayData}
+                  />
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* For You sidebar - 1/3 width on large screens */}
+          <div className="lg:col-span-1 space-y-4">
+            <ForYouSection
+              articles={rssArticles.map(article => ({
+                id: article.id,
+                title: article.title,
+                headline: article.title,
+                content: article.content || article.summary || '',
+                summary: article.summary || '',
+                url: article.url,
+                source: 'rss',
+                feedTitle: article.feed_title
+              }))}
+              onArticleClick={(article) => {
+                // Open article in new tab
+                if (article.url) {
+                  window.open(article.url, '_blank', 'noopener,noreferrer')
+                }
+              }}
+            />
+
+            {/* AI Insights Panel */}
+            <AIInsightsPanel />
+          </div>
+        </div>
       )}
     </div>
   )
