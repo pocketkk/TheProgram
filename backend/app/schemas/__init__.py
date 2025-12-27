@@ -61,27 +61,6 @@ from app.schemas.timeline import (
     TimelineSummaryResponse
 )
 
-# Phase 2: Canvas Exploration
-from app.schemas.canvas import (
-    CanvasBoardCreate,
-    CanvasBoardUpdate,
-    CanvasBoardResponse,
-    CanvasBoardWithItems,
-    CanvasItemCreate,
-    CanvasItemUpdate,
-    CanvasItemResponse,
-    CanvasItemBatchUpdate,
-    CanvasItemBatchResponse,
-    AddChartElementsRequest,
-    AddChartElementsResponse,
-    ArrangeItemsRequest,
-    ArrangeItemsResponse,
-    AnalyzeCanvasRequest,
-    AnalyzeCanvasResponse,
-    SuggestArrangementRequest,
-    SuggestArrangementResponse
-)
-
 # Phase 5: Image Generation
 from app.schemas.image import (
     ImageGenerateRequest,
@@ -153,25 +132,6 @@ __all__ = [
     'GenerateTransitContextResponse',
     'TimelineSummaryRequest',
     'TimelineSummaryResponse',
-
-    # Phase 2: Canvas Exploration
-    'CanvasBoardCreate',
-    'CanvasBoardUpdate',
-    'CanvasBoardResponse',
-    'CanvasBoardWithItems',
-    'CanvasItemCreate',
-    'CanvasItemUpdate',
-    'CanvasItemResponse',
-    'CanvasItemBatchUpdate',
-    'CanvasItemBatchResponse',
-    'AddChartElementsRequest',
-    'AddChartElementsResponse',
-    'ArrangeItemsRequest',
-    'ArrangeItemsResponse',
-    'AnalyzeCanvasRequest',
-    'AnalyzeCanvasResponse',
-    'SuggestArrangementRequest',
-    'SuggestArrangementResponse',
 
     # Phase 3: Human Design
     'HDCalculationRequest',

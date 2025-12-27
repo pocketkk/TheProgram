@@ -17,7 +17,6 @@ from . import (
     journal,
     timeline,
     timeline_historical,
-    canvas,
     # Phase 3: Advanced features
     transits,
     tarot,
@@ -50,11 +49,10 @@ router.include_router(agent_ws.router, tags=["AI Agent"])
 router.include_router(voice_ws.router, tags=["Voice Chat"])
 router.include_router(hybrid_voice_ws.router, tags=["Hybrid Voice"])
 
-# Phase 2: Journal, Timeline, and Canvas
+# Phase 2: Journal and Timeline
 router.include_router(journal.router, prefix="/journal", tags=["Journal"])
 router.include_router(timeline.router, prefix="/timeline", tags=["Timeline"])
 router.include_router(timeline_historical.router, prefix="/timeline-historical", tags=["Timeline Historical"])
-router.include_router(canvas.router, prefix="/canvas", tags=["Canvas"])
 
 # Phase 3: Advanced Transit Analysis
 router.include_router(transits.router, prefix="/transits", tags=["Transits"])

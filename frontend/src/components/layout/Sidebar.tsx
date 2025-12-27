@@ -8,7 +8,6 @@ import {
   Star,
   BookOpen,
   CalendarDays,
-  Layout,
   Activity,
   Sparkles,
   Hexagon,
@@ -47,7 +46,6 @@ const navigation: NavigationItem[] = [
   // Exploration section (Phase 2)
   { name: 'Journal', icon: BookOpen, page: 'journal', section: 'exploration' },
   { name: 'Timeline', icon: CalendarDays, page: 'timeline', section: 'exploration' },
-  { name: 'Canvas', icon: Layout, page: 'canvas', section: 'exploration' },
   // Analysis section (Phase 3)
   { name: 'Transits', icon: Activity, page: 'transits', section: 'exploration' },
   { name: 'Tarot', icon: Sparkles, page: 'tarot', section: 'exploration' },

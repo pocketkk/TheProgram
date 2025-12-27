@@ -24,7 +24,7 @@ NAVIGATION_TOOLS = [
             "properties": {
                 "page": {
                     "type": "string",
-                    "enum": ["dashboard", "birthchart", "vedic", "humandesign", "cosmos", "journal", "timeline", "canvas", "studio", "settings", "help"],
+                    "enum": ["dashboard", "birthchart", "vedic", "humandesign", "cosmos", "journal", "timeline", "studio", "settings", "help"],
                     "description": "The page to navigate to. Use 'vedic' for Vedic astrology page, 'humandesign' for Human Design page."
                 }
             },
@@ -539,90 +539,6 @@ TIMELINE_NAVIGATION_TOOLS = [
     }
 ]
 
-# Phase 2: Canvas Tools
-CANVAS_TOOLS = [
-    {
-        "name": "create_canvas",
-        "description": "Create a new exploration canvas for visual chart analysis",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "name": {"type": "string", "description": "Name for the canvas"},
-                "description": {"type": "string", "description": "Description of what this canvas explores"},
-                "background_type": {
-                    "type": "string",
-                    "enum": ["grid", "dots", "cosmic", "blank"],
-                    "default": "cosmic"
-                }
-            },
-            "required": ["name"]
-        }
-    },
-    {
-        "name": "add_to_canvas",
-        "description": "Add chart elements or notes to an existing canvas",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "canvas_id": {"type": "string", "description": "ID of the canvas to add to"},
-                "item_type": {
-                    "type": "string",
-                    "enum": ["planet", "aspect", "pattern", "note", "insight", "house"],
-                    "description": "Type of item to add"
-                },
-                "item_data": {
-                    "type": "object",
-                    "description": "Data for the item (varies by type)"
-                },
-                "position_x": {"type": "number", "description": "X position on canvas"},
-                "position_y": {"type": "number", "description": "Y position on canvas"}
-            },
-            "required": ["canvas_id", "item_type"]
-        }
-    },
-    {
-        "name": "add_chart_to_canvas",
-        "description": "Add all elements from a chart to a canvas for exploration",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "canvas_id": {"type": "string", "description": "ID of the canvas"},
-                "chart_id": {"type": "string", "description": "ID of the chart to add"},
-                "elements": {
-                    "type": "array",
-                    "items": {"type": "string", "enum": ["planets", "aspects", "houses", "patterns"]},
-                    "description": "Which chart elements to add"
-                }
-            },
-            "required": ["canvas_id", "chart_id"]
-        }
-    },
-    {
-        "name": "list_canvases",
-        "description": "Get a list of the user's exploration canvases",
-        "input_schema": {
-            "type": "object",
-            "properties": {}
-        }
-    },
-    {
-        "name": "arrange_canvas",
-        "description": "Automatically arrange items on a canvas in a meaningful layout",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "canvas_id": {"type": "string", "description": "ID of the canvas"},
-                "arrangement": {
-                    "type": "string",
-                    "enum": ["circular", "grid", "cluster", "timeline"],
-                    "description": "Arrangement style"
-                }
-            },
-            "required": ["canvas_id", "arrangement"]
-        }
-    }
-]
-
 # Screenshot tool for visual context
 SCREENSHOT_TOOLS = [
     {
@@ -780,7 +696,6 @@ ALL_TOOLS = (
     JOURNAL_TOOLS +
     TIMELINE_TOOLS +
     TIMELINE_NAVIGATION_TOOLS +
-    CANVAS_TOOLS +
     SCREENSHOT_TOOLS +
     IMAGE_GENERATION_TOOLS +
     VOICE_OUTPUT_TOOLS
@@ -792,8 +707,6 @@ FRONTEND_TOOLS = {
     "set_ayanamsa", "recalculate_chart", "set_transit_date", "select_planet", "select_house", "select_aspect",
     "highlight_pattern", "clear_selection", "toggle_layer", "set_aspect_filter",
     "set_chart_orientation",
-    # Phase 2 frontend tools (trigger UI updates)
-    "arrange_canvas",
     # Screenshot tool
     "capture_screenshot",
     # Timeline navigation tool (frontend)
@@ -817,8 +730,6 @@ BACKEND_TOOLS = {
     # Phase 3 backend tools (Timeline Navigation)
     "get_day_summary", "search_timeline_events", "describe_day_transits",
     "write_journal_for_date", "get_newspaper_content", "correlate_life_events_with_transits",
-    # Phase 2 backend tools (Canvas)
-    "create_canvas", "add_to_canvas", "add_chart_to_canvas", "list_canvases",
     # Phase 5 backend tools (Image Generation)
     "generate_image", "list_image_collections", "get_collection_images", "create_image_collection"
 }
@@ -1000,7 +911,6 @@ YOUR CAPABILITIES:
 - Birth Chart Analysis: Navigate charts, select planets/aspects, explain patterns
 - Journal: Help users record reflections and insights, search past entries, track moods
 - Timeline: Create life events, correlate experiences with transits
-- Canvas: Create visual explorations by arranging chart elements on a freeform canvas
 - Screenshot Capture: You HAVE the capture_screenshot tool - USE IT to see what's on screen
 
 IMPORTANT - YOU HAVE SCREENSHOT CAPABILITY:
@@ -2061,96 +1971,6 @@ class AgentService:
                     "note": "Full implementation requires transit calculator and statistical analysis",
                     "categories": event_categories
                 }
-
-            # ============================================
-            # Phase 2: Canvas Tools
-            # ============================================
-            elif tool_name == "create_canvas":
-                if not db_session:
-                    return {"success": False, "error": "Database not available"}
-
-                try:
-                    from app.models.canvas_board import CanvasBoard
-
-                    canvas = CanvasBoard(
-                        name=tool_input.get("name"),
-                        description=tool_input.get("description"),
-                        background_type=tool_input.get("background_type", "cosmic")
-                    )
-                    db_session.add(canvas)
-                    db_session.commit()
-
-                    return {
-                        "success": True,
-                        "canvas_id": str(canvas.id),
-                        "message": f"Canvas '{tool_input.get('name')}' created"
-                    }
-                except Exception as e:
-                    logger.error(f"Error creating canvas: {e}")
-                    return {"success": False, "error": str(e)}
-
-            elif tool_name == "add_to_canvas":
-                if not db_session:
-                    return {"success": False, "error": "Database not available"}
-
-                try:
-                    from app.models.canvas_board import CanvasItem
-                    import json as json_lib
-
-                    item = CanvasItem(
-                        board_id=tool_input.get("canvas_id"),
-                        item_type=tool_input.get("item_type"),
-                        item_data=json_lib.dumps(tool_input.get("item_data", {})),
-                        position_x=tool_input.get("position_x", 100),
-                        position_y=tool_input.get("position_y", 100)
-                    )
-                    db_session.add(item)
-                    db_session.commit()
-
-                    return {
-                        "success": True,
-                        "item_id": str(item.id),
-                        "message": f"Added {tool_input.get('item_type')} to canvas"
-                    }
-                except Exception as e:
-                    logger.error(f"Error adding to canvas: {e}")
-                    return {"success": False, "error": str(e)}
-
-            elif tool_name == "add_chart_to_canvas":
-                # This would extract chart elements and add them to the canvas
-                return {
-                    "success": True,
-                    "message": "Chart elements added to canvas",
-                    "note": "Full implementation would extract planets, aspects, etc. from the chart"
-                }
-
-            elif tool_name == "list_canvases":
-                if not db_session:
-                    return {"success": False, "error": "Database not available"}
-
-                try:
-                    from app.models.canvas_board import CanvasBoard
-
-                    canvases = db_session.query(CanvasBoard).order_by(
-                        CanvasBoard.updated_at.desc()
-                    ).limit(20).all()
-
-                    return {
-                        "success": True,
-                        "canvases": [
-                            {
-                                "id": str(c.id),
-                                "name": c.name,
-                                "description": c.description,
-                                "background_type": c.background_type,
-                                "updated_at": c.updated_at.isoformat() if c.updated_at else None
-                            }
-                            for c in canvases
-                        ]
-                    }
-                except Exception as e:
-                    logger.error(f"Error listing canvases: {e}")
-                    return {"success": False, "error": str(e)}
 
             # ============================================
             # Phase 5: Image Generation Tools

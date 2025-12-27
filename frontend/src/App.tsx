@@ -27,7 +27,6 @@ import { listBirthData } from './lib/api/birthData'
 // Phase 2 features
 import { JournalPage } from './features/journal'
 import { TimelinePage } from './features/timeline'
-import { CanvasPage } from './features/canvas'
 // Phase 3 features
 import { TransitDashboard } from './features/transits'
 import { TarotPage } from './features/tarot'
@@ -172,11 +171,6 @@ function App() {
         {currentPage === 'timeline' && (
           <ErrorBoundary featureName="Timeline">
             <TimelinePage />
-          </ErrorBoundary>
-        )}
-        {currentPage === 'canvas' && (
-          <ErrorBoundary featureName="Canvas">
-            <CanvasPage />
           </ErrorBoundary>
         )}
         {currentPage === 'transits' && (

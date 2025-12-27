@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 600" width="400" height="600">
+  <defs>
+    <!-- Styles -->
+    <style>
+      .center { fill: none; stroke: #6b7280; stroke-width: 2; }
+      .center-defined { fill: #fbbf24; fill-opacity: 0.3; }
+      .channel { fill: none; stroke: #4b5563; stroke-width: 2; stroke-linecap: round; }
+    </style>
+  </defs>
+
+  <!-- ==================== CHANNELS ==================== -->
+  <!-- Draw channels FIRST so centers appear on top -->
+  <g id="channels">
+    <!-- Head to Ajna (3 channels): 64-47, 61-24, 63-4 -->
+    <line class="channel" x1="168" y1="68" x2="168" y2="102" /> <!-- 64-47 -->
+    <line class="channel" x1="200" y1="68" x2="200" y2="102" /> <!-- 61-24 -->
+    <line class="channel" x1="232" y1="68" x2="232" y2="102" /> <!-- 63-4 -->
+
+    <!-- Ajna to Throat (3 channels): 17-62, 43-23, 11-56 -->
+    <line class="channel" x1="175" y1="148" x2="168" y2="175" /> <!-- 17-62 -->
+    <line class="channel" x1="200" y1="155" x2="200" y2="175" /> <!-- 43-23 -->
+    <line class="channel" x1="225" y1="148" x2="232" y2="175" /> <!-- 11-56 -->
+
+    <!-- Throat to G Center (4 channels): 31-7, 8-1, 33-13, 20-10 -->
+    <line class="channel" x1="168" y1="245" x2="168" y2="282" /> <!-- 31-7 -->
+    <line class="channel" x1="188" y1="245" x2="188" y2="282" /> <!-- 8-1 -->
+    <line class="channel" x1="212" y1="245" x2="212" y2="282" /> <!-- 33-13 -->
+    <line class="channel" x1="155" y1="220" x2="140" y2="270" /> <!-- 20-10 (diagonal to left) -->
+
+    <!-- Throat to Heart: 45-21 -->
+    <path class="channel" d="M 232 205 Q 270 220 285 250" /> <!-- curves to heart -->
+
+    <!-- Throat to Spleen (2 channels): 16-48, 20-57 -->
+    <path class="channel" d="M 155 195 Q 100 220 85 320" /> <!-- 16-48 -->
+    <path class="channel" d="M 155 215 Q 90 260 80 340" /> <!-- 20-57 -->
+
+    <!-- Throat to Solar Plexus (2 channels): 35-36, 12-22 -->
+    <path class="channel" d="M 245 195 Q 300 220 315 320" /> <!-- 35-36 -->
+    <path class="channel" d="M 245 215 Q 310 260 320 340" /> <!-- 12-22 -->
+
+    <!-- Throat to Sacral: 20-34 -->
+    <path class="channel" d="M 155 230 Q 140 320 165 390" /> <!-- 20-34 -->
+
+    <!-- G Center to Heart: 25-51 -->
+    <path class="channel" d="M 235 295 Q 260 280 280 265" /> <!-- 25-51 -->
+
+    <!-- G Center to Spleen: 10-57 -->
+    <path class="channel" d="M 155 310 Q 110 330 90 350" /> <!-- 10-57 -->
+
+    <!-- G Center to Sacral (3 channels): 15-5, 2-14, 46-29 -->
+    <line class="channel" x1="175" y1="340" x2="175" y2="385" /> <!-- 15-5 -->
+    <line class="channel" x1="200" y1="345" x2="200" y2="385" /> <!-- 2-14 -->
+    <line class="channel" x1="225" y1="340" x2="225" y2="385" /> <!-- 46-29 -->
+
+    <!-- Heart to Spleen: 26-44 -->
+    <path class="channel" d="M 270 275 Q 180 340 100 360" /> <!-- 26-44 crosses diagonally -->
+
+    <!-- Heart to Solar Plexus: 40-37 -->
+    <path class="channel" d="M 295 275 Q 310 320 320 355" /> <!-- 40-37 -->
+
+    <!-- Sacral to Spleen (2 channels): 27-50, 34-57 -->
+    <path class="channel" d="M 160 410 Q 120 400 95 385" /> <!-- 27-50 -->
+    <path class="channel" d="M 160 420 Q 115 410 90 365" /> <!-- 34-57 -->
+
+    <!-- Sacral to Solar Plexus: 59-6 -->
+    <path class="channel" d="M 240 415 Q 280 400 310 380" /> <!-- 59-6 -->
+
+    <!-- Sacral to Root (3 channels): 42-53, 3-60, 9-52 -->
+    <line class="channel" x1="175" y1="455" x2="175" y2="495" /> <!-- 42-53 -->
+    <line class="channel" x1="200" y1="455" x2="200" y2="495" /> <!-- 3-60 -->
+    <line class="channel" x1="225" y1="455" x2="225" y2="495" /> <!-- 9-52 -->
+
+    <!-- Spleen to Root (3 channels): 18-58, 28-38, 32-54 -->
+    <path class="channel" d="M 70 395 Q 100 480 145 510" /> <!-- 18-58 -->
+    <path class="channel" d="M 75 375 Q 110 460 150 500" /> <!-- 28-38 -->
+    <path class="channel" d="M 80 355 Q 115 440 155 490" /> <!-- 32-54 -->
+
+    <!-- Solar Plexus to Root (3 channels): 30-41, 55-39, 49-19 -->
+    <path class="channel" d="M 330 395 Q 300 480 255 510" /> <!-- 30-41 -->
+    <path class="channel" d="M 325 375 Q 290 460 250 500" /> <!-- 55-39 -->
+    <path class="channel" d="M 320 355 Q 285 440 245 490" /> <!-- 49-19 -->
+  </g>
+
+  <!-- ==================== CENTERS ==================== -->
+  <g id="centers">
+    <!-- HEAD - Triangle pointing UP -->
+    <polygon id="head" class="center" points="200,25 165,75 235,75" />
+
+    <!-- AJNA - Triangle pointing DOWN -->
+    <polygon id="ajna" class="center" points="200,155 165,100 235,100" />
+
+    <!-- THROAT - Square -->
+    <rect id="throat" class="center" x="155" y="175" width="90" height="70" rx="3" />
+
+    <!-- G CENTER - Diamond (rotated square) -->
+    <polygon id="g-center" class="center" points="200,275 245,310 200,345 155,310" />
+
+    <!-- HEART - Small triangle pointing LEFT -->
+    <polygon id="heart" class="center" points="270,260 300,240 300,280" />
+
+    <!-- SPLEEN - Rounded pill shape on LEFT -->
+    <rect id="spleen" class="center" x="55" y="320" width="50" height="85" rx="25" />
+
+    <!-- SACRAL - Square -->
+    <rect id="sacral" class="center" x="155" y="385" width="90" height="70" rx="3" />
+
+    <!-- SOLAR PLEXUS - Rounded pill shape on RIGHT -->
+    <rect id="solar-plexus" class="center" x="295" y="320" width="50" height="85" rx="25" />
+
+    <!-- ROOT - Square -->
+    <rect id="root" class="center" x="145" y="495" width="110" height="70" rx="3" />
+  </g>
+
+  <!-- ==================== GATE MARKERS ==================== -->
+  <!-- Small circles marking gate positions - these will be styled/colored by the app -->
+  <g id="gates" fill="none" stroke="#9ca3af" stroke-width="1">
+    <!-- HEAD gates: 64, 61, 63 -->
+    <circle id="gate-64" cx="175" cy="65" r="8" />
+    <circle id="gate-61" cx="200" cy="65" r="8" />
+    <circle id="gate-63" cx="225" cy="65" r="8" />
+
+    <!-- AJNA gates: 47, 24, 4 (top), 17, 43, 11 (bottom) -->
+    <circle id="gate-47" cx="175" cy="110" r="8" />
+    <circle id="gate-24" cx="200" cy="110" r="8" />
+    <circle id="gate-4" cx="225" cy="110" r="8" />
+    <circle id="gate-17" cx="175" cy="140" r="8" />
+    <circle id="gate-43" cx="200" cy="145" r="8" />
+    <circle id="gate-11" cx="225" cy="140" r="8" />
+
+    <!-- THROAT gates: 62,23,56 (top), 16,20 (left), 35,12 (right), 31,8,33,45 (bottom) -->
+    <circle id="gate-62" cx="170" cy="185" r="7" />
+    <circle id="gate-23" cx="200" cy="185" r="7" />
+    <circle id="gate-56" cx="230" cy="185" r="7" />
+    <circle id="gate-16" cx="162" cy="200" r="7" />
+    <circle id="gate-20" cx="162" cy="220" r="7" />
+    <circle id="gate-35" cx="238" cy="200" r="7" />
+    <circle id="gate-12" cx="238" cy="220" r="7" />
+    <circle id="gate-31" cx="170" cy="235" r="7" />
+    <circle id="gate-8" cx="190" cy="235" r="7" />
+    <circle id="gate-33" cx="210" cy="235" r="7" />
+    <circle id="gate-45" cx="230" cy="235" r="7" />
+
+    <!-- G CENTER gates: 7,1,13 (top), 10,25 (sides), 15,2,46 (bottom) -->
+    <circle id="gate-7" cx="185" cy="288" r="7" />
+    <circle id="gate-1" cx="200" cy="283" r="7" />
+    <circle id="gate-13" cx="215" cy="288" r="7" />
+    <circle id="gate-10" cx="165" cy="310" r="7" />
+    <circle id="gate-25" cx="235" cy="300" r="7" />
+    <circle id="gate-15" cx="180" cy="332" r="7" />
+    <circle id="gate-2" cx="200" cy="337" r="7" />
+    <circle id="gate-46" cx="220" cy="332" r="7" />
+
+    <!-- HEART gates: 21, 51, 26, 40 -->
+    <circle id="gate-21" cx="290" cy="250" r="6" />
+    <circle id="gate-51" cx="285" cy="262" r="6" />
+    <circle id="gate-26" cx="280" cy="274" r="6" />
+    <circle id="gate-40" cx="292" cy="274" r="6" />
+
+    <!-- SPLEEN gates: 48,57,44,50 (right side), 32,28,18 (left side) -->
+    <circle id="gate-48" cx="95" cy="332" r="7" />
+    <circle id="gate-57" cx="98" cy="352" r="7" />
+    <circle id="gate-44" cx="98" cy="372" r="7" />
+    <circle id="gate-50" cx="95" cy="392" r="7" />
+    <circle id="gate-32" cx="65" cy="340" r="7" />
+    <circle id="gate-28" cx="62" cy="362" r="7" />
+    <circle id="gate-18" cx="65" cy="384" r="7" />
+
+    <!-- SACRAL gates: 5,14,29 (top), 34,27,59 (middle), 42,3,9 (bottom) -->
+    <circle id="gate-5" cx="172" cy="395" r="7" />
+    <circle id="gate-14" cx="200" cy="395" r="7" />
+    <circle id="gate-29" cx="228" cy="395" r="7" />
+    <circle id="gate-34" cx="165" cy="420" r="7" />
+    <circle id="gate-27" cx="200" cy="420" r="7" />
+    <circle id="gate-59" cx="235" cy="420" r="7" />
+    <circle id="gate-42" cx="172" cy="445" r="7" />
+    <circle id="gate-3" cx="200" cy="445" r="7" />
+    <circle id="gate-9" cx="228" cy="445" r="7" />
+
+    <!-- SOLAR PLEXUS gates: 22,36,37,6 (left side), 49,55,30 (right side) -->
+    <circle id="gate-22" cx="305" cy="332" r="7" />
+    <circle id="gate-36" cx="302" cy="352" r="7" />
+    <circle id="gate-37" cx="302" cy="372" r="7" />
+    <circle id="gate-6" cx="305" cy="392" r="7" />
+    <circle id="gate-49" cx="335" cy="340" r="7" />
+    <circle id="gate-55" cx="338" cy="362" r="7" />
+    <circle id="gate-30" cx="335" cy="384" r="7" />
+
+    <!-- ROOT gates: 53,60,52 (top), 54,38,58 (left), 19,39,41 (right) -->
+    <circle id="gate-53" cx="172" cy="505" r="7" />
+    <circle id="gate-60" cx="200" cy="505" r="7" />
+    <circle id="gate-52" cx="228" cy="505" r="7" />
+    <circle id="gate-54" cx="155" cy="520" r="7" />
+    <circle id="gate-38" cx="152" cy="540" r="7" />
+    <circle id="gate-58" cx="155" cy="555" r="7" />
+    <circle id="gate-19" cx="245" cy="520" r="7" />
+    <circle id="gate-39" cx="248" cy="540" r="7" />
+    <circle id="gate-41" cx="245" cy="555" r="7" />
+  </g>
+</svg>
