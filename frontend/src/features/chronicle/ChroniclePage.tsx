@@ -51,7 +51,7 @@ interface NewspaperLoadingState {
  * - Guide agent navigation support via custom events
  * - Integration with journalStore and transitStore
  */
-export function TimelinePage() {
+export function ChroniclePage() {
   const {
     currentMonth,
     currentYear,
@@ -587,4 +587,4 @@ export function TimelinePage() {
   )
 }
 
-export default TimelinePage
+export default ChroniclePage

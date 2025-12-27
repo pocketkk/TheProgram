@@ -9,7 +9,7 @@
  * 2. Content scales up from center (400ms spring)
  * 3. Sidebar slides in from right (300ms delay)
  *
- * @module features/timeline/components/DayView
+ * @module features/chronicle/components/DayView
  */
 
 import { AnimatePresence, motion, type Variants } from 'framer-motion'

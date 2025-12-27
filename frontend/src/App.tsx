@@ -26,7 +26,7 @@ import { Spinner } from './components/ui'
 import { listBirthData } from './lib/api/birthData'
 // Phase 2 features
 import { JournalPage } from './features/journal'
-import { TimelinePage } from './features/timeline'
+import { ChroniclePage } from './features/chronicle'
 // Phase 3 features
 import { TransitDashboard } from './features/transits'
 import { TarotPage } from './features/tarot'
@@ -168,9 +168,9 @@ function App() {
             <JournalPage />
           </ErrorBoundary>
         )}
-        {currentPage === 'timeline' && (
-          <ErrorBoundary featureName="Timeline">
-            <TimelinePage />
+        {currentPage === 'chronicle' && (
+          <ErrorBoundary featureName="Cosmic Chronicle">
+            <ChroniclePage />
           </ErrorBoundary>
         )}
         {currentPage === 'transits' && (

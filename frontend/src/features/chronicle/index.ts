@@ -1,10 +1,12 @@
 /**
- * Timeline Feature Module
+ * Cosmic Chronicle Feature Module
  *
- * Part of Phase 3: Timeline Feature
+ * Privacy-first personal news hub with RSS feeds, weather, sports, and AI curation.
  */
-export { TimelinePage } from './TimelinePage'
-export { default } from './TimelinePage'
+export { ChroniclePage } from './ChroniclePage'
+export { default } from './ChroniclePage'
+// Legacy alias for backward compatibility
+export { ChroniclePage as TimelinePage } from './ChroniclePage'
 
 // Export stores
 export { useTimelineViewStore } from './stores/timelineViewStore'

@@ -3,7 +3,7 @@
  *
  * Export all day view components for the timeline feature.
  *
- * @module features/timeline/components/DayView
+ * @module features/chronicle/components/DayView
  */
 
 export { DayViewLayout } from './DayViewLayout'

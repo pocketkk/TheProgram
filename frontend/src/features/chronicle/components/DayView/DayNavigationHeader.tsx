@@ -4,7 +4,7 @@
  * Header bar for the expanded day view with date display and navigation controls.
  * Provides keyboard navigation support for prev/next day.
  *
- * @module features/timeline/components/DayView
+ * @module features/chronicle/components/DayView
  */
 
 import { useEffect } from 'react'

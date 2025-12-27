@@ -9,7 +9,7 @@ import { Newspaper, Check, Loader2 } from 'lucide-react'
 import { authApi } from '@/lib/api/auth'
 import { Button } from '@/components/ui/Button'
 import { Label } from '@/components/ui/Label'
-import { useTimelineViewStore } from '@/features/timeline/stores/timelineViewStore'
+import { useTimelineViewStore } from '@/features/chronicle/stores/timelineViewStore'
 
 export function NewspaperStyleSettings() {
   const [currentStyle, setCurrentStyle] = useState<'victorian' | 'modern'>('modern')

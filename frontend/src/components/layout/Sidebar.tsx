@@ -45,7 +45,7 @@ const navigation: NavigationItem[] = [
   { name: 'Cosmic Visualizer', icon: Calculator, page: 'charts', section: 'main' },
   // Exploration section (Phase 2)
   { name: 'Journal', icon: BookOpen, page: 'journal', section: 'exploration' },
-  { name: 'Timeline', icon: CalendarDays, page: 'timeline', section: 'exploration' },
+  { name: 'Chronicle', icon: CalendarDays, page: 'chronicle', section: 'exploration' },
   // Analysis section (Phase 3)
   { name: 'Transits', icon: Activity, page: 'transits', section: 'exploration' },
   { name: 'Tarot', icon: Sparkles, page: 'tarot', section: 'exploration' },

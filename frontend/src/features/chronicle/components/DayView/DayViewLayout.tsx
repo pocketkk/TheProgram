@@ -11,7 +11,7 @@
  * - Drag the handle between panels to resize
  * - Sizes persist in localStorage
  *
- * @module features/timeline/components/DayView
+ * @module features/chronicle/components/DayView
  */
 
 import { useEffect } from 'react'
