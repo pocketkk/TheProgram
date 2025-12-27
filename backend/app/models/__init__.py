@@ -41,6 +41,10 @@ from app.models.generated_image import GeneratedImage, ImageCollection
 # Phase 6: Coloring Book / Art Therapy
 from app.models.artwork import Artwork
 
+# Cosmic Chronicle: RSS feeds
+from app.models.rss_feed import RssFeed
+from app.models.rss_article import RssArticle
+
 __all__ = [
     # Base classes
     'Base',
@@ -82,4 +86,8 @@ __all__ = [
 
     # Phase 6: Coloring Book / Art Therapy
     'Artwork',
+
+    # Cosmic Chronicle: RSS feeds
+    'RssFeed',
+    'RssArticle',
 ]

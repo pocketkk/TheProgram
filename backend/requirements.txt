@@ -26,6 +26,9 @@ cryptography==41.0.7  # Encryption for backups
 httpx==0.25.2
 aiohttp==3.9.1
 
+# RSS Feed Parsing (Cosmic Chronicle)
+feedparser==6.0.12
+
 # AI / LLM
 anthropic==0.40.0  # Claude API for AI-generated interpretations
 google-genai>=1.0.0  # Google Gemini API for image generation

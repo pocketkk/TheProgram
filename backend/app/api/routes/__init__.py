@@ -17,6 +17,8 @@ from . import (
     journal,
     timeline,
     timeline_historical,
+    # Cosmic Chronicle: RSS feeds
+    feeds,
     # Phase 3: Advanced features
     transits,
     tarot,
@@ -53,6 +55,9 @@ router.include_router(hybrid_voice_ws.router, tags=["Hybrid Voice"])
 router.include_router(journal.router, prefix="/journal", tags=["Journal"])
 router.include_router(timeline.router, prefix="/timeline", tags=["Timeline"])
 router.include_router(timeline_historical.router, prefix="/timeline-historical", tags=["Timeline Historical"])
+
+# Cosmic Chronicle: RSS feeds
+router.include_router(feeds.router, prefix="/chronicle", tags=["Cosmic Chronicle"])
 
 # Phase 3: Advanced Transit Analysis
 router.include_router(transits.router, prefix="/transits", tags=["Transits"])

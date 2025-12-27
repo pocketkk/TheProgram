@@ -79,6 +79,27 @@ from app.schemas.image import (
     StorageStats,
 )
 
+# Cosmic Chronicle: RSS feeds
+from app.schemas.rss import (
+    RssFeedCreate,
+    RssFeedUpdate,
+    RssFeedResponse,
+    RssFeedListResponse,
+    RssFeedDiscovery,
+    RssArticleResponse,
+    RssArticleWithFeed,
+    RssArticleListResponse,
+    RssArticleMarkReadRequest,
+    RssArticleRecordReadingRequest,
+    OpmlFeed,
+    OpmlImportRequest,
+    OpmlImportResponse,
+    OpmlExportResponse,
+    FeedRefreshRequest,
+    FeedRefreshResult,
+    FeedRefreshResponse,
+)
+
 __all__ = [
     # Common
     'Message',
@@ -172,4 +193,23 @@ __all__ = [
     'BatchGenerateRequest',
     'BatchProgressUpdate',
     'StorageStats',
+
+    # Cosmic Chronicle: RSS feeds
+    'RssFeedCreate',
+    'RssFeedUpdate',
+    'RssFeedResponse',
+    'RssFeedListResponse',
+    'RssFeedDiscovery',
+    'RssArticleResponse',
+    'RssArticleWithFeed',
+    'RssArticleListResponse',
+    'RssArticleMarkReadRequest',
+    'RssArticleRecordReadingRequest',
+    'OpmlFeed',
+    'OpmlImportRequest',
+    'OpmlImportResponse',
+    'OpmlExportResponse',
+    'FeedRefreshRequest',
+    'FeedRefreshResult',
+    'FeedRefreshResponse',
 ]
