@@ -774,7 +774,7 @@ def get_user_profile(db_session) -> Optional[Dict[str, Any]]:
             age = today.year - birth_date.year
             if (today.month, today.day) < (birth_date.month, birth_date.day):
                 age -= 1
-        except:
+        except (ValueError, TypeError):
             age = None
 
         # Build profile

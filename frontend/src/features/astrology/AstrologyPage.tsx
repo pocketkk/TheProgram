@@ -65,20 +65,15 @@ export function AstrologyPage({ chartId: chartIdProp }: AstrologyPageProps = {})
   // Get chart ID from prop or localStorage
   const [chartId] = useState<string | undefined>(() => {
     if (chartIdProp) {
-      console.log('[BirthChartPage] Using chartId from prop:', chartIdProp)
       return chartIdProp
     }
     try {
       const saved = localStorage.getItem('lastViewedChartId')
-      console.log('[BirthChartPage] Loaded chartId from localStorage:', saved)
       return saved || undefined
-    } catch (err) {
-      console.error('[BirthChartPage] Error loading chart ID from localStorage:', err)
+    } catch {
       return undefined
     }
   })
-
-  console.log('[BirthChartPage] Initialized with chartId:', chartId)
 
   // State for loading saved charts
   const [savedChart, setSavedChart] = useState<ChartResponse | null>(null)
@@ -101,8 +96,8 @@ export function AstrologyPage({ chartId: chartIdProp }: AstrologyPageProps = {})
           date: new Date(parsed.date),
         }
       }
-    } catch (err) {
-      console.error('Error loading birth data from localStorage:', err)
+    } catch {
+      // Fall through to default
     }
     return DEFAULT_BIRTH_DATA
   })
@@ -111,8 +106,8 @@ export function AstrologyPage({ chartId: chartIdProp }: AstrologyPageProps = {})
     try {
       const saved = localStorage.getItem('birthLocationName')
       if (saved) return saved
-    } catch (err) {
-      console.error('Error loading location name from localStorage:', err)
+    } catch {
+      // Fall through to default
     }
     return DEFAULT_LOCATION_NAME
   })
@@ -142,10 +137,6 @@ export function AstrologyPage({ chartId: chartIdProp }: AstrologyPageProps = {})
   const isGuestChart = !isViewingPrimary()
   const personColor = selectedPerson ? getPersonColor(selectedPerson.color, selectedPerson.relationship_type) : null
 
-  // Debug: Track render count
-  const renderCount = useRef(0)
-  renderCount.current++
-  console.log('[BirthChartPage] RENDER #', renderCount.current, '- chartType:', chartType, 'requestedTransitDate:', requestedTransitDate)
   const [exportDialogOpen, setExportDialogOpen] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
   const [isGeneratingInterpretations, setIsGeneratingInterpretations] = useState(false)
@@ -159,8 +150,8 @@ export function AstrologyPage({ chartId: chartIdProp }: AstrologyPageProps = {})
   useEffect(() => {
     try {
       localStorage.setItem('birthData', JSON.stringify(birthData))
-    } catch (err) {
-      console.error('Error saving birth data to localStorage:', err)
+    } catch {
+      // Silently fail - localStorage may be unavailable
     }
   }, [birthData])
 
@@ -168,8 +159,8 @@ export function AstrologyPage({ chartId: chartIdProp }: AstrologyPageProps = {})
   useEffect(() => {
     try {
       localStorage.setItem('birthLocationName', locationName)
-    } catch (err) {
-      console.error('Error saving location name to localStorage:', err)
+    } catch {
+      // Silently fail - localStorage may be unavailable
     }
   }, [locationName])
 
@@ -220,8 +211,7 @@ export function AstrologyPage({ chartId: chartIdProp }: AstrologyPageProps = {})
           ayanamsa: zodiacSystem === 'vedic' ? ayanamsa : undefined,
         })
         setSavedChart(chart)
-      } catch (error) {
-        console.error('[BirthChartPage] Error loading chart for selected person:', error)
+      } catch {
         setSavedChart(null)
       } finally {
         setIsLoadingChart(false)
@@ -233,17 +223,12 @@ export function AstrologyPage({ chartId: chartIdProp }: AstrologyPageProps = {})
 
   // Save chart ID to localStorage whenever savedChart changes
   useEffect(() => {
-    console.log('[BirthChartPage] savedChart changed:', savedChart?.id)
     if (savedChart?.id) {
       try {
-        console.log('[BirthChartPage] Saving chartId to localStorage:', savedChart.id)
         localStorage.setItem('lastViewedChartId', savedChart.id)
-        console.log('[BirthChartPage] Saved! Verify:', localStorage.getItem('lastViewedChartId'))
-      } catch (err) {
-        console.error('[BirthChartPage] Error saving chart ID to localStorage:', err)
+      } catch {
+        // Silently fail - localStorage may be unavailable
       }
-    } else {
-      console.log('[BirthChartPage] savedChart.id is null/undefined, not saving to localStorage')
     }
   }, [savedChart])
 
@@ -257,27 +242,22 @@ export function AstrologyPage({ chartId: chartIdProp }: AstrologyPageProps = {})
       try {
         let chart
         if (chartId) {
-          console.log('[BirthChartPage] Loading chart by ID:', chartId)
           chart = await getChart(chartId)
         } else {
-          // No chartId - check if there are any charts in the database
-          console.log('[BirthChartPage] No chartId, checking for existing charts...')
-          // For now, just skip loading - we'll add a "load recent chart" feature later
+          // No chartId - skip loading for now
           setIsLoadingChart(false)
           return
         }
         setSavedChart(chart)
       } catch (error) {
-        console.error('Error loading saved chart:', error)
         setChartLoadError(error instanceof Error ? error.message : 'Failed to load chart')
         setSavedChart(null)
         // Clear invalid chart ID from localStorage
         if (chartId) {
-          console.log('[BirthChartPage] Clearing invalid chart ID from localStorage:', chartId)
           try {
             localStorage.removeItem('lastViewedChartId')
-          } catch (err) {
-            console.error('[BirthChartPage] Error clearing localStorage:', err)
+          } catch {
+            // Silently fail
           }
         }
       } finally {
@@ -315,21 +295,16 @@ export function AstrologyPage({ chartId: chartIdProp }: AstrologyPageProps = {})
     // Create AbortController for this effect to prevent race conditions
     const controller = new AbortController()
 
-    console.log('[BirthChartPage] Transit chart useEffect running - chartType:', chartType, 'birthDataId:', savedChart?.birth_data_id, 'requestedTransitDate:', requestedTransitDate)
-
     const loadTransitChart = async () => {
       // Only handle transit type for now; skip if no birth data source
       if (chartType !== 'transit') {
-        console.log('[BirthChartPage] Not transit chart type, clearing transitChart state')
         setTransitChart(null)
         return
       }
 
       // Need birth_data_id to create transit chart
-      // Get it from savedChart if available
       const birthDataId = savedChart?.birth_data_id
       if (!birthDataId) {
-        console.log('[BirthChartPage] Cannot load transit chart - no birth_data_id available, savedChart:', savedChart ? 'exists' : 'null')
         return
       }
 
@@ -337,7 +312,6 @@ export function AstrologyPage({ chartId: chartIdProp }: AstrologyPageProps = {})
       try {
         // Use get-or-create to either find existing transit chart or create new one
         const currentAstroSystem = zodiacSystem === 'vedic' ? 'vedic' : 'western'
-        console.log('[BirthChartPage] Loading transit chart for date:', requestedTransitDate || 'current')
         const transitChartResult = await getOrCreateChart({
           birth_data_id: birthDataId,
           chart_type: 'transit',
@@ -345,29 +319,23 @@ export function AstrologyPage({ chartId: chartIdProp }: AstrologyPageProps = {})
           house_system: houseSystem,
           zodiac_type: zodiacSystem === 'vedic' ? 'sidereal' : 'tropical',
           ayanamsa: zodiacSystem === 'vedic' ? ayanamsa : undefined,
-          // Use requested transit date if specified, otherwise backend defaults to current UTC time
           transit_date: requestedTransitDate || undefined,
         }, controller.signal)
 
         // Check if aborted before updating state
         if (controller.signal.aborted) {
-          console.log('[BirthChartPage] Transit chart load aborted, not updating state')
           return
         }
 
-        console.log('[BirthChartPage] Transit chart loaded/created:', transitChartResult.id)
         setTransitChart(transitChartResult)
       } catch (error) {
         // Ignore abort errors - they're expected when switching chart types rapidly
         if (error instanceof Error && error.name === 'AbortError') {
-          console.log('[BirthChartPage] Transit chart load aborted (expected during chart type switch)')
           return
         }
         if (controller.signal.aborted) {
-          console.log('[BirthChartPage] Transit chart request was aborted, ignoring error')
           return
         }
-        console.error('[BirthChartPage] Error loading transit chart:', error)
         setTransitChart(null)
       } finally {
         // Only update loading state if not aborted
@@ -381,7 +349,6 @@ export function AstrologyPage({ chartId: chartIdProp }: AstrologyPageProps = {})
 
     // Cleanup: abort any pending request when dependencies change or component unmounts
     return () => {
-      console.log('[BirthChartPage] Cleanup: aborting pending transit chart request')
       controller.abort()
     }
   }, [chartType, savedChart?.birth_data_id, zodiacSystem, houseSystem, ayanamsa, requestedTransitDate])
@@ -705,80 +672,48 @@ export function AstrologyPage({ chartId: chartIdProp }: AstrologyPageProps = {})
 
   // Calculate chart based on selected type or use saved chart data
   const chart = useMemo(() => {
-    console.log('[BirthChartPage] useMemo running - chartType:', chartType, 'savedChart:', !!savedChart, 'transitChart:', !!transitChart, 'requestedTransitDate:', requestedTransitDate)
-
     try {
-    // If we have a saved chart and it's natal type, use its data
-    // BUT only if the astro system matches AND the data is valid
-    if (savedChart && savedChart.chart_type === 'natal' && chartType === 'natal') {
-      const currentAstroSystem = zodiacSystem === 'vedic' ? 'vedic' : 'western'
-      // Only use saved chart if astro systems match
-      if (savedChart.astro_system === currentAstroSystem) {
-        const converted = convertChartFormat(savedChart.chart_data)
-        // Validate that the converted chart has actual planet data
-        // If it's empty or invalid, fall through to client-side calculation
-        if (converted?.planets && Array.isArray(converted.planets) && converted.planets.length > 0) {
-          return converted
+      // If we have a saved chart and it's natal type, use its data
+      // BUT only if the astro system matches AND the data is valid
+      if (savedChart && savedChart.chart_type === 'natal' && chartType === 'natal') {
+        const currentAstroSystem = zodiacSystem === 'vedic' ? 'vedic' : 'western'
+        // Only use saved chart if astro systems match
+        if (savedChart.astro_system === currentAstroSystem) {
+          const converted = convertChartFormat(savedChart.chart_data)
+          // Validate that the converted chart has actual planet data
+          if (converted?.planets && Array.isArray(converted.planets) && converted.planets.length > 0) {
+            return converted
+          }
         }
-        console.log('[BirthChartPage] Saved chart has invalid/empty data, falling through to client-side calculation')
-      } else {
-        // Astro systems don't match - fall through to client-side calculation
-        console.log(`[BirthChartPage] Zodiac system changed from ${savedChart.astro_system} to ${currentAstroSystem}, recalculating client-side`)
       }
-    }
 
-    // For transit type, prefer server-side data if available (has proper chart_id for interpretations)
-    if (chartType === 'transit' && transitChart) {
-      console.log('[BirthChartPage] Using server-side transit chart data')
-      return convertChartFormat(transitChart.chart_data)
-    }
+      // For transit type, prefer server-side data if available
+      if (chartType === 'transit' && transitChart) {
+        return convertChartFormat(transitChart.chart_data)
+      }
 
-    // Otherwise calculate client-side (fallback)
-    console.log('[BirthChartPage] Client-side calculation for chartType:', chartType, 'requestedTransitDate:', requestedTransitDate, 'birthData:', birthData ? 'exists' : 'null')
-    switch (chartType) {
-      case 'transit': {
-        // Client-side fallback when server-side isn't available yet
-        // Use requestedTransitDate if set (from companion), otherwise current time
-        const transitDate = requestedTransitDate ? new Date(requestedTransitDate) : new Date()
-        console.log('[BirthChartPage] Calculating transit chart for date:', transitDate.toISOString(), 'using birthData:', {
-          date: birthData?.date?.toISOString?.() || 'invalid',
-          lat: birthData?.latitude,
-          lon: birthData?.longitude
-        })
-        try {
-          const transitResult = calculateTransitChart({
-            natalData: birthData,
-            transitDate: transitDate
-          })
-          console.log('[BirthChartPage] Transit chart calculation SUCCESS:', {
-            planetsCount: transitResult?.planets?.length ?? 0,
-            housesCount: transitResult?.houses?.length ?? 0,
-            aspectsCount: transitResult?.aspects?.length ?? 0,
-            ascendant: transitResult?.ascendant
-          })
-          return transitResult
-        } catch (transitError) {
-          console.error('[BirthChartPage] Transit chart calculation FAILED:', transitError)
-          // Fall through to natal calculation as ultimate fallback
-          console.log('[BirthChartPage] Falling back to natal chart calculation')
+      // Otherwise calculate client-side (fallback)
+      switch (chartType) {
+        case 'transit': {
+          // Client-side fallback when server-side isn't available yet
+          const transitDate = requestedTransitDate ? new Date(requestedTransitDate) : new Date()
+          try {
+            return calculateTransitChart({
+              natalData: birthData,
+              transitDate: transitDate
+            })
+          } catch {
+            // Fall through to natal calculation as ultimate fallback
+            return calculateBirthChart(birthData, zodiacSystem)
+          }
+        }
+        case 'progressed':
+          return calculateProgressedChart({ natalData: birthData })
+        case 'natal':
+        default:
           return calculateBirthChart(birthData, zodiacSystem)
-        }
       }
-      case 'progressed':
-        return calculateProgressedChart({ natalData: birthData })
-      case 'natal':
-      default: {
-        const natalResult = calculateBirthChart(birthData, zodiacSystem)
-        console.log('[BirthChartPage] Natal chart result:', {
-          planetsCount: natalResult?.planets?.length ?? 0,
-          housesCount: natalResult?.houses?.length ?? 0,
-          ascendant: natalResult?.ascendant
-        })
-        return natalResult
-      }
-    }
-    } catch (error) {
-      console.error('[BirthChartPage] Error in chart useMemo:', error)
+    } catch {
       // Return a minimal valid chart to prevent crash
       return {
         planets: [],
@@ -804,7 +739,6 @@ export function AstrologyPage({ chartId: chartIdProp }: AstrologyPageProps = {})
   // Sync chart data to store for AI companion access
   useEffect(() => {
     if (chart && activeChartId) {
-      console.log('[BirthChartPage] Syncing chart to store:', activeChartId)
       addChart(activeChartId, chart)
       setStoreActiveChart(activeChartId)
     }
@@ -958,9 +892,7 @@ export function AstrologyPage({ chartId: chartIdProp }: AstrologyPageProps = {})
 
       // Update saved chart with new calculation
       setSavedChart(newChart)
-      console.log('[BirthChartPage] Chart recalculated with new settings')
     } catch (error) {
-      console.error('Recalculation failed:', error)
       setGenerationError(error instanceof Error ? error.message : 'Failed to recalculate chart')
     } finally {
       setIsRecalculating(false)
@@ -970,7 +902,6 @@ export function AstrologyPage({ chartId: chartIdProp }: AstrologyPageProps = {})
   // Listen for companion-triggered chart recalculation
   useEffect(() => {
     const handleCompanionRecalculate = () => {
-      console.log('[BirthChartPage] Received companion-recalculate-chart event')
       handleRecalculateChart()
     }
 
@@ -982,16 +913,11 @@ export function AstrologyPage({ chartId: chartIdProp }: AstrologyPageProps = {})
 
   // Listen for companion-triggered transit date changes
   // IMPORTANT: Empty dependency array - this listener should only be registered once
-  // and should NOT be re-registered when chartType or requestedTransitDate changes
   useEffect(() => {
     const handleCompanionSetTransitDate = (event: CustomEvent<{ date: string | null }>) => {
       const { date } = event.detail
-      console.log('[BirthChartPage] Received companion-set-transit-date event:', date)
-      // Store the requested transit date and switch to transit chart type
-      // Both state setters are called in the same event handler, so React batches them
       setRequestedTransitDate(date)
       setChartType('transit')
-      console.log('[BirthChartPage] State setters called - chartType: transit, requestedTransitDate:', date)
     }
 
     window.addEventListener('companion-set-transit-date', handleCompanionSetTransitDate as EventListener)
@@ -1097,17 +1023,13 @@ export function AstrologyPage({ chartId: chartIdProp }: AstrologyPageProps = {})
 
       const result = await generateChartInterpretations(targetChartId, request)
 
-      console.log(`Generated ${result.generated_count} interpretations, skipped ${result.skipped_count}`)
-
       if (result.errors && result.errors.length > 0) {
         setGenerationError(`Generated with ${result.errors.length} errors: ${result.errors.join(', ')}`)
       }
 
       // Check if config changed during generation - if so, discard results
-      // This prevents race conditions when user switches zodiac system mid-generation
       if (zodiacSystem !== configSnapshot.zodiacSystem ||
           chartType !== configSnapshot.chartType) {
-        console.log('[BirthChartPage] Config changed during generation, discarding results')
         setGenerationError('Settings changed during generation. Please regenerate interpretations.')
         return
       }
@@ -1123,7 +1045,6 @@ export function AstrologyPage({ chartId: chartIdProp }: AstrologyPageProps = {})
         setSavedChart(updatedChart)
       }
     } catch (error) {
-      console.error('Failed to generate interpretations:', error)
       setGenerationError(error instanceof Error ? error.message : 'Failed to generate interpretations')
     } finally {
       setIsGeneratingInterpretations(false)
@@ -1431,18 +1352,6 @@ export function AstrologyPage({ chartId: chartIdProp }: AstrologyPageProps = {})
             {/* Chart Wheel with glow effect for guest charts */}
             <ChartGlowEffect color={personColor} enabled={isGuestChart}>
               <div className="bg-gradient-to-br from-cosmic-900/50 to-cosmic-800/50 rounded-2xl p-5 border border-cosmic-700/50 backdrop-blur-sm">
-                {/* Debug: Log chart data before rendering */}
-                {(() => {
-                  console.log('[BirthChartPage] Rendering BirthChartWheel with chart:', {
-                    chartType,
-                    hasChart: !!chart,
-                    planetsCount: chart?.planets?.length ?? 0,
-                    housesCount: chart?.houses?.length ?? 0,
-                    ascendant: chart?.ascendant,
-                    requestedTransitDate
-                  })
-                  return null
-                })()}
                 {chart && chart.planets && chart.planets.length > 0 ? (
                   <BirthChartWheel
                     ref={chartWheelRef}
@@ -1456,7 +1365,6 @@ export function AstrologyPage({ chartId: chartIdProp }: AstrologyPageProps = {})
                     <div className="text-cosmic-400 text-center">
                       <div className="animate-spin w-8 h-8 border-2 border-cosmic-500 border-t-transparent rounded-full mx-auto mb-2"></div>
                       <p>Loading chart data...</p>
-                      <p className="text-xs mt-1">Type: {chartType} | Transit Date: {requestedTransitDate || 'none'}</p>
                     </div>
                   </div>
                 )}

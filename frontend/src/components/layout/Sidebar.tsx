@@ -45,7 +45,8 @@ const navigation: NavigationItem[] = [
   { name: 'Cosmic Visualizer', icon: Calculator, page: 'charts', section: 'main' },
   // Exploration section (Phase 2)
   { name: 'Journal', icon: BookOpen, page: 'journal', section: 'exploration' },
-  { name: 'Chronicle', icon: CalendarDays, page: 'chronicle', section: 'exploration' },
+  // Chronicle hidden for v1 launch - feature needs polish
+  // { name: 'Chronicle', icon: CalendarDays, page: 'chronicle', section: 'exploration' },
   // Analysis section (Phase 3)
   { name: 'Transits', icon: Activity, page: 'transits', section: 'exploration' },
   { name: 'Tarot', icon: Sparkles, page: 'tarot', section: 'exploration' },
@@ -60,7 +61,8 @@ const navigation: NavigationItem[] = [
   { name: 'Coloring Book', icon: Paintbrush, page: 'coloringbook', section: 'exploration' },
   // System section
   { name: 'Settings', icon: Settings, page: 'settings', section: 'system' },
-  { name: 'Help', icon: HelpCircle, page: 'help', section: 'system' },
+  // Help page hidden for v1 launch - placeholder only
+  // { name: 'Help', icon: HelpCircle, page: 'help', section: 'system' },
 ]
 
 export const Sidebar = ({ currentPage, onNavigate }: SidebarProps) => {

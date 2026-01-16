@@ -26,8 +26,8 @@ export const ProjectionLine: React.FC<ProjectionLineProps> = ({
 
   return (
     <>
-      {layerConfigs.map((config, index) => (
-        <line key={index}>
+      {layerConfigs.map((config) => (
+        <line key={`line-${config.opacity}`}>
           <bufferGeometry>
             <bufferAttribute
               attach="attributes-position"

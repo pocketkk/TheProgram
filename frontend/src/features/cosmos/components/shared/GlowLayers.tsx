@@ -53,7 +53,7 @@ export const GlowLayers: React.FC<GlowLayersProps> = ({
 
         return (
           <Sphere
-            key={index}
+            key={`glow-${layer.radiusMultiplier}`}
             ref={(ref) => (glowRefs.current[index] = ref)}
             args={[layerRadius, segments, segments]}
           >

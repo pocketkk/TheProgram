@@ -200,8 +200,8 @@ async def agent_conversation(websocket: WebSocket):
                 "type": "error",
                 "error": str(e)
             })
-        except:
-            pass
+        except Exception as send_error:
+            logger.debug(f"Failed to send error message to disconnected client: {send_error}")
     finally:
         if receiver_task:
             receiver_task.cancel()

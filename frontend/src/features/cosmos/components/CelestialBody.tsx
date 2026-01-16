@@ -337,9 +337,9 @@ export const CelestialBody: React.FC<CelestialBodyProps> = ({
           {/* Ring system for planets */}
           {visibility.rings && data.hasRings && data.ringData && (
             <group rotation-x={Math.PI / 2}>
-              {data.ringData.map((ring, index) => (
+              {data.ringData.map((ring) => (
                 <Ring
-                  key={index}
+                  key={`ring-${ring.innerRadius}-${ring.outerRadius}`}
                   args={[
                     displayRadius * ring.innerRadius,
                     displayRadius * ring.outerRadius,

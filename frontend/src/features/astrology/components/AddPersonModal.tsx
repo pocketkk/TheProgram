@@ -395,9 +395,9 @@ export const AddPersonModal = ({ isOpen, onClose }: AddPersonModalProps) => {
                         exit={{ opacity: 0, y: -10 }}
                         className="absolute z-20 w-full mt-1 bg-cosmic-800 border border-cosmic-600 rounded-lg shadow-xl max-h-60 overflow-y-auto"
                       >
-                        {searchResults.map((result, index) => (
+                        {searchResults.map((result) => (
                           <button
-                            key={index}
+                            key={`${result.displayName}-${result.latitude}-${result.longitude}`}
                             type="button"
                             onClick={() => handleLocationSelect(result)}
                             className="w-full px-4 py-3 text-left hover:bg-cosmic-700 transition-colors border-b border-cosmic-700 last:border-b-0 focus:outline-none focus:bg-cosmic-700"
