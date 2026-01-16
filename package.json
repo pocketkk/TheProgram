@@ -71,8 +71,39 @@
         "deb"
       ],
       "category": "Office",
-      "icon": "build/icon.png",
       "publish": null
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "publish": null
+    },
+    "mac": {
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "category": "public.app-category.lifestyle",
+      "publish": null
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    },
+    "dmg": {
+      "contents": [
+        {
+          "x": 130,
+          "y": 220
+        },
+        {
+          "x": 410,
+          "y": 220,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ]
     }
   },
   "repository": {
