@@ -8,7 +8,7 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: './src/test/setup.ts',
-    // Exclude integration tests by default (they require running backend)
+    // Exclude integration tests and MSW-dependent tests
     exclude: [
       '**/node_modules/**',
       '**/dist/**',
@@ -16,6 +16,7 @@ export default defineConfig({
       '**/.{idea,git,cache,output,temp}/**',
       '**/{karma,rollup,webpack,vite,vitest,jest,ava,babel,nyc,cypress,tsup,build}.config.*',
       'src/tests/integration/**',  // Integration tests need running backend
+      'src/tests/mocks/**',        // MSW mock definitions (not tests)
     ],
     coverage: {
       provider: 'v8',

@@ -6,7 +6,7 @@ and authentication dependencies.
 """
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
@@ -55,7 +55,14 @@ def test_db():
 
     # Cleanup
     session.close()
-    Base.metadata.drop_all(bind=engine)
+    # Disable FK checks for cleanup (circular deps between image tables)
+    with engine.connect() as conn:
+        conn.execute(text("PRAGMA foreign_keys=OFF"))
+        conn.commit()
+    try:
+        Base.metadata.drop_all(bind=engine)
+    except Exception:
+        pass  # In-memory DB will be destroyed anyway
 
 
 @pytest.fixture(scope="function")
