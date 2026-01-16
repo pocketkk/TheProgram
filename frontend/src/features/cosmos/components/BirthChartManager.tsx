@@ -54,7 +54,10 @@ export const BirthChartManager: React.FC<BirthChartManagerProps> = ({
   }
 
   const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr)
+    // Parse date components directly to avoid UTC interpretation issues
+    // "1974-09-16" should display as September 16, not shift to the 15th
+    const [year, month, day] = dateStr.split('-').map(Number)
+    const date = new Date(year, month - 1, day) // month is 0-indexed in JS
     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
   }
 

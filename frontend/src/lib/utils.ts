@@ -11,9 +11,21 @@ export function cn(...inputs: ClassValue[]) {
 
 /**
  * Format date to readable string
+ * Handles date-only strings (YYYY-MM-DD) without timezone shift
  */
 export function formatDate(date: Date | string): string {
-  const d = typeof date === 'string' ? new Date(date) : date
+  let d: Date
+  if (typeof date === 'string') {
+    // Check if it's a date-only string (YYYY-MM-DD) to avoid UTC interpretation
+    if (/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      const [year, month, day] = date.split('-').map(Number)
+      d = new Date(year, month - 1, day) // Create in local time
+    } else {
+      d = new Date(date)
+    }
+  } else {
+    d = date
+  }
   return new Intl.DateTimeFormat('en-US', {
     year: 'numeric',
     month: 'long',

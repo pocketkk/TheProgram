@@ -8,9 +8,9 @@ sqlalchemy==2.0.23
 alembic==1.12.1
 
 # Data Validation
-pydantic==2.5.0
-pydantic-settings==2.1.0
-email-validator==2.1.0
+pydantic>=2.5.0
+pydantic-settings>=2.1.0
+email-validator>=2.1.0
 
 # Astronomical Calculations
 pyswisseph==2.10.3.2  # Swiss Ephemeris Python bindings
@@ -23,8 +23,8 @@ bcrypt==4.1.1
 cryptography==41.0.7  # Encryption for backups
 
 # HTTP Client (for external APIs like GeoNames)
-httpx==0.25.2
-aiohttp==3.9.1
+httpx>=0.25.2
+aiohttp>=3.9.1
 
 # RSS Feed Parsing (Cosmic Chronicle)
 feedparser==6.0.12
@@ -45,17 +45,16 @@ reportlab==4.0.7
 # Alternative: weasyprint==60.1
 
 # Testing
-pytest==7.4.3
-pytest-asyncio==0.21.1
-pytest-cov==4.1.0
-pytest-mock==3.12.0
-httpx==0.25.2  # For async test client
+pytest>=7.4.3
+pytest-asyncio>=0.21.1
+pytest-cov>=4.1.0
+pytest-mock>=3.12.0
 
 # Development Tools
-black==23.12.0  # Code formatter
-flake8==6.1.0  # Linter
-mypy==1.7.1  # Type checker
-isort==5.13.2  # Import sorter
+black>=23.12.0  # Code formatter
+flake8>=6.1.0  # Linter
+mypy>=1.7.1  # Type checker
+isort>=5.13.2  # Import sorter
 
 # Production Server
 gunicorn==21.2.0  # WSGI HTTP server
@@ -66,7 +65,7 @@ python-json-logger==2.0.7  # Structured logging
 
 # Utilities
 python-slugify==8.0.1
-Pillow==10.1.0  # Image processing (for chart export)
+Pillow>=10.4.0  # Image processing (for chart export)
 
 # Backup & Scheduling
 APScheduler==3.10.4  # Scheduled backup tasks
