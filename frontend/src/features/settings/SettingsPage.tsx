@@ -103,6 +103,37 @@ export function SettingsPage() {
         </p>
       </motion.div>
 
+      {/* API Keys Help Banner */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.05 }}
+      >
+        <div className="p-4 rounded-xl bg-gradient-to-r from-celestial-gold/10 to-celestial-pink/10 border border-celestial-gold/20">
+          <div className="flex items-start gap-4">
+            <div className="rounded-lg bg-celestial-gold/20 p-2.5 mt-0.5">
+              <Info className="h-5 w-5 text-celestial-gold" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-medium text-white mb-1">API Keys Are Optional</h3>
+              <p className="text-sm text-gray-300 mb-2">
+                The Program works without API keys—all chart calculations, divination tools, and journaling are fully functional.
+                API keys unlock AI-powered interpretations and custom image generation.
+              </p>
+              <a
+                href="https://theprogram.us/setup.html"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 text-sm text-celestial-gold hover:text-celestial-pink transition-colors"
+              >
+                New to API keys? Follow our 5-minute setup guide
+                <ExternalLink className="h-3.5 w-3.5" />
+              </a>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Anthropic AI Configuration */}
         <motion.div
@@ -118,7 +149,7 @@ export function SettingsPage() {
                 <CardTitle>Anthropic AI Configuration</CardTitle>
               </div>
               <CardDescription>
-                Configure your Anthropic API key to enable Claude AI-powered chart interpretations.
+                Optional. Powers Claude AI interpretations for birth charts, transits, synastry, and the Guide companion.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -141,7 +172,7 @@ export function SettingsPage() {
                 <CardTitle>Google AI Configuration</CardTitle>
               </div>
               <CardDescription>
-                Configure your Google API key to enable Gemini AI-powered image generation in Studio.
+                Optional. Powers Gemini image generation for custom tarot decks and celestial art in the Studio.
               </CardDescription>
             </CardHeader>
             <CardContent>
