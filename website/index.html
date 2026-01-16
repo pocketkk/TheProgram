@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Program - Desktop Astrology Application</title>
+    <meta name="description" content="A professional desktop astrology application featuring Western, Vedic, and Human Design systems. Privacy-focused, offline-first, powered by AI.">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#10024;</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwindcss.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        display: ['Playfair Display', 'Georgia', 'serif'],
+                    },
+                    colors: {
+                        cosmic: {
+                            950: '#050510',
+                            900: '#0a0a1a',
+                            850: '#0d0d24',
+                            800: '#12122e',
+                            700: '#1a1a42',
+                            600: '#252560',
+                            500: '#35357a',
+                        },
+                        celestial: {
+                            gold: '#f6c857',
+                            amber: '#fbbf24',
+                            rose: '#f472b6',
+                            purple: '#a78bfa',
+                            indigo: '#818cf8',
+                            cyan: '#67e8f9',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        * {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background: radial-gradient(ellipse at 50% 0%, #12122e 0%, #0a0a1a 50%, #050510 100%);
+            min-height: 100vh;
+        }
+
+        /* Gradient text */
+        .gradient-text {
+            background: linear-gradient(135deg, #f6c857 0%, #f472b6 50%, #a78bfa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .gradient-text-subtle {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Glowing effects */
+        .glow-gold {
+            box-shadow: 0 0 60px rgba(246, 200, 87, 0.15),
+                        0 0 100px rgba(246, 200, 87, 0.05);
+        }
+
+        .glow-subtle {
+            box-shadow: 0 4px 60px rgba(246, 200, 87, 0.08),
+                        0 0 0 1px rgba(255, 255, 255, 0.03);
+        }
+
+        .text-glow {
+            text-shadow: 0 0 40px rgba(246, 200, 87, 0.5);
+        }
+
+        /* Glass morphism cards */
+        .glass-card {
+            background: linear-gradient(135deg,
+                rgba(255, 255, 255, 0.05) 0%,
+                rgba(255, 255, 255, 0.02) 100%);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .glass-card-hover:hover {
+            background: linear-gradient(135deg,
+                rgba(255, 255, 255, 0.08) 0%,
+                rgba(255, 255, 255, 0.04) 100%);
+            border-color: rgba(255, 255, 255, 0.12);
+            transform: translateY(-4px);
+        }
+
+        /* Stars */
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle var(--duration, 4s) ease-in-out infinite;
+            animation-delay: var(--delay, 0s);
+        }
+
+        .star-large {
+            width: 3px;
+            height: 3px;
+            box-shadow: 0 0 6px 1px rgba(255, 255, 255, 0.3);
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.2; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.2); }
+        }
+
+        /* Floating orb animation */
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            animation: float 20s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(20px, -20px) scale(1.05); }
+            50% { transform: translate(-10px, 20px) scale(0.95); }
+            75% { transform: translate(-20px, -10px) scale(1.02); }
+        }
+
+        /* Celestial ring animation */
+        .celestial-ring {
+            position: absolute;
+            border-radius: 50%;
+            border: 1px solid;
+            opacity: 0.15;
+            animation: rotate 60s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes rotate-reverse {
+            from { transform: rotate(360deg); }
+            to { transform: rotate(0deg); }
+        }
+
+        /* Scroll reveal animations */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .reveal-delay-1 { transition-delay: 0.1s; }
+        .reveal-delay-2 { transition-delay: 0.2s; }
+        .reveal-delay-3 { transition-delay: 0.3s; }
+        .reveal-delay-4 { transition-delay: 0.4s; }
+
+        /* Hero title animation */
+        .hero-title {
+            animation: fadeInUp 1s ease forwards;
+            animation-delay: 0.2s;
+            opacity: 0;
+        }
+
+        .hero-subtitle {
+            animation: fadeInUp 1s ease forwards;
+            animation-delay: 0.4s;
+            opacity: 0;
+        }
+
+        .hero-cta {
+            animation: fadeInUp 1s ease forwards;
+            animation-delay: 0.6s;
+            opacity: 0;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Button styles */
+        .btn-primary {
+            background: linear-gradient(135deg, #f6c857 0%, #f59e0b 100%);
+            box-shadow: 0 4px 20px rgba(246, 200, 87, 0.3),
+                        0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 6px 30px rgba(246, 200, 87, 0.4),
+                        0 0 0 1px rgba(255, 255, 255, 0.2) inset;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid rgba(167, 139, 250, 0.5);
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(167, 139, 250, 0.1);
+            border-color: rgba(167, 139, 250, 0.8);
+            transform: translateY(-2px);
+        }
+
+        /* Download cards */
+        .download-card {
+            background: linear-gradient(135deg,
+                rgba(255, 255, 255, 0.04) 0%,
+                rgba(255, 255, 255, 0.01) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            transition: all 0.4s ease;
+        }
+
+        .download-card:hover {
+            background: linear-gradient(135deg,
+                rgba(246, 200, 87, 0.1) 0%,
+                rgba(246, 200, 87, 0.02) 100%);
+            border-color: rgba(246, 200, 87, 0.3);
+            transform: translateY(-6px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3),
+                        0 0 60px rgba(246, 200, 87, 0.1);
+        }
+
+        /* Feature icon containers */
+        .feature-icon {
+            background: linear-gradient(135deg,
+                rgba(255, 255, 255, 0.08) 0%,
+                rgba(255, 255, 255, 0.02) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        /* Zodiac symbol styling */
+        .zodiac-symbol {
+            font-size: 2.5rem;
+            line-height: 1;
+            background: linear-gradient(135deg, var(--color-start) 0%, var(--color-end) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            filter: drop-shadow(0 0 20px var(--glow-color));
+        }
+
+        /* Navigation blur */
+        .nav-blur {
+            background: rgba(5, 5, 16, 0.6);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Responsive nav */
+        @media (max-width: 768px) {
+            .mobile-menu {
+                display: none;
+            }
+            .mobile-menu.active {
+                display: flex;
+            }
+        }
+
+        /* Smooth underline animation */
+        .nav-link {
+            position: relative;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 1px;
+            background: linear-gradient(90deg, #f6c857, #f472b6);
+            transition: width 0.3s ease;
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        /* Section divider */
+        .section-divider {
+            height: 1px;
+            background: linear-gradient(90deg,
+                transparent 0%,
+                rgba(246, 200, 87, 0.3) 50%,
+                transparent 100%);
+        }
+    </style>
+</head>
+<body class="text-white overflow-x-hidden">
+    <!-- Animated background elements -->
+    <div class="fixed inset-0 overflow-hidden pointer-events-none">
+        <!-- Stars -->
+        <div id="stars"></div>
+
+        <!-- Floating orbs -->
+        <div class="orb w-96 h-96 -top-48 -left-48 bg-celestial-purple/20" style="animation-delay: 0s;"></div>
+        <div class="orb w-80 h-80 top-1/4 -right-40 bg-celestial-rose/15" style="animation-delay: -5s;"></div>
+        <div class="orb w-64 h-64 bottom-1/4 -left-32 bg-celestial-gold/10" style="animation-delay: -10s;"></div>
+
+        <!-- Celestial rings (hero decoration) -->
+        <div class="celestial-ring w-[600px] h-[600px] top-20 left-1/2 -translate-x-1/2 border-celestial-gold/30" style="animation: rotate 80s linear infinite;"></div>
+        <div class="celestial-ring w-[500px] h-[500px] top-32 left-1/2 -translate-x-1/2 border-celestial-purple/20" style="animation: rotate-reverse 60s linear infinite;"></div>
+        <div class="celestial-ring w-[400px] h-[400px] top-44 left-1/2 -translate-x-1/2 border-celestial-rose/15" style="animation: rotate 40s linear infinite;"></div>
+    </div>
+
+    <div class="relative z-10">
+        <!-- Navigation -->
+        <nav class="fixed top-0 left-0 right-0 z-50 nav-blur">
+            <div class="max-w-6xl mx-auto px-6 py-4">
+                <div class="flex items-center justify-between">
+                    <a href="#" class="flex items-center gap-3 group">
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-celestial-gold to-celestial-rose flex items-center justify-center text-cosmic-950 font-bold text-lg transition-transform group-hover:scale-105">
+                            P
+                        </div>
+                        <span class="text-xl font-semibold tracking-tight">The Program</span>
+                    </a>
+
+                    <!-- Desktop nav -->
+                    <div class="hidden md:flex items-center gap-8">
+                        <a href="#features" class="nav-link text-gray-300 hover:text-white transition text-sm font-medium">Features</a>
+                        <a href="#systems" class="nav-link text-gray-300 hover:text-white transition text-sm font-medium">Systems</a>
+                        <a href="#download" class="nav-link text-gray-300 hover:text-white transition text-sm font-medium">Download</a>
+                        <a href="https://github.com/pocketkk/TheProgram" class="nav-link text-gray-300 hover:text-white transition text-sm font-medium flex items-center gap-1.5">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                            GitHub
+                        </a>
+                    </div>
+
+                    <!-- Mobile menu button -->
+                    <button class="md:hidden text-white p-2" onclick="toggleMobileMenu()">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Mobile menu -->
+                <div id="mobileMenu" class="mobile-menu flex-col gap-4 pt-6 pb-2 md:hidden">
+                    <a href="#features" class="text-gray-300 hover:text-white transition py-2">Features</a>
+                    <a href="#systems" class="text-gray-300 hover:text-white transition py-2">Systems</a>
+                    <a href="#download" class="text-gray-300 hover:text-white transition py-2">Download</a>
+                    <a href="https://github.com/pocketkk/TheProgram" class="text-gray-300 hover:text-white transition py-2">GitHub</a>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Hero Section -->
+        <section class="min-h-screen flex items-center justify-center pt-20 pb-16 px-6">
+            <div class="max-w-5xl mx-auto text-center">
+                <!-- Badge -->
+                <div class="hero-title inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card mb-8">
+                    <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+                    <span class="text-sm text-gray-300">Free & Open Source</span>
+                </div>
+
+                <!-- Main headline -->
+                <h1 class="hero-title font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-semibold leading-[1.1] mb-8 tracking-tight">
+                    <span class="block text-white">Discover Your</span>
+                    <span class="block gradient-text text-glow">Cosmic Blueprint</span>
+                </h1>
+
+                <!-- Subheadline -->
+                <p class="hero-subtitle text-lg sm:text-xl md:text-2xl text-gray-400 max-w-3xl mx-auto mb-12 leading-relaxed font-light">
+                    Professional astrology software with <span class="text-gray-200">Western</span>, <span class="text-gray-200">Vedic</span>, and <span class="text-gray-200">Human Design</span> systems.
+                    Privacy-focused. Offline-first. AI-powered interpretations.
+                </p>
+
+                <!-- CTA buttons -->
+                <div class="hero-cta flex flex-col sm:flex-row gap-4 justify-center">
+                    <a href="#download" class="btn-primary px-8 py-4 text-cosmic-950 font-semibold rounded-xl text-lg inline-flex items-center justify-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                        </svg>
+                        Download Free
+                    </a>
+                    <a href="#features" class="btn-secondary px-8 py-4 text-celestial-purple font-semibold rounded-xl text-lg inline-flex items-center justify-center gap-2">
+                        Explore Features
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </a>
+                </div>
+
+                <!-- Scroll indicator -->
+                <div class="mt-20 animate-bounce">
+                    <svg class="w-6 h-6 mx-auto text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+                    </svg>
+                </div>
+            </div>
+        </section>
+
+        <!-- Find the Patterns Section (Key Differentiator) -->
+        <section class="py-24 px-6">
+            <div class="max-w-5xl mx-auto">
+                <div class="reveal glass-card glow-subtle rounded-[2rem] p-10 md:p-16 text-center">
+                    <div class="feature-icon w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-8">
+                        <svg class="w-8 h-8 text-celestial-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                        </svg>
+                    </div>
+                    <span class="inline-block text-celestial-gold text-sm font-medium tracking-widest uppercase mb-4">The Real Insight</span>
+                    <h2 class="font-display text-3xl md:text-4xl lg:text-5xl font-semibold mb-6">
+                        Where Do Your Charts <span class="gradient-text">Agree?</span><br>
+                        Where Do They <span class="gradient-text">Contradict?</span>
+                    </h2>
+                    <p class="text-gray-400 text-lg max-w-2xl mx-auto mb-10 leading-relaxed">
+                        Different traditions don't always say the same thing&mdash;and that's where the real exploration begins.
+                        When Western, Vedic, and Human Design converge, pay attention. When they contradict, dig deeper.
+                    </p>
+                    <div class="grid sm:grid-cols-3 gap-6 text-left">
+                        <div class="glass-card rounded-xl p-6">
+                            <div class="text-2xl mb-3">🔍</div>
+                            <h4 class="font-semibold text-celestial-gold mb-2">Find Convergence</h4>
+                            <p class="text-sm text-gray-400">When all three systems point the same direction, you've found a strong signal.</p>
+                        </div>
+                        <div class="glass-card rounded-xl p-6">
+                            <div class="text-2xl mb-3">⚡</div>
+                            <h4 class="font-semibold text-celestial-rose mb-2">Surface Contradictions</h4>
+                            <p class="text-sm text-gray-400">Disagreements aren't bugs&mdash;they're invitations to understand nuance.</p>
+                        </div>
+                        <div class="glass-card rounded-xl p-6">
+                            <div class="text-2xl mb-3">🤖</div>
+                            <h4 class="font-semibold text-celestial-purple mb-2">AI Synthesis</h4>
+                            <p class="text-sm text-gray-400">An AI companion helps you navigate complexity across paradigms.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Divider -->
+        <div class="section-divider max-w-4xl mx-auto"></div>
+
+        <!-- Divination Suite Section -->
+        <section class="py-24 px-6">
+            <div class="max-w-6xl mx-auto">
+                <div class="text-center mb-16 reveal">
+                    <span class="inline-block text-celestial-rose text-sm font-medium tracking-widest uppercase mb-4">Beyond Charts</span>
+                    <h2 class="font-display text-4xl md:text-5xl font-semibold mb-6">
+                        Divination <span class="gradient-text">Suite</span>
+                    </h2>
+                    <p class="text-gray-400 text-lg max-w-2xl mx-auto">
+                        Ancient wisdom traditions, modern AI interpretation. Explore multiple oracular systems.
+                    </p>
+                </div>
+
+                <div class="grid md:grid-cols-3 gap-6">
+                    <!-- Tarot -->
+                    <div class="reveal reveal-delay-1 glass-card glass-card-hover rounded-2xl p-8 transition-all duration-300">
+                        <div class="text-5xl mb-4">🎴</div>
+                        <h3 class="text-xl font-semibold mb-3 text-celestial-rose">Tarot Readings</h3>
+                        <p class="text-gray-400 text-sm mb-4">Classic tarot with multiple spread types, reversals, and AI-powered interpretation of card combinations.</p>
+                        <ul class="space-y-2 text-xs text-gray-500">
+                            <li class="flex items-center gap-2">
+                                <svg class="w-3 h-3 text-celestial-rose" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                                Celtic Cross, Three-Card & more
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <svg class="w-3 h-3 text-celestial-rose" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                                Position-based meanings
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <svg class="w-3 h-3 text-celestial-rose" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                                Reading history
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- I-Ching -->
+                    <div class="reveal reveal-delay-2 glass-card glass-card-hover rounded-2xl p-8 transition-all duration-300">
+                        <div class="text-5xl mb-4">☯️</div>
+                        <h3 class="text-xl font-semibold mb-3 text-celestial-cyan">I-Ching Oracle</h3>
+                        <p class="text-gray-400 text-sm mb-4">3,000 years of Chinese wisdom. Cast coins or yarrow stalks to receive hexagram guidance.</p>
+                        <ul class="space-y-2 text-xs text-gray-500">
+                            <li class="flex items-center gap-2">
+                                <svg class="w-3 h-3 text-celestial-cyan" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                                64 hexagram meanings
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <svg class="w-3 h-3 text-celestial-cyan" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                                Changing lines analysis
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <svg class="w-3 h-3 text-celestial-cyan" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                                Traditional casting methods
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Numerology -->
+                    <div class="reveal reveal-delay-3 glass-card glass-card-hover rounded-2xl p-8 transition-all duration-300">
+                        <div class="text-5xl mb-4">🔢</div>
+                        <h3 class="text-xl font-semibold mb-3 text-celestial-purple">Numerology</h3>
+                        <p class="text-gray-400 text-sm mb-4">Discover the significance of numbers in your name and birth date. Life path, personal year, and compatibility.</p>
+                        <ul class="space-y-2 text-xs text-gray-500">
+                            <li class="flex items-center gap-2">
+                                <svg class="w-3 h-3 text-celestial-purple" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                                Life path calculation
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <svg class="w-3 h-3 text-celestial-purple" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                                Personal year cycles
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <svg class="w-3 h-3 text-celestial-purple" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                                Compatibility readings
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Divider -->
+        <div class="section-divider max-w-4xl mx-auto"></div>
+
+        <!-- Creative Studio Section -->
+        <section class="py-24 px-6">
+            <div class="max-w-5xl mx-auto">
+                <div class="reveal glass-card rounded-[2rem] p-10 md:p-16 relative overflow-hidden">
+                    <!-- Background decoration -->
+                    <div class="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-celestial-gold/10 to-transparent rounded-full blur-3xl"></div>
+                    <div class="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-celestial-purple/10 to-transparent rounded-full blur-3xl"></div>
+
+                    <div class="relative z-10">
+                        <div class="grid md:grid-cols-2 gap-10 items-center">
+                            <div>
+                                <span class="inline-block text-celestial-gold text-sm font-medium tracking-widest uppercase mb-4">AI-Powered Creation</span>
+                                <h2 class="font-display text-3xl md:text-4xl font-semibold mb-6">
+                                    Create Your Own <span class="gradient-text">Tarot Deck</span>
+                                </h2>
+                                <p class="text-gray-400 leading-relaxed mb-6">
+                                    Generate complete 78-card tarot decks with Google Gemini AI. Choose your art style,
+                                    customize frames, and create something uniquely yours.
+                                </p>
+                                <ul class="space-y-3 text-sm text-gray-400">
+                                    <li class="flex items-center gap-3">
+                                        <div class="w-8 h-8 rounded-lg bg-celestial-gold/10 flex items-center justify-center">
+                                            <svg class="w-4 h-4 text-celestial-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                            </svg>
+                                        </div>
+                                        78-card Major & Minor Arcana generation
+                                    </li>
+                                    <li class="flex items-center gap-3">
+                                        <div class="w-8 h-8 rounded-lg bg-celestial-rose/10 flex items-center justify-center">
+                                            <svg class="w-4 h-4 text-celestial-rose" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/>
+                                            </svg>
+                                        </div>
+                                        Custom art styles and frame designs
+                                    </li>
+                                    <li class="flex items-center gap-3">
+                                        <div class="w-8 h-8 rounded-lg bg-celestial-purple/10 flex items-center justify-center">
+                                            <svg class="w-4 h-4 text-celestial-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
+                                            </svg>
+                                        </div>
+                                        Celestial planet sets (15 bodies)
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="grid grid-cols-3 gap-3">
+                                <div class="glass-card rounded-xl p-4 text-center aspect-[2/3] flex items-center justify-center">
+                                    <span class="text-4xl">🌙</span>
+                                </div>
+                                <div class="glass-card rounded-xl p-4 text-center aspect-[2/3] flex items-center justify-center transform translate-y-4">
+                                    <span class="text-4xl">⭐</span>
+                                </div>
+                                <div class="glass-card rounded-xl p-4 text-center aspect-[2/3] flex items-center justify-center">
+                                    <span class="text-4xl">☀️</span>
+                                </div>
+                                <div class="glass-card rounded-xl p-4 text-center aspect-[2/3] flex items-center justify-center transform translate-y-2">
+                                    <span class="text-4xl">🗡️</span>
+                                </div>
+                                <div class="glass-card rounded-xl p-4 text-center aspect-[2/3] flex items-center justify-center transform -translate-y-2">
+                                    <span class="text-4xl">🏆</span>
+                                </div>
+                                <div class="glass-card rounded-xl p-4 text-center aspect-[2/3] flex items-center justify-center transform translate-y-2">
+                                    <span class="text-4xl">🔮</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Divider -->
+        <div class="section-divider max-w-4xl mx-auto"></div>
+
+        <!-- Three Systems Section -->
+        <section id="systems" class="py-24 px-6">
+            <div class="max-w-6xl mx-auto">
+                <div class="text-center mb-20 reveal">
+                    <span class="inline-block text-celestial-gold text-sm font-medium tracking-widest uppercase mb-4">Three Traditions</span>
+                    <h2 class="font-display text-4xl md:text-5xl lg:text-6xl font-semibold mb-6">
+                        One <span class="gradient-text">Synthesis</span>
+                    </h2>
+                    <p class="text-gray-400 text-lg max-w-2xl mx-auto">
+                        Each tradition offers unique insights. Together, they reveal patterns no single system could show alone.
+                    </p>
+                </div>
+
+                <div class="grid lg:grid-cols-3 gap-6 lg:gap-8">
+                    <!-- Western Astrology -->
+                    <div class="reveal reveal-delay-1 group">
+                        <div class="glass-card glass-card-hover rounded-3xl p-8 lg:p-10 h-full transition-all duration-500">
+                            <div class="feature-icon w-16 h-16 rounded-2xl flex items-center justify-center mb-6">
+                                <span class="zodiac-symbol" style="--color-start: #f6c857; --color-end: #f59e0b; --glow-color: rgba(246, 200, 87, 0.4);">&#9800;</span>
+                            </div>
+                            <h3 class="text-2xl font-semibold mb-4 text-celestial-gold">Western Astrology</h3>
+                            <p class="text-gray-400 leading-relaxed mb-6">
+                                The foundation of modern horoscopic astrology. Calculate tropical charts with precision.
+                            </p>
+                            <ul class="space-y-3 text-sm text-gray-500">
+                                <li class="flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-celestial-gold" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                                    15+ House Systems
+                                </li>
+                                <li class="flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-celestial-gold" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                                    Progressions & Solar Returns
+                                </li>
+                                <li class="flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-celestial-gold" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                                    Synastry & Composites
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Vedic Astrology -->
+                    <div class="reveal reveal-delay-2 group">
+                        <div class="glass-card glass-card-hover rounded-3xl p-8 lg:p-10 h-full transition-all duration-500">
+                            <div class="feature-icon w-16 h-16 rounded-2xl flex items-center justify-center mb-6">
+                                <span class="zodiac-symbol" style="--color-start: #f472b6; --color-end: #ec4899; --glow-color: rgba(244, 114, 182, 0.4);">&#x0950;</span>
+                            </div>
+                            <h3 class="text-2xl font-semibold mb-4 text-celestial-rose">Vedic Astrology</h3>
+                            <p class="text-gray-400 leading-relaxed mb-6">
+                                Ancient Jyotish wisdom using the sidereal zodiac. Precise karmic insights and timing.
+                            </p>
+                            <ul class="space-y-3 text-sm text-gray-500">
+                                <li class="flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-celestial-rose" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                                    16 Divisional Charts
+                                </li>
+                                <li class="flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-celestial-rose" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                                    Vimshottari Dasha System
+                                </li>
+                                <li class="flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-celestial-rose" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                                    Shadbala & Ashtakavarga
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Human Design -->
+                    <div class="reveal reveal-delay-3 group">
+                        <div class="glass-card glass-card-hover rounded-3xl p-8 lg:p-10 h-full transition-all duration-500">
+                            <div class="feature-icon w-16 h-16 rounded-2xl flex items-center justify-center mb-6">
+                                <span class="zodiac-symbol" style="--color-start: #a78bfa; --color-end: #8b5cf6; --glow-color: rgba(167, 139, 250, 0.4);">&#x2B21;</span>
+                            </div>
+                            <h3 class="text-2xl font-semibold mb-4 text-celestial-purple">Human Design</h3>
+                            <p class="text-gray-400 leading-relaxed mb-6">
+                                A synthesis of astrology, I Ching, Kabbalah, and the chakra system.
+                            </p>
+                            <ul class="space-y-3 text-sm text-gray-500">
+                                <li class="flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-celestial-purple" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                                    9 Centers & Energy Types
+                                </li>
+                                <li class="flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-celestial-purple" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                                    64 Gates & 36 Channels
+                                </li>
+                                <li class="flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-celestial-purple" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                                    Strategy & Authority
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Divider -->
+        <div class="section-divider max-w-4xl mx-auto"></div>
+
+        <!-- Daily Practice Section -->
+        <section class="py-24 px-6">
+            <div class="max-w-6xl mx-auto">
+                <div class="text-center mb-16 reveal">
+                    <span class="inline-block text-celestial-amber text-sm font-medium tracking-widest uppercase mb-4">Build Your Practice</span>
+                    <h2 class="font-display text-4xl md:text-5xl font-semibold mb-6">
+                        Daily <span class="gradient-text">Reflection</span>
+                    </h2>
+                    <p class="text-gray-400 text-lg max-w-2xl mx-auto">
+                        Track your journey with integrated journaling and personalized daily guidance.
+                    </p>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-6">
+                    <!-- Journal -->
+                    <div class="reveal reveal-delay-1 glass-card glass-card-hover rounded-2xl p-8 transition-all duration-300">
+                        <div class="feature-icon w-14 h-14 rounded-2xl flex items-center justify-center mb-6">
+                            <svg class="w-7 h-7 text-celestial-amber" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-3">Cosmic Journal</h3>
+                        <p class="text-gray-400 text-sm mb-4">
+                            Record thoughts, dreams, and synchronicities. Tag entries by mood, link to specific chart events,
+                            and build a personal log of your astrological journey.
+                        </p>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="text-xs px-3 py-1 rounded-full bg-celestial-gold/10 text-celestial-gold">Mood Tracking</span>
+                            <span class="text-xs px-3 py-1 rounded-full bg-celestial-rose/10 text-celestial-rose">Tags & Search</span>
+                            <span class="text-xs px-3 py-1 rounded-full bg-celestial-purple/10 text-celestial-purple">Chart Links</span>
+                        </div>
+                    </div>
+
+                    <!-- Daily Insights -->
+                    <div class="reveal reveal-delay-2 glass-card glass-card-hover rounded-2xl p-8 transition-all duration-300">
+                        <div class="feature-icon w-14 h-14 rounded-2xl flex items-center justify-center mb-6">
+                            <svg class="w-7 h-7 text-celestial-cyan" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-3">Daily Insights</h3>
+                        <p class="text-gray-400 text-sm mb-4">
+                            AI-generated guidance based on current transits to your natal chart.
+                            Not generic horoscopes&mdash;personalized analysis of what today's sky means for <em>you</em>.
+                        </p>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="text-xs px-3 py-1 rounded-full bg-celestial-cyan/10 text-celestial-cyan">Transit Analysis</span>
+                            <span class="text-xs px-3 py-1 rounded-full bg-celestial-indigo/10 text-celestial-indigo">Personalized</span>
+                            <span class="text-xs px-3 py-1 rounded-full bg-green-400/10 text-green-400">AI-Powered</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Divider -->
+        <div class="section-divider max-w-4xl mx-auto"></div>
+
+        <!-- Features Grid -->
+        <section id="features" class="py-24 px-6">
+            <div class="max-w-6xl mx-auto">
+                <div class="text-center mb-16 reveal">
+                    <span class="inline-block text-celestial-gold text-sm font-medium tracking-widest uppercase mb-4">Under the Hood</span>
+                    <h2 class="font-display text-4xl md:text-5xl font-semibold mb-6">
+                        Built Right
+                    </h2>
+                </div>
+
+                <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                    <!-- AI Interpretations -->
+                    <div class="reveal reveal-delay-1 glass-card glass-card-hover rounded-2xl p-6 transition-all duration-300">
+                        <div class="feature-icon w-12 h-12 rounded-xl flex items-center justify-center mb-4">
+                            <svg class="w-6 h-6 text-celestial-cyan" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                            </svg>
+                        </div>
+                        <h4 class="font-semibold text-lg mb-2">AI Interpretations</h4>
+                        <p class="text-sm text-gray-400 leading-relaxed">Claude AI provides personalized, nuanced readings of your chart placements.</p>
+                    </div>
+
+                    <!-- 3D Cosmic View -->
+                    <div class="reveal reveal-delay-2 glass-card glass-card-hover rounded-2xl p-6 transition-all duration-300">
+                        <div class="feature-icon w-12 h-12 rounded-xl flex items-center justify-center mb-4">
+                            <svg class="w-6 h-6 text-celestial-indigo" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/>
+                            </svg>
+                        </div>
+                        <h4 class="font-semibold text-lg mb-2">3D Cosmic View</h4>
+                        <p class="text-sm text-gray-400 leading-relaxed">Real-time solar system visualization of current planetary positions.</p>
+                    </div>
+
+                    <!-- PDF Reports -->
+                    <div class="reveal reveal-delay-3 glass-card glass-card-hover rounded-2xl p-6 transition-all duration-300">
+                        <div class="feature-icon w-12 h-12 rounded-xl flex items-center justify-center mb-4">
+                            <svg class="w-6 h-6 text-celestial-rose" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                        </div>
+                        <h4 class="font-semibold text-lg mb-2">PDF Reports</h4>
+                        <p class="text-sm text-gray-400 leading-relaxed">Export professional chart reports to share or print.</p>
+                    </div>
+
+                    <!-- Privacy First -->
+                    <div class="reveal reveal-delay-4 glass-card glass-card-hover rounded-2xl p-6 transition-all duration-300">
+                        <div class="feature-icon w-12 h-12 rounded-xl flex items-center justify-center mb-4">
+                            <svg class="w-6 h-6 text-celestial-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                            </svg>
+                        </div>
+                        <h4 class="font-semibold text-lg mb-2">Privacy First</h4>
+                        <p class="text-sm text-gray-400 leading-relaxed">All data stored locally. Your birth data never leaves your device.</p>
+                    </div>
+
+                    <!-- Transit Tracking -->
+                    <div class="reveal reveal-delay-1 glass-card glass-card-hover rounded-2xl p-6 transition-all duration-300">
+                        <div class="feature-icon w-12 h-12 rounded-xl flex items-center justify-center mb-4">
+                            <svg class="w-6 h-6 text-celestial-amber" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        <h4 class="font-semibold text-lg mb-2">Transit Tracking</h4>
+                        <p class="text-sm text-gray-400 leading-relaxed">Real-time planetary transits to your natal chart with aspect analysis.</p>
+                    </div>
+
+                    <!-- Offline First -->
+                    <div class="reveal reveal-delay-2 glass-card glass-card-hover rounded-2xl p-6 transition-all duration-300">
+                        <div class="feature-icon w-12 h-12 rounded-xl flex items-center justify-center mb-4">
+                            <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M18.364 5.636a9 9 0 010 12.728m0 0l-2.829-2.829m2.829 2.829L21 21M15.536 8.464a5 5 0 010 7.072m0 0l-2.829-2.829m-4.243 2.829a4.978 4.978 0 01-1.414-2.83m-1.414 5.658a9 9 0 01-2.167-9.238m7.824 2.167a1 1 0 111.414 1.414m-1.414-1.414L3 3"/>
+                            </svg>
+                        </div>
+                        <h4 class="font-semibold text-lg mb-2">Works Offline</h4>
+                        <p class="text-sm text-gray-400 leading-relaxed">Core calculations work without internet. AI features require connection.</p>
+                    </div>
+
+                    <!-- Swiss Ephemeris -->
+                    <div class="reveal reveal-delay-3 glass-card glass-card-hover rounded-2xl p-6 transition-all duration-300">
+                        <div class="feature-icon w-12 h-12 rounded-xl flex items-center justify-center mb-4">
+                            <svg class="w-6 h-6 text-celestial-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                            </svg>
+                        </div>
+                        <h4 class="font-semibold text-lg mb-2">Swiss Ephemeris</h4>
+                        <p class="text-sm text-gray-400 leading-relaxed">Professional-grade astronomical calculations with arc-second precision.</p>
+                    </div>
+
+                    <!-- Multiple Profiles -->
+                    <div class="reveal reveal-delay-4 glass-card glass-card-hover rounded-2xl p-6 transition-all duration-300">
+                        <div class="feature-icon w-12 h-12 rounded-xl flex items-center justify-center mb-4">
+                            <svg class="w-6 h-6 text-celestial-cyan" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                            </svg>
+                        </div>
+                        <h4 class="font-semibold text-lg mb-2">Multiple Profiles</h4>
+                        <p class="text-sm text-gray-400 leading-relaxed">Save and manage charts for family, friends, and clients.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Divider -->
+        <div class="section-divider max-w-4xl mx-auto"></div>
+
+        <!-- Download Section -->
+        <section id="download" class="py-24 px-6">
+            <div class="max-w-4xl mx-auto">
+                <div class="reveal glass-card glow-gold rounded-[2rem] p-10 md:p-16">
+                    <div class="text-center mb-12">
+                        <span class="inline-block text-celestial-gold text-sm font-medium tracking-widest uppercase mb-4">Get Started</span>
+                        <h2 class="font-display text-4xl md:text-5xl font-semibold mb-4">
+                            Download <span class="gradient-text">The Program</span>
+                        </h2>
+                        <p class="text-gray-400 text-lg max-w-xl mx-auto">
+                            Free, open source, and ready to use. Available for all major platforms.
+                        </p>
+                    </div>
+
+                    <div class="grid sm:grid-cols-3 gap-4 mb-8">
+                        <!-- Linux -->
+                        <a href="https://github.com/pocketkk/TheProgram/releases/latest" class="download-card rounded-2xl p-6 text-center group">
+                            <div class="text-4xl mb-3 transition-transform group-hover:scale-110">
+                                <svg class="w-10 h-10 mx-auto text-gray-300" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12.504 0c-.155 0-.315.008-.48.021-4.226.333-3.105 4.807-3.17 6.298-.076 1.092-.3 1.953-1.05 3.02-.885 1.051-2.127 2.75-2.716 4.521-.278.832-.41 1.684-.287 2.489a.424.424 0 00-.11.135c-.26.268-.45.6-.663.839-.199.199-.485.267-.797.4-.313.136-.658.269-.864.68-.09.189-.136.394-.132.602 0 .199.027.4.055.536.058.399.116.728.04.97-.249.68-.28 1.145-.106 1.484.174.334.535.47.94.601.81.2 1.91.135 2.774.6.926.466 1.866.67 2.616.47.526-.116.97-.464 1.208-.946.587-.003 1.23-.269 2.26-.334.699-.058 1.574.267 2.577.2.025.134.063.198.114.333l.003.003c.391.778 1.113 1.132 1.884 1.071.771-.06 1.592-.536 2.257-1.306.631-.765 1.683-1.084 2.378-1.503.348-.199.629-.469.649-.853.023-.4-.2-.811-.714-1.376v-.097l-.003-.003c-.17-.2-.25-.535-.338-.926-.085-.401-.182-.786-.492-1.046h-.003c-.059-.054-.123-.067-.188-.135a.357.357 0 00-.19-.064c.431-1.278.264-2.55-.173-3.694-.533-1.41-1.465-2.638-2.175-3.483-.796-1.005-1.576-1.957-1.56-3.368.026-2.152.236-6.133-3.544-6.139zm.529 3.405h.013c.213 0 .396.062.584.198.19.135.33.332.438.533.105.259.158.459.166.724 0-.02.006-.04.006-.06v.105a.086.086 0 01-.004-.021l-.004-.024a1.807 1.807 0 01-.15.706.953.953 0 01-.213.335.71.71 0 00-.088-.042c-.104-.045-.198-.064-.284-.133a1.312 1.312 0 00-.22-.066c.05-.06.146-.133.183-.198.053-.128.082-.264.088-.402v-.02a1.21 1.21 0 00-.061-.4c-.045-.134-.101-.2-.183-.333-.084-.066-.167-.132-.267-.132h-.016c-.093 0-.176.03-.262.132a.8.8 0 00-.205.334 1.18 1.18 0 00-.09.4v.019c.002.089.008.179.02.267-.193-.067-.438-.135-.607-.202a1.635 1.635 0 01-.018-.2v-.02a1.772 1.772 0 01.15-.768c.082-.22.232-.406.43-.533a.985.985 0 01.594-.2zm-2.962.059h.036c.142 0 .27.048.399.135.146.129.264.288.344.465.09.199.14.4.153.667v.004c.007.134.006.2-.002.266v.08c-.03.007-.056.018-.083.024-.152.055-.274.135-.393.2.012-.09.013-.18.003-.267v-.015c-.012-.133-.04-.2-.082-.333a.613.613 0 00-.166-.267.248.248 0 00-.183-.064h-.021c-.071.006-.13.04-.186.132a.552.552 0 00-.12.27.944.944 0 00-.023.33v.015c.012.135.037.2.08.334.046.134.098.2.166.268.01.009.02.018.034.024-.07.057-.117.07-.176.136a.304.304 0 01-.131.068 2.62 2.62 0 01-.275-.402 1.772 1.772 0 01-.155-.667 1.759 1.759 0 01.08-.668 1.43 1.43 0 01.283-.535c.128-.133.26-.2.418-.2zm1.37 1.706c.332 0 .733.065 1.216.399.293.2.523.269 1.052.468h.003c.255.136.405.266.478.399v-.131a.571.571 0 01.016.47c-.123.31-.516.643-1.063.842v.002c-.268.135-.501.333-.775.465-.276.135-.588.292-1.012.267a1.139 1.139 0 01-.448-.067 3.566 3.566 0 01-.322-.198c-.195-.135-.363-.332-.612-.465v-.005h-.005c-.4-.246-.616-.512-.686-.71-.07-.268-.005-.47.193-.6.224-.135.38-.271.483-.336.104-.074.143-.102.176-.131h.002v-.003c.169-.202.436-.47.839-.601.139-.036.294-.065.466-.065zm2.8 2.142c.358 1.417 1.196 3.475 1.735 4.473.286.534.855 1.659 1.102 3.024.156-.005.33.018.513.064.646-1.671-.546-3.467-1.089-3.966-.22-.2-.232-.335-.123-.335.59.534 1.365 1.572 1.646 2.757.13.535.16 1.104.021 1.67.067.028.135.06.205.067 1.032.534 1.413.938 1.23 1.537v-.043c-.06-.003-.12 0-.18 0h-.016c.151-.467-.182-.825-1.065-1.224-.915-.4-1.646-.336-1.77.465-.008.043-.013.066-.018.135-.068.023-.139.053-.209.064-.43.268-.662.669-.793 1.187-.13.533-.17 1.156-.205 1.869v.003c-.02.334-.17.838-.319 1.35-1.5 1.072-3.58 1.538-5.348.334a2.645 2.645 0 00-.402-.533 1.45 1.45 0 00-.275-.333c.182 0 .338-.03.465-.067a.615.615 0 00.314-.334c.108-.267 0-.697-.345-1.163-.345-.467-.931-.995-1.788-1.521-.63-.4-.986-.87-1.15-1.396-.165-.534-.143-1.085-.015-1.645.245-1.07.873-2.11 1.274-2.763.107-.065.037.135-.408.974-.396.751-1.14 2.497-.122 3.854a8.123 8.123 0 01.647-2.876c.564-1.278 1.743-3.504 1.836-5.268.048.036.217.135.289.202.218.133.38.333.59.465.21.201.477.335.876.335.039.003.075.006.11.006.412 0 .73-.134.997-.268.29-.134.52-.334.74-.4h.005c.467-.135.835-.402 1.044-.7zm2.185 8.958c.037.6.343 1.245.882 1.377.588.134 1.434-.333 1.791-.765l.211-.01c.315-.007.577.01.847.268l.003.003c.208.199.305.53.391.876.085.4.154.78.409 1.066.486.527.645.906.636 1.14l.003-.007v.018l-.003-.012c-.015.262-.185.396-.498.595-.63.401-1.746.712-2.457 1.57-.618.737-1.37 1.14-2.036 1.191-.664.053-1.237-.2-1.574-.898l-.005-.003c-.21-.4-.12-1.025.056-1.69.176-.668.428-1.344.463-1.897.037-.714.076-1.335.195-1.814.117-.468.32-.754.689-.964.016-.005.025-.003.038-.01zm-9.143.034c-.054-.078-.098-.249-.183-.334-.208.029-.416.132-.654.268-.238.135-.51.335-.839.601.058.1.12.133.186.266h.001c.053.135.1.2.138.335.04.134.067.268.082.399.043.066.08.135.111.2.186-.066.37-.2.504-.335.082-.134.139-.268.166-.334.08-.135.057-.2-.059-.4z"/>
+                                </svg>
+                            </div>
+                            <div class="font-semibold text-lg mb-1">Linux</div>
+                            <div class="text-sm text-gray-500">AppImage / .deb</div>
+                        </a>
+
+                        <!-- Windows -->
+                        <a href="https://github.com/pocketkk/TheProgram/releases/latest" class="download-card rounded-2xl p-6 text-center group">
+                            <div class="text-4xl mb-3 transition-transform group-hover:scale-110">
+                                <svg class="w-10 h-10 mx-auto text-gray-300" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/>
+                                </svg>
+                            </div>
+                            <div class="font-semibold text-lg mb-1">Windows</div>
+                            <div class="text-sm text-gray-500">.exe installer</div>
+                        </a>
+
+                        <!-- macOS -->
+                        <a href="https://github.com/pocketkk/TheProgram/releases/latest" class="download-card rounded-2xl p-6 text-center group">
+                            <div class="text-4xl mb-3 transition-transform group-hover:scale-110">
+                                <svg class="w-10 h-10 mx-auto text-gray-300" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+                                </svg>
+                            </div>
+                            <div class="font-semibold text-lg mb-1">macOS</div>
+                            <div class="text-sm text-gray-500">.dmg (Apple Silicon)</div>
+                        </a>
+                    </div>
+
+                    <p class="text-center text-sm text-gray-500">
+                        <span class="text-celestial-gold">macOS note:</span> Right-click and select "Open" the first time (unsigned app)
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Philosophy Section -->
+        <section class="py-24 px-6">
+            <div class="max-w-3xl mx-auto text-center reveal">
+                <div class="feature-icon w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-8">
+                    <svg class="w-7 h-7 text-celestial-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                    </svg>
+                </div>
+                <span class="inline-block text-celestial-gold text-sm font-medium tracking-widest uppercase mb-4">Digital Independence</span>
+                <h2 class="font-display text-3xl md:text-4xl font-semibold mb-6">
+                    Hosted Independently
+                </h2>
+                <p class="text-gray-400 text-lg leading-relaxed mb-8">
+                    This website runs from a home server. No AWS, no corporate cloud, no tracking.
+                    When we say your data stays private, we mean it&mdash;even our website practices what we preach.
+                </p>
+                <div class="flex flex-wrap justify-center gap-6 text-sm text-gray-500">
+                    <div class="flex items-center gap-2">
+                        <svg class="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                        Self-Hosted
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <svg class="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                        No Analytics
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <svg class="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                        No Cookies
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <svg class="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                        Open Source
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="border-t border-white/5">
+            <div class="max-w-6xl mx-auto px-6 py-12">
+                <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-celestial-gold to-celestial-rose flex items-center justify-center text-cosmic-950 font-bold text-sm">
+                            P
+                        </div>
+                        <span class="text-gray-400 text-sm">
+                            &copy; 2026 The Program. Open source under ISC license.
+                        </span>
+                    </div>
+                    <div class="flex items-center gap-8">
+                        <a href="https://github.com/pocketkk/TheProgram" class="text-gray-400 hover:text-white transition text-sm flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                            GitHub
+                        </a>
+                        <a href="https://github.com/pocketkk/TheProgram/issues" class="text-gray-400 hover:text-white transition text-sm">
+                            Report Issue
+                        </a>
+                        <a href="https://github.com/pocketkk/TheProgram/releases" class="text-gray-400 hover:text-white transition text-sm">
+                            Releases
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Generate stars with varying sizes and animations
+        const starsContainer = document.getElementById('stars');
+        const starCount = 150;
+
+        for (let i = 0; i < starCount; i++) {
+            const star = document.createElement('div');
+            const isLarge = Math.random() > 0.85;
+            star.className = isLarge ? 'star star-large' : 'star';
+            star.style.left = Math.random() * 100 + '%';
+            star.style.top = Math.random() * 100 + '%';
+            star.style.setProperty('--duration', (3 + Math.random() * 4) + 's');
+            star.style.setProperty('--delay', Math.random() * 5 + 's');
+            starsContainer.appendChild(star);
+        }
+
+        // Scroll reveal animation
+        const revealElements = document.querySelectorAll('.reveal');
+
+        const revealOnScroll = () => {
+            const windowHeight = window.innerHeight;
+            revealElements.forEach(element => {
+                const elementTop = element.getBoundingClientRect().top;
+                const revealPoint = 100;
+
+                if (elementTop < windowHeight - revealPoint) {
+                    element.classList.add('visible');
+                }
+            });
+        };
+
+        window.addEventListener('scroll', revealOnScroll);
+        window.addEventListener('load', revealOnScroll);
+
+        // Mobile menu toggle
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobileMenu');
+            menu.classList.toggle('active');
+        }
+
+        // Close mobile menu on link click
+        document.querySelectorAll('#mobileMenu a').forEach(link => {
+            link.addEventListener('click', () => {
+                document.getElementById('mobileMenu').classList.remove('active');
+            });
+        });
+
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
