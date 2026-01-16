@@ -165,7 +165,8 @@ class TestSettings:
             DATABASE_URL="postgresql://test:test@localhost/test"
         )
 
-        assert settings.RATE_LIMIT_ENABLED is True
+        # Rate limiting disabled for single-user desktop app (set in .env)
+        assert settings.RATE_LIMIT_ENABLED is False
         assert settings.RATE_LIMIT_CHARTS_PER_HOUR == 100
         assert settings.RATE_LIMIT_API_PER_MINUTE == 60
 

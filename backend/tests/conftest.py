@@ -276,7 +276,7 @@ def test_db():
     Yields:
         Database session
     """
-    from sqlalchemy import create_engine
+    from sqlalchemy import create_engine, text
     from sqlalchemy.orm import sessionmaker
     from sqlalchemy.pool import StaticPool
     from app.core.database_sqlite import Base
@@ -316,7 +316,14 @@ def test_db():
 
     # Cleanup
     session.close()
-    Base.metadata.drop_all(bind=engine)
+    # Disable FK constraints to avoid circular dependency issues during drop
+    with engine.connect() as conn:
+        conn.execute(text("PRAGMA foreign_keys=OFF"))
+        conn.commit()
+    try:
+        Base.metadata.drop_all(bind=engine)
+    except Exception:
+        pass  # In-memory DB will be destroyed anyway
 
 
 @pytest.fixture(scope="function")
