@@ -7,7 +7,19 @@ A professional desktop astrology application for personal chart analysis, featur
 **The Program** is an Electron-based desktop app with a Python/FastAPI backend and React/TypeScript frontend. All data is stored locally in SQLite.
 
 **Version**: 1.0.0
-**Platforms**: Linux (AppImage, deb) - Windows/macOS builds possible
+**Platforms**: Linux, Windows, macOS
+
+## Download
+
+Get the latest release from [GitHub Releases](https://github.com/pocketkk/TheProgram/releases):
+
+| Platform | Download |
+|----------|----------|
+| **Linux** | `.AppImage` (universal) or `.deb` (Debian/Ubuntu) |
+| **Windows** | `.exe` installer |
+| **macOS** | `.dmg` (Apple Silicon) |
+
+> **Note**: macOS users may need to right-click → Open the first time (unsigned app).
 
 ## Features
 
@@ -23,9 +35,12 @@ A professional desktop astrology application for personal chart analysis, featur
 
 ### Install from Release
 
-Download from `release/`:
-- **AppImage**: `./The\ Program-1.0.0.AppImage --no-sandbox`
-- **Debian**: `sudo dpkg -i theprogram_1.0.0_amd64.deb`
+Download from [Releases](https://github.com/pocketkk/TheProgram/releases), then:
+
+- **Linux AppImage**: `chmod +x *.AppImage && ./The\ Program-*.AppImage`
+- **Linux .deb**: `sudo dpkg -i theprogram_*.deb`
+- **Windows**: Run the `.exe` installer
+- **macOS**: Open the `.dmg`, drag to Applications, right-click → Open first time
 
 ### Development Setup
 
