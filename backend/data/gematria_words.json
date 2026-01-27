@@ -1,0 +1,370 @@
+{
+  "hebrew": {
+    "1": [
+      {"word": "א", "transliteration": "Aleph", "meaning": "First letter, breath, ox"}
+    ],
+    "3": [
+      {"word": "אב", "transliteration": "Av", "meaning": "Father"}
+    ],
+    "5": [
+      {"word": "ה", "transliteration": "Heh", "meaning": "Window, breath of God"}
+    ],
+    "6": [
+      {"word": "ו", "transliteration": "Vav", "meaning": "Hook, connection"}
+    ],
+    "7": [
+      {"word": "גד", "transliteration": "Gad", "meaning": "Fortune, tribe of Israel"},
+      {"word": "אחה", "transliteration": "Achah", "meaning": "Brother (archaic)"}
+    ],
+    "8": [
+      {"word": "חו", "transliteration": "Chav", "meaning": "Living one"},
+      {"word": "דד", "transliteration": "Dad", "meaning": "Beloved, uncle"}
+    ],
+    "9": [
+      {"word": "אהב", "transliteration": "Ahav", "meaning": "He loved"},
+      {"word": "דהב", "transliteration": "Dahav", "meaning": "Gold (archaic)"}
+    ],
+    "10": [
+      {"word": "י", "transliteration": "Yod", "meaning": "Hand, smallest letter, divine spark"},
+      {"word": "גז", "transliteration": "Gaz", "meaning": "Shearing, fleece"}
+    ],
+    "12": [
+      {"word": "הוא", "transliteration": "Hu", "meaning": "He (divine pronoun)"},
+      {"word": "זה", "transliteration": "Zeh", "meaning": "This"}
+    ],
+    "13": [
+      {"word": "אהבה", "transliteration": "Ahavah", "meaning": "Love"},
+      {"word": "אחד", "transliteration": "Echad", "meaning": "One, unity"}
+    ],
+    "14": [
+      {"word": "דוד", "transliteration": "David", "meaning": "Beloved, King David"},
+      {"word": "יד", "transliteration": "Yad", "meaning": "Hand"},
+      {"word": "זהב", "transliteration": "Zahav", "meaning": "Gold"}
+    ],
+    "15": [
+      {"word": "יה", "transliteration": "Yah", "meaning": "Divine name (short form)"},
+      {"word": "הוד", "transliteration": "Hod", "meaning": "Glory, splendor (sefirah)"}
+    ],
+    "17": [
+      {"word": "טוב", "transliteration": "Tov", "meaning": "Good"},
+      {"word": "חטא", "transliteration": "Cheit", "meaning": "Sin (letters spell 'life' reversed)"}
+    ],
+    "18": [
+      {"word": "חי", "transliteration": "Chai", "meaning": "Life, living"},
+      {"word": "חבי", "transliteration": "Chavi", "meaning": "My hiding place"}
+    ],
+    "19": [
+      {"word": "חוה", "transliteration": "Chavah", "meaning": "Eve, mother of all living"}
+    ],
+    "21": [
+      {"word": "אהיה", "transliteration": "Ehyeh", "meaning": "I Am (divine name)"},
+      {"word": "יהא", "transliteration": "Yehi", "meaning": "Let there be"}
+    ],
+    "22": [
+      {"word": "יחד", "transliteration": "Yachad", "meaning": "Together, unity"},
+      {"word": "חדי", "transliteration": "Chadi", "meaning": "My joy"}
+    ],
+    "23": [
+      {"word": "חיה", "transliteration": "Chayah", "meaning": "Living creature, beast"},
+      {"word": "חדוה", "transliteration": "Chedvah", "meaning": "Joy"}
+    ],
+    "26": [
+      {"word": "יהוה", "transliteration": "YHVH", "meaning": "The Tetragrammaton, ineffable name of God"}
+    ],
+    "30": [
+      {"word": "ל", "transliteration": "Lamed", "meaning": "To learn/teach, ox-goad"},
+      {"word": "יהודה", "transliteration": "Yehudah", "meaning": "Judah, praise"}
+    ],
+    "31": [
+      {"word": "אל", "transliteration": "El", "meaning": "God, mighty one"},
+      {"word": "לא", "transliteration": "Lo", "meaning": "Not, no"}
+    ],
+    "32": [
+      {"word": "לב", "transliteration": "Lev", "meaning": "Heart"},
+      {"word": "כבוד", "transliteration": "Kavod", "meaning": "Glory, honor"}
+    ],
+    "36": [
+      {"word": "אלוה", "transliteration": "Eloah", "meaning": "God (singular form)"}
+    ],
+    "37": [
+      {"word": "הבל", "transliteration": "Hevel", "meaning": "Abel, breath, vanity"},
+      {"word": "יחל", "transliteration": "Yachel", "meaning": "He will hope"}
+    ],
+    "39": [
+      {"word": "טל", "transliteration": "Tal", "meaning": "Dew"},
+      {"word": "לט", "transliteration": "Lat", "meaning": "To cover, hide"}
+    ],
+    "40": [
+      {"word": "מ", "transliteration": "Mem", "meaning": "Water, from, open/closed"},
+      {"word": "גאל", "transliteration": "Gaal", "meaning": "Redeemed"}
+    ],
+    "41": [
+      {"word": "אם", "transliteration": "Em", "meaning": "Mother"},
+      {"word": "גאלה", "transliteration": "Geulah", "meaning": "Redemption"}
+    ],
+    "42": [
+      {"word": "בלא", "transliteration": "Belo", "meaning": "Without"},
+      {"word": "לבא", "transliteration": "Lavo", "meaning": "To come"}
+    ],
+    "44": [
+      {"word": "דם", "transliteration": "Dam", "meaning": "Blood"},
+      {"word": "טלה", "transliteration": "Taleh", "meaning": "Lamb"}
+    ],
+    "45": [
+      {"word": "אדם", "transliteration": "Adam", "meaning": "Man, humanity"},
+      {"word": "מה", "transliteration": "Mah", "meaning": "What?"}
+    ],
+    "46": [
+      {"word": "לוי", "transliteration": "Levi", "meaning": "Attached, tribe of priests"},
+      {"word": "אמה", "transliteration": "Amah", "meaning": "Cubit, maidservant"}
+    ],
+    "49": [
+      {"word": "מט", "transliteration": "Met", "meaning": "Staff, rod"},
+      {"word": "טמא", "transliteration": "Tamei", "meaning": "Impure"}
+    ],
+    "50": [
+      {"word": "נ", "transliteration": "Nun", "meaning": "Fish, faithfulness"},
+      {"word": "כל", "transliteration": "Kol", "meaning": "All, everything"}
+    ],
+    "52": [
+      {"word": "בן", "transliteration": "Ben", "meaning": "Son"},
+      {"word": "אליהו", "transliteration": "Eliyahu", "meaning": "Elijah"}
+    ],
+    "53": [
+      {"word": "גן", "transliteration": "Gan", "meaning": "Garden (as in Eden)"},
+      {"word": "אבן", "transliteration": "Even", "meaning": "Stone"}
+    ],
+    "57": [
+      {"word": "מגן", "transliteration": "Magen", "meaning": "Shield"},
+      {"word": "נאמן", "transliteration": "Ne'eman", "meaning": "Faithful"}
+    ],
+    "58": [
+      {"word": "נח", "transliteration": "Noach", "meaning": "Noah, rest, comfort"},
+      {"word": "חן", "transliteration": "Chen", "meaning": "Grace, favor"}
+    ],
+    "60": [
+      {"word": "ס", "transliteration": "Samech", "meaning": "Support, protect"},
+      {"word": "נהג", "transliteration": "Nahag", "meaning": "Driver, leader"}
+    ],
+    "65": [
+      {"word": "אדני", "transliteration": "Adonai", "meaning": "Lord, my Master"},
+      {"word": "היכל", "transliteration": "Heichal", "meaning": "Temple, palace"}
+    ],
+    "68": [
+      {"word": "חיים", "transliteration": "Chaim", "meaning": "Life (plural, full life)"},
+      {"word": "חכם", "transliteration": "Chacham", "meaning": "Wise one"}
+    ],
+    "70": [
+      {"word": "ע", "transliteration": "Ayin", "meaning": "Eye, fountain"},
+      {"word": "סוד", "transliteration": "Sod", "meaning": "Secret, mystery"},
+      {"word": "יין", "transliteration": "Yayin", "meaning": "Wine"}
+    ],
+    "72": [
+      {"word": "חסד", "transliteration": "Chesed", "meaning": "Lovingkindness (sefirah)"},
+      {"word": "בינה", "transliteration": "Binah", "meaning": "Understanding (sefirah)"}
+    ],
+    "73": [
+      {"word": "חכמה", "transliteration": "Chochmah", "meaning": "Wisdom (sefirah)"},
+      {"word": "גמל", "transliteration": "Gamal", "meaning": "Camel, reward"}
+    ],
+    "78": [
+      {"word": "לחם", "transliteration": "Lechem", "meaning": "Bread"},
+      {"word": "מזל", "transliteration": "Mazal", "meaning": "Fortune, constellation"}
+    ],
+    "80": [
+      {"word": "פ", "transliteration": "Peh", "meaning": "Mouth"},
+      {"word": "יסוד", "transliteration": "Yesod", "meaning": "Foundation (sefirah)"}
+    ],
+    "86": [
+      {"word": "אלהים", "transliteration": "Elohim", "meaning": "God (creative power)"},
+      {"word": "הטבע", "transliteration": "HaTeva", "meaning": "Nature"}
+    ],
+    "90": [
+      {"word": "צ", "transliteration": "Tzadi", "meaning": "Righteous one, fish hook"},
+      {"word": "מלך", "transliteration": "Melech", "meaning": "King"}
+    ],
+    "91": [
+      {"word": "אמן", "transliteration": "Amen", "meaning": "So be it, truth, faithfulness"},
+      {"word": "מלאך", "transliteration": "Malach", "meaning": "Angel, messenger"}
+    ],
+    "100": [
+      {"word": "ק", "transliteration": "Qoph", "meaning": "Back of head, monkey"},
+      {"word": "כף", "transliteration": "Kaph", "meaning": "Palm, spoon"}
+    ],
+    "101": [
+      {"word": "מיכאל", "transliteration": "Michael", "meaning": "Who is like God? (archangel)"}
+    ],
+    "111": [
+      {"word": "אלף", "transliteration": "Elef", "meaning": "Thousand, ox"},
+      {"word": "פלא", "transliteration": "Peleh", "meaning": "Wonder, miracle"}
+    ],
+    "120": [
+      {"word": "סמך", "transliteration": "Samach", "meaning": "To support"},
+      {"word": "עלם", "transliteration": "Olam", "meaning": "World, eternity"}
+    ],
+    "137": [
+      {"word": "קבלה", "transliteration": "Kabbalah", "meaning": "Receiving, mystical tradition"}
+    ],
+    "148": [
+      {"word": "נצח", "transliteration": "Netzach", "meaning": "Victory, eternity (sefirah)"}
+    ],
+    "200": [
+      {"word": "ר", "transliteration": "Resh", "meaning": "Head, beginning"},
+      {"word": "עץ", "transliteration": "Etz", "meaning": "Tree"}
+    ],
+    "207": [
+      {"word": "אור", "transliteration": "Or", "meaning": "Light"},
+      {"word": "אין סוף", "transliteration": "Ein Sof", "meaning": "Infinite (aspect of God)"}
+    ],
+    "216": [
+      {"word": "גבורה", "transliteration": "Gevurah", "meaning": "Strength, judgment (sefirah)"},
+      {"word": "יראה", "transliteration": "Yirah", "meaning": "Fear, awe"}
+    ],
+    "232": [
+      {"word": "ברכה", "transliteration": "Bracha", "meaning": "Blessing"},
+      {"word": "דבר", "transliteration": "Davar", "meaning": "Word, thing"}
+    ],
+    "248": [
+      {"word": "אברהם", "transliteration": "Avraham", "meaning": "Abraham, father of many nations"},
+      {"word": "רחם", "transliteration": "Rechem", "meaning": "Womb, compassion"}
+    ],
+    "256": [
+      {"word": "אהרן", "transliteration": "Aharon", "meaning": "Aaron, high priest"}
+    ],
+    "300": [
+      {"word": "ש", "transliteration": "Shin", "meaning": "Tooth, fire, divine presence"},
+      {"word": "רוח", "transliteration": "Ruach", "meaning": "Spirit, wind, breath"}
+    ],
+    "314": [
+      {"word": "שדי", "transliteration": "Shaddai", "meaning": "Almighty, All-sufficient"}
+    ],
+    "340": [
+      {"word": "שפר", "transliteration": "Shofar", "meaning": "Ram's horn"},
+      {"word": "ספר", "transliteration": "Sefer", "meaning": "Book"}
+    ],
+    "345": [
+      {"word": "משה", "transliteration": "Moshe", "meaning": "Moses, drawn from water"},
+      {"word": "השם", "transliteration": "HaShem", "meaning": "The Name (God)"}
+    ],
+    "350": [
+      {"word": "שער", "transliteration": "Shaar", "meaning": "Gate"},
+      {"word": "נשמה", "transliteration": "Neshamah", "meaning": "Soul (highest level)"}
+    ],
+    "358": [
+      {"word": "משיח", "transliteration": "Mashiach", "meaning": "Messiah, anointed one"},
+      {"word": "נחש", "transliteration": "Nachash", "meaning": "Serpent"}
+    ],
+    "370": [
+      {"word": "שלום", "transliteration": "Shalom", "meaning": "Peace, wholeness, completeness"}
+    ],
+    "400": [
+      {"word": "ת", "transliteration": "Tav", "meaning": "Mark, sign, cross"},
+      {"word": "עש", "transliteration": "Ash", "meaning": "Moth"}
+    ],
+    "410": [
+      {"word": "קדש", "transliteration": "Kadosh", "meaning": "Holy"},
+      {"word": "שמע", "transliteration": "Shema", "meaning": "Hear (prayer)"}
+    ],
+    "434": [
+      {"word": "דלת", "transliteration": "Dalet", "meaning": "Door, pathway"}
+    ],
+    "441": [
+      {"word": "אמת", "transliteration": "Emet", "meaning": "Truth"}
+    ],
+    "480": [
+      {"word": "תלמיד", "transliteration": "Talmid", "meaning": "Student, disciple"}
+    ],
+    "500": [
+      {"word": "שר", "transliteration": "Sar", "meaning": "Prince, ruler"}
+    ],
+    "541": [
+      {"word": "ישראל", "transliteration": "Israel", "meaning": "One who wrestles with God"}
+    ],
+    "546": [
+      {"word": "כתר", "transliteration": "Keter", "meaning": "Crown (highest sefirah)"}
+    ],
+    "586": [
+      {"word": "ירושלים", "transliteration": "Yerushalayim", "meaning": "Jerusalem"}
+    ],
+    "620": [
+      {"word": "כתר", "transliteration": "Keter", "meaning": "Crown (alternate spelling)"}
+    ],
+    "666": [
+      {"word": "סתרא אחרא", "transliteration": "Sitra Achra", "meaning": "The Other Side (evil realm)"}
+    ],
+    "770": [
+      {"word": "בית משיח", "transliteration": "Beit Mashiach", "meaning": "House of Messiah"}
+    ]
+  },
+  "english": {
+    "26": [
+      {"word": "God", "meaning": "The Supreme Being"}
+    ],
+    "36": [
+      {"word": "Eye", "meaning": "Window to the soul"}
+    ],
+    "52": [
+      {"word": "Earth", "meaning": "Our physical world"},
+      {"word": "Heart", "meaning": "Center of emotion and spirit"}
+    ],
+    "54": [
+      {"word": "Love", "meaning": "Divine connection"},
+      {"word": "Hope", "meaning": "Expectation of good"}
+    ],
+    "56": [
+      {"word": "Light", "meaning": "Divine illumination"}
+    ],
+    "65": [
+      {"word": "Peace", "meaning": "Harmony and wholeness"}
+    ],
+    "66": [
+      {"word": "Father", "meaning": "Source, progenitor"}
+    ],
+    "70": [
+      {"word": "Dream", "meaning": "Vision of the soul"}
+    ],
+    "72": [
+      {"word": "Money", "meaning": "Energy exchange"}
+    ],
+    "77": [
+      {"word": "Christ", "meaning": "The Anointed One"}
+    ],
+    "78": [
+      {"word": "Prayer", "meaning": "Communication with the divine"}
+    ],
+    "83": [
+      {"word": "Wisdom", "meaning": "Applied knowledge"}
+    ],
+    "86": [
+      {"word": "Nature", "meaning": "The created world (same as Elohim)"}
+    ],
+    "89": [
+      {"word": "Divine", "meaning": "Of God"}
+    ],
+    "93": [
+      {"word": "Spirit", "meaning": "Life force"}
+    ],
+    "99": [
+      {"word": "Thirteen", "meaning": "Love and unity in Hebrew"}
+    ],
+    "101": [
+      {"word": "Michael", "meaning": "Who is like God?"}
+    ],
+    "110": [
+      {"word": "Miracle", "meaning": "Divine intervention"}
+    ],
+    "111": [
+      {"word": "Beginning", "meaning": "The start of creation"}
+    ]
+  },
+  "metadata": {
+    "version": "1.0",
+    "description": "Gematria word database for The Program",
+    "sources": [
+      "Traditional Hebrew gematria",
+      "Kabbalistic texts",
+      "Standard English ordinal"
+    ],
+    "last_updated": "2025-01-27"
+  }
+}

@@ -12,6 +12,7 @@ import {
   Sparkles,
   Hexagon,
   Hash,
+  Languages,
   User,
   Palette,
   Wand2,
@@ -52,6 +53,7 @@ const navigation: NavigationItem[] = [
   { name: 'Tarot', icon: Sparkles, page: 'tarot', section: 'exploration' },
   { name: 'I-Ching', icon: Hexagon, page: 'iching', section: 'exploration' },
   { name: 'Numerology', icon: Hash, page: 'numerology', section: 'exploration' },
+  { name: 'Gematria', icon: Languages, page: 'gematria', section: 'exploration' },
   // Phase 4: Human Design
   { name: 'Human Design', icon: User, page: 'humandesign', section: 'exploration' },
   // Phase 5: Image Generation
