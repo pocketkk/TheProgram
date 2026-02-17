@@ -40,7 +40,7 @@ import { Button } from '@/components/ui'
 import { SolarSystemScene } from './components/SolarSystemScene'
 import { celestialBodies, getPlanets as _getPlanets } from './data'
 import { UNIT_CONVERSIONS } from './constants'
-import { dateToJulianDay, ZODIAC_SIGNS as _ZODIAC_SIGNS } from '@/lib/astronomy/planetaryData'
+import { dateToJulianDay, ZODIAC_SIGNS as _ZODIAC_SIGNS, getRetrogradeStatus } from '@/lib/astronomy/planetaryData'
 import { getPlanetInfo, formatZodiacPosition, getElementDescription } from '@/lib/astronomy/planetInfo'
 import { getDignityIcon, getDignityLabel } from '@/lib/astronomy/planetaryDignities'
 import { BirthChartForm } from './components/BirthChartForm'
@@ -79,7 +79,7 @@ const createInitialBodyStates = (): Record<string, BodyState> => {
           body: true,
           orbit: true,
           label: false, // Labels off by default - press L to toggle
-          trail: false, // Trails off by default
+          trail: true, // Trails on by default
           footprint: false, // Footprints off by default - cleaner view
           projectionLine: false, // Projection lines off by default
           glow: true,
@@ -478,7 +478,7 @@ export const CosmicVisualizerPage = () => {
   }
 
   const [cameraMode, setCameraMode] = useState<'default' | 'earth'>('default')
-  const [referenceFrame, setReferenceFrame] = useState<'heliocentric' | 'geocentric'>('heliocentric')
+  const [referenceFrame, setReferenceFrame] = useState<'heliocentric' | 'geocentric'>('geocentric')
   const [selectedPlanets, setSelectedPlanets] = useState<string[]>([])
   const [showSettings, setShowSettings] = useState(false)
   const [cameraLocked, setCameraLocked] = useState(true)
@@ -501,6 +501,84 @@ export const CosmicVisualizerPage = () => {
   const [showDateTimePicker, setShowDateTimePicker] = useState(false)
 
   const intervalIdRef = useRef<number | null>(null)
+
+  // Demo mode state
+  const [isDemoMode, setIsDemoMode] = useState(false)
+  const [demoEventLabel, setDemoEventLabel] = useState<string | null>(null)
+  const demoEndDateRef = useRef<Date | null>(null)
+  const demoStartDateRef = useRef<Date | null>(null)
+  const prevRetroRef = useRef<Record<string, boolean>>({})
+  const retroCheckCounter = useRef(0)
+  const eventLabelTimerRef = useRef<number | null>(null)
+
+  const startDemo = useCallback(() => {
+    const oneYearAgo = new Date()
+    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1)
+    demoStartDateRef.current = oneYearAgo
+    demoEndDateRef.current = new Date()
+    prevRetroRef.current = {}
+    retroCheckCounter.current = 0
+
+    setCurrentDate(oneYearAgo)
+    setReferenceFrame('geocentric')
+    setSpeed(3)
+    updateMultipleBodies({ trail: true })
+    setIsDemoMode(true)
+    setDemoEventLabel(null)
+    setIsPlaying(true)
+  }, [updateMultipleBodies])
+
+  const stopDemo = useCallback(() => {
+    setIsDemoMode(false)
+    setDemoEventLabel(null)
+    setIsPlaying(false)
+    if (eventLabelTimerRef.current !== null) {
+      clearTimeout(eventLabelTimerRef.current)
+      eventLabelTimerRef.current = null
+    }
+  }, [])
+
+  // Retrograde detection during demo
+  useEffect(() => {
+    if (!isDemoMode || !isPlaying) return
+
+    retroCheckCounter.current += 1
+    if (retroCheckCounter.current % 5 !== 0) return // check every 5 frames
+
+    const currentRetro = getRetrogradeStatus(julianDay)
+    const prev = prevRetroRef.current
+
+    const PLANET_NAMES: Record<string, string> = {
+      mercury: 'Mercury', venus: 'Venus', mars: 'Mars',
+      jupiter: 'Jupiter', saturn: 'Saturn', uranus: 'Uranus',
+      neptune: 'Neptune', pluto: 'Pluto',
+    }
+
+    for (const [planet, isRetro] of Object.entries(currentRetro)) {
+      const wasRetro = prev[planet] ?? false
+      if (isRetro && !wasRetro) {
+        const label = `${PLANET_NAMES[planet] ?? planet} retrograde`
+        setDemoEventLabel(label)
+        if (eventLabelTimerRef.current !== null) clearTimeout(eventLabelTimerRef.current)
+        eventLabelTimerRef.current = window.setTimeout(() => setDemoEventLabel(null), 3000)
+      } else if (!isRetro && wasRetro) {
+        const label = `${PLANET_NAMES[planet] ?? planet} direct`
+        setDemoEventLabel(label)
+        if (eventLabelTimerRef.current !== null) clearTimeout(eventLabelTimerRef.current)
+        eventLabelTimerRef.current = window.setTimeout(() => setDemoEventLabel(null), 3000)
+      }
+    }
+
+    prevRetroRef.current = currentRetro
+  }, [julianDay, isDemoMode, isPlaying])
+
+  // Stop demo when we reach today
+  useEffect(() => {
+    if (!isDemoMode || !demoEndDateRef.current) return
+    if (currentDate >= demoEndDateRef.current) {
+      stopDemo()
+    }
+  }, [currentDate, isDemoMode, stopDemo])
 
   // Update Julian day when date changes
   useEffect(() => {
@@ -1068,6 +1146,87 @@ export const CosmicVisualizerPage = () => {
             resetCameraTrigger={resetCameraTrigger}
           />
         </div>
+
+        {/* Demo Mode — "Watch the year unfold" button */}
+        <AnimatePresence>
+          {!isDemoMode && !isPlaying && (
+            <motion.button
+              key="demo-invite"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              onClick={startDemo}
+              className="absolute bottom-24 left-1/2 -translate-x-1/2 flex items-center gap-2
+                px-5 py-2.5 rounded-full
+                bg-cosmic-900/70 border border-cosmic-500/40 backdrop-blur-sm
+                text-cosmic-300 hover:text-white hover:border-cosmic-400/70
+                text-sm font-medium transition-all hover:bg-cosmic-800/80
+                shadow-lg shadow-cosmic-900/40"
+            >
+              <Play className="h-4 w-4" />
+              Watch the last year unfold
+            </motion.button>
+          )}
+        </AnimatePresence>
+
+        {/* Demo Mode — date progress + event label overlay */}
+        <AnimatePresence>
+          {isDemoMode && (
+            <motion.div
+              key="demo-overlay"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute bottom-24 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 pointer-events-none"
+            >
+              {/* Event label */}
+              <AnimatePresence>
+                {demoEventLabel && (
+                  <motion.div
+                    key={demoEventLabel}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    className="px-4 py-1.5 rounded-full bg-cosmic-500/80 backdrop-blur-sm
+                      text-white text-sm font-semibold shadow-lg border border-cosmic-400/50"
+                  >
+                    ✦ {demoEventLabel}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Progress bar */}
+              {demoStartDateRef.current && demoEndDateRef.current && (
+                <div className="flex items-center gap-3">
+                  <span className="text-cosmic-400 text-xs">
+                    {demoStartDateRef.current.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                  </span>
+                  <div className="w-48 h-1 rounded-full bg-cosmic-800/80 overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-cosmic-500 to-cosmic-300 transition-all"
+                      style={{
+                        width: `${Math.min(100, Math.max(0,
+                          (currentDate.getTime() - demoStartDateRef.current.getTime()) /
+                          (demoEndDateRef.current.getTime() - demoStartDateRef.current.getTime()) * 100
+                        ))}%`
+                      }}
+                    />
+                  </div>
+                  <span className="text-cosmic-400 text-xs">
+                    {demoEndDateRef.current.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                  </span>
+                </div>
+              )}
+
+              <button
+                onClick={stopDemo}
+                className="pointer-events-auto text-cosmic-500 hover:text-cosmic-300 text-xs transition-colors"
+              >
+                Stop
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Comprehensive Settings Panel */}
         <AnimatePresence>
