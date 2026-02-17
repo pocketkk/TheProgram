@@ -266,10 +266,11 @@ const CINEMATIC_SEQUENCE: CinematicShot[] = [
   { id: 'saturn',  title: 'SATURN',  epithet: 'Lord of Time',         color: '#E4D191', time: 18000 },
   { id: 'uranus',  title: 'URANUS',  epithet: 'The Awakener',         color: '#72C8C8', time: 21000 },
   { id: 'neptune', title: 'NEPTUNE', epithet: 'The Mystic',           color: '#4169E1', time: 24000 },
-  { id: null,      title: '',        epithet: '',                     color: '',        time: 27000 }, // pull back
+  { id: 'pluto',   title: 'PLUTO',   epithet: 'Lord of the Underworld', color: '#9B8B78', time: 27000 },
+  { id: null,      title: '',        epithet: '',                     color: '',        time: 30000 }, // pull back
 ]
 
-const DEMO_DURATION_MS = 30_000
+const DEMO_DURATION_MS = 33_000
 
 export const CosmicVisualizerPage = () => {
   const [currentDate, setCurrentDate] = useState(new Date())
