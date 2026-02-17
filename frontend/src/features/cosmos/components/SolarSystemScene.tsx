@@ -567,7 +567,7 @@ export const SolarSystemScene = ({
           // Moon visibility is controlled by Earth's settings
           const moonVisibility: BodyVisibility = {
             body: true,
-            orbit: visiblePlanetOrbits.earth ?? true,
+            orbit: (visiblePlanetOrbits.earth ?? true) && referenceFrame !== 'geocentric',
             label: visiblePlanetLabels.earth ?? true,
             trail: false,
             footprint: false,
