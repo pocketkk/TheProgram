@@ -1198,6 +1198,7 @@ export const CosmicVisualizerPage = () => {
             cameraLocked={cameraLocked}
             resetCameraTrigger={resetCameraTrigger}
             cinematicTargetId={isDemoMode ? cinematicTargetId : undefined}
+            cinematicColor={cinematicTitle?.color}
           />
         </div>
 
@@ -1232,10 +1233,10 @@ export const CosmicVisualizerPage = () => {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -30, scale: 1.06 }}
               transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
-              className="absolute inset-0 flex items-center justify-center pointer-events-none"
+              className="absolute top-0 left-0 right-0 flex justify-center pointer-events-none pt-6"
               style={{ zIndex: 10 }}
             >
-              <div className="text-center select-none" style={{ transform: 'translateY(8%)' }}>
+              <div className="text-center select-none">
                 {/* Planet name — enormous, letter-spaced */}
                 <div
                   className="font-heading font-black tracking-[0.18em] leading-none"

@@ -270,6 +270,70 @@ const CinematicCameraController = ({
   return null
 }
 
+/**
+ * Cinematic Planet Highlight — corner-bracket targeting reticle
+ *
+ * Renders an HTML overlay at the planet's 3D position using drei's Html.
+ * Four corner brackets in the planet's color create a classic HUD reticle
+ * that frames the planet without covering it.
+ */
+const CinematicPlanetHighlight = ({
+  targetId,
+  planetPositions,
+  color,
+}: {
+  targetId: string
+  planetPositions: CompassMarker[]
+  color: string
+}) => {
+  const marker = planetPositions.find(p => p.id === targetId)
+  if (!marker) return null
+
+  const c = color || '#ffffff'
+  const glow = `0 0 10px ${c}aa`
+
+  const cornerStyle = (pos: React.CSSProperties): React.CSSProperties => ({
+    position: 'absolute',
+    width: 18,
+    height: 18,
+    ...pos,
+    boxShadow: glow,
+  })
+
+  return (
+    <Html
+      position={[marker.position.x, marker.position.y, marker.position.z]}
+      center
+      distanceFactor={9}
+      zIndexRange={[50, 0]}
+      style={{ pointerEvents: 'none' }}
+    >
+      {/* Outer reticle */}
+      <div style={{ position: 'relative', width: 110, height: 110 }}>
+        {/* TL */}
+        <div style={cornerStyle({ top: 0, left: 0, borderTop: `2px solid ${c}`, borderLeft: `2px solid ${c}` })} />
+        {/* TR */}
+        <div style={cornerStyle({ top: 0, right: 0, borderTop: `2px solid ${c}`, borderRight: `2px solid ${c}` })} />
+        {/* BL */}
+        <div style={cornerStyle({ bottom: 0, left: 0, borderBottom: `2px solid ${c}`, borderLeft: `2px solid ${c}` })} />
+        {/* BR */}
+        <div style={cornerStyle({ bottom: 0, right: 0, borderBottom: `2px solid ${c}`, borderRight: `2px solid ${c}` })} />
+
+        {/* Center crosshair dot */}
+        <div style={{
+          position: 'absolute',
+          top: '50%', left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: 5, height: 5,
+          borderRadius: '50%',
+          background: c,
+          boxShadow: `0 0 12px 3px ${c}88`,
+        }} />
+      </div>
+    </Html>
+  )
+}
+
 interface SolarSystemSceneProps {
   julianDay: number
   showAspects?: boolean
@@ -299,6 +363,7 @@ interface SolarSystemSceneProps {
   cameraLocked?: boolean // Camera lock state
   resetCameraTrigger?: number // Increment to trigger camera reset
   cinematicTargetId?: string | null // Which planet to focus on in cinematic mode (undefined = inactive)
+  cinematicColor?: string           // Planet accent color for the targeting reticle
 }
 
 /**
@@ -341,6 +406,7 @@ export const SolarSystemScene = ({
   cameraLocked = true,
   resetCameraTrigger = 0,
   cinematicTargetId = undefined,
+  cinematicColor = '#ffffff',
 }: SolarSystemSceneProps) => {
   const controlsRef = useRef<any>(null)
   const [selectedPlanets, setSelectedPlanets] = useState<string[]>([])
@@ -576,6 +642,15 @@ export const SolarSystemScene = ({
             planetPositions={allPlanetPositions}
             controlsRef={controlsRef}
             cameraLocked={cameraLocked}
+          />
+        )}
+
+        {/* Cinematic targeting reticle — corner brackets around featured planet */}
+        {cinematicTargetId !== undefined && cinematicTargetId !== null && (
+          <CinematicPlanetHighlight
+            targetId={cinematicTargetId}
+            planetPositions={allPlanetPositions}
+            color={cinematicColor}
           />
         )}
 
