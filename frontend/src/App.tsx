@@ -32,6 +32,7 @@ import { TransitDashboard } from './features/transits'
 import { TarotPage } from './features/tarot'
 import { IChingPage } from './features/iching'
 import { NumerologyPage } from './features/numerology'
+import { GematriaPage } from './features/gematria'
 // Phase 4: Human Design
 import { HumanDesignPage } from './features/humandesign'
 // Vedic Astrology
@@ -191,6 +192,11 @@ function App() {
         {currentPage === 'numerology' && (
           <ErrorBoundary featureName="Numerology">
             <NumerologyPage />
+          </ErrorBoundary>
+        )}
+        {currentPage === 'gematria' && (
+          <ErrorBoundary featureName="Gematria">
+            <GematriaPage />
           </ErrorBoundary>
         )}
         {currentPage === 'humandesign' && (

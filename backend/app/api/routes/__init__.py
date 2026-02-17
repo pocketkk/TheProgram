@@ -27,6 +27,7 @@ from . import (
     tarot,
     iching,
     numerology,
+    gematria,
     reports,
     insights,
     # Phase 4: Human Design
@@ -72,6 +73,7 @@ router.include_router(transits.router, prefix="/transits", tags=["Transits"])
 router.include_router(tarot.router, prefix="/tarot", tags=["Tarot"])
 router.include_router(iching.router, prefix="/iching", tags=["I-Ching"])
 router.include_router(numerology.router, prefix="/numerology", tags=["Numerology"])
+router.include_router(gematria.router, prefix="/gematria", tags=["Gematria"])
 
 # Phase 3: Reports & Sharing
 router.include_router(reports.router, prefix="/reports", tags=["Reports"])

@@ -161,7 +161,7 @@ export const SouthIndianChart: React.FC<SouthIndianChartProps> = ({
           const position = planetPositions[idx]
           const abbr = PLANET_ABBREVIATIONS[planetName] || planetName.slice(0, 2)
           const dignity = dignities[planetName]
-          const color = dignity ? DIGNITY_COLORS[dignity] : PLANET_COLORS[planetName] || '#fff'
+          const color = DIGNITY_COLORS[dignity] || PLANET_COLORS[planetName] || '#fff'
           const isRetrograde = planet.retrograde
           const isPlanetSelected = selectedPlanet === planetName
           const isPlanetHovered = hoveredPlanet === planetName
