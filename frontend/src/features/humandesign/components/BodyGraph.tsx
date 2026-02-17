@@ -29,8 +29,8 @@ const CENTER_CONFIG: Record<string, {
   head: { shape: 'crown', size: 28, label: 'Head', labelPosition: 'right', labelOffset: 22 },
   ajna: { shape: 'triangle_down', size: 26, label: 'Ajna', labelPosition: 'right', labelOffset: 20 },
   throat: { shape: 'square', size: 26, label: 'Throat', labelPosition: 'right', labelOffset: 22 },
-  g_center: { shape: 'diamond', size: 30, label: 'G', labelPosition: 'right', labelOffset: 24 },
-  heart: { shape: 'triangle', size: 22, label: 'Heart', labelPosition: 'left', labelOffset: 18 },
+  g_center: { shape: 'diamond', size: 30, label: 'G', labelPosition: 'right', labelOffset: 30 },
+  heart: { shape: 'triangle', size: 26, label: 'Heart', labelPosition: 'right', labelOffset: 20 },
   sacral: { shape: 'square', size: 28, label: 'Sacral', labelPosition: 'below', labelOffset: 24 },
   solar_plexus: { shape: 'triangle', size: 24, label: 'Solar Plexus', labelPosition: 'right', labelOffset: 20 },
   spleen: { shape: 'triangle', size: 24, label: 'Spleen', labelPosition: 'left', labelOffset: 20 },
@@ -58,8 +58,8 @@ const CHANNEL_PATHS: Record<string, {
   '31-7': { offset: -8, curve: 'left', gateOffset: 18 },
   '33-13': { offset: 8, curve: 'right', gateOffset: 18 },
   '20-10': { offset: 20, curve: 'right', tension: 0.3, gateOffset: 20 },
-  // Throat to Heart - curve wide left
-  '45-21': { offset: -25, curve: 'left', tension: 0.5, gateOffset: 18 },
+  // Throat to Heart - curve right and outward to clear G center
+  '45-21': { offset: 40, curve: 'right', tension: 0.5, gateOffset: 18 },
   // Throat to Solar Plexus - curve right around G center (moderate curve)
   '35-36': { offset: 35, curve: 'right', tension: 0.5, gateOffset: 20 },
   '12-22': { offset: 42, curve: 'right', tension: 0.5, gateOffset: 22 },
@@ -68,20 +68,18 @@ const CHANNEL_PATHS: Record<string, {
   '20-57': { offset: -45, curve: 'left', tension: 0.7, gateOffset: 22 },
   // Throat to Sacral - curve to avoid G
   '20-34': { offset: -15, curve: 'left', tension: 0.3, gateOffset: 22 },
-  // G to Heart - curve left
-  '25-51': { offset: -20, curve: 'left', tension: 0.4, gateOffset: 16 },
+  // G to Heart - curve right (Heart is on the right side)
+  '25-51': { offset: 15, curve: 'right', tension: 0.3, gateOffset: 16 },
   // G to Sacral - spread out
   '15-5': { offset: -15, curve: 'left', gateOffset: 22 },
   '2-14': { offset: 0, curve: 'none', gateOffset: 20 },
   '46-29': { offset: 15, curve: 'right', gateOffset: 22 },
   // G to Spleen - curve wide left
   '10-57': { offset: -35, curve: 'left', tension: 0.5, gateOffset: 20 },
-  // Heart to Spleen
-  '26-44': { offset: -10, curve: 'left', gateOffset: 16 },
-  '44-26': { offset: -10, curve: 'left', gateOffset: 16 },
-  // Heart to Solar Plexus - wide curve underneath
-  '40-37': { offset: 45, curve: 'right', tension: 0.6, gateOffset: 22 },
-  '37-40': { offset: 45, curve: 'right', tension: 0.6, gateOffset: 22 },
+  // Heart to Spleen - long diagonal from right to left, routes below G center
+  '26-44': { offset: -30, curve: 'left', tension: 0.5, gateOffset: 18 },
+  // Heart to Solar Plexus - short vertical on right side
+  '40-37': { offset: 10, curve: 'right', tension: 0.1, gateOffset: 16 },
   // Sacral to Solar Plexus - curve right
   '59-6': { offset: 25, curve: 'right', tension: 0.4, gateOffset: 18 },
   // Sacral to Spleen - curve left
@@ -371,8 +369,8 @@ const BADGE_OFFSETS: Record<string, { t: number }> = {
   // Throat-Spleen - position on outer curve
   '16-48': { t: 0.65 },
   '20-57': { t: 0.35 },
-  // Throat-Heart
-  '45-21': { t: 0.6 },
+  // Throat-Heart - position badge closer to Heart to stay clear of G center
+  '45-21': { t: 0.72 },
   // G-Sacral - spread vertically
   '15-5': { t: 0.35 },
   '2-14': { t: 0.5 },
@@ -762,6 +760,7 @@ const EnergyChannel: React.FC<{
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
       cursor="pointer"
+      opacity={isActive ? 1 : 0.2}
     >
       {/* Glow layer for active channels */}
       {isActive && (
@@ -947,7 +946,7 @@ const GateMarkers: React.FC<{
   const fontSize = !isActive ? 4 : (isHighlighted ? 5.5 : 5)
 
   return (
-    <g className="gate-markers" opacity={isActive ? 1 : 0.7}>
+    <g className="gate-markers" opacity={isActive ? 1 : 0.2}>
       {/* Gate 1 */}
       <g style={{ filter: isHighlighted && isActive ? `drop-shadow(0 0 3px ${glowColor})` : undefined }}>
         <circle cx={gate1X} cy={gate1Y} r={size + 1} fill={glowColor} opacity={isActive ? 0.2 : 0.1} />

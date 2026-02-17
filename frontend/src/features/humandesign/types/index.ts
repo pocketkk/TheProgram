@@ -50,7 +50,7 @@ export const BODYGRAPH_LAYOUT: BodyGraphLayout = {
     ajna: { x: 160, y: 78 },      // Third eye - forehead level
     throat: { x: 160, y: 130 },   // Throat
     g_center: { x: 160, y: 190 }, // G / Identity
-    heart: { x: 102, y: 162 },    // Will / Heart
+    heart: { x: 218, y: 162 },    // Will / Heart - right side, between Throat and G Center
     sacral: { x: 160, y: 258 },   // Sacral
     solar_plexus: { x: 218, y: 224 }, // Solar Plexus
     spleen: { x: 102, y: 224 },   // Spleen
@@ -121,11 +121,9 @@ export const CHANNEL_CONNECTIONS: Array<{
   { id: '46-29', gates: [46, 29], centers: ['g_center', 'sacral'] },
   // G Center to Spleen
   { id: '10-57', gates: [10, 57], centers: ['g_center', 'spleen'] },
-  // Heart to Root
+  // Heart to Spleen / Solar Plexus
   { id: '26-44', gates: [26, 44], centers: ['heart', 'spleen'] },
   { id: '40-37', gates: [40, 37], centers: ['heart', 'solar_plexus'] },
-  // Heart to Sacral
-  { id: '21-45', gates: [21, 45], centers: ['heart', 'throat'] },
   // Sacral to Solar Plexus
   { id: '59-6', gates: [59, 6], centers: ['sacral', 'solar_plexus'] },
   // Sacral to Spleen
@@ -144,9 +142,6 @@ export const CHANNEL_CONNECTIONS: Array<{
   { id: '54-32', gates: [54, 32], centers: ['spleen', 'root'] },
   { id: '28-38', gates: [28, 38], centers: ['spleen', 'root'] },
   { id: '18-58', gates: [18, 58], centers: ['spleen', 'root'] },
-  // Additional channels
-  { id: '44-26', gates: [44, 26], centers: ['spleen', 'heart'] },
-  { id: '37-40', gates: [37, 40], centers: ['solar_plexus', 'heart'] },
 ]
 
 // Theme colors
