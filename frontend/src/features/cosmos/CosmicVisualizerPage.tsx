@@ -244,6 +244,33 @@ const CollapsibleSection: React.FC<{
   )
 }
 
+/**
+ * Cinematic demo sequence — introduces each body with a camera swoopand title card.
+ * Total runtime: 30 s (speed=0.6 d/frame × 600 frames at 50 ms = 30 s).
+ */
+interface CinematicShot {
+  id: string | null    // planet id, or null for "pull back to full system"
+  title: string
+  epithet: string
+  color: string        // glow / accent color matching the planet
+  time: number         // ms from demo start when this shot fires
+}
+
+const CINEMATIC_SEQUENCE: CinematicShot[] = [
+  { id: 'sun',     title: 'SOL',     epithet: 'The Eternal Light',   color: '#FFD700', time: 0     },
+  { id: 'mercury', title: 'MERCURY', epithet: 'The Messenger',        color: '#C4B5A5', time: 3000  },
+  { id: 'venus',   title: 'VENUS',   epithet: 'The Morning Star',     color: '#DEB887', time: 6000  },
+  { id: 'earth',   title: 'EARTH',   epithet: 'Our Home',             color: '#4FA4E8', time: 9000  },
+  { id: 'mars',    title: 'MARS',    epithet: 'God of War',           color: '#CD5C5C', time: 12000 },
+  { id: 'jupiter', title: 'JUPITER', epithet: 'The Great Benefic',    color: '#C88B3A', time: 15000 },
+  { id: 'saturn',  title: 'SATURN',  epithet: 'Lord of Time',         color: '#E4D191', time: 18000 },
+  { id: 'uranus',  title: 'URANUS',  epithet: 'The Awakener',         color: '#72C8C8', time: 21000 },
+  { id: 'neptune', title: 'NEPTUNE', epithet: 'The Mystic',           color: '#4169E1', time: 24000 },
+  { id: null,      title: '',        epithet: '',                     color: '',        time: 27000 }, // pull back
+]
+
+const DEMO_DURATION_MS = 30_000
+
 export const CosmicVisualizerPage = () => {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [julianDay, setJulianDay] = useState(dateToJulianDay(new Date()))
@@ -511,6 +538,11 @@ export const CosmicVisualizerPage = () => {
   const retroCheckCounter = useRef(0)
   const eventLabelTimerRef = useRef<number | null>(null)
 
+  // Cinematic camera state
+  const [cinematicTargetId, setCinematicTargetId] = useState<string | null>(null)
+  const [cinematicTitle, setCinematicTitle] = useState<CinematicShot | null>(null)
+  const cinemaTimersRef = useRef<number[]>([])
+
   const startDemo = useCallback(() => {
     const oneYearAgo = new Date()
     oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1)
@@ -521,17 +553,41 @@ export const CosmicVisualizerPage = () => {
 
     setCurrentDate(oneYearAgo)
     setReferenceFrame('geocentric')
-    setSpeed(3)
+    setSpeed(0.6)
     updateMultipleBodies({ trail: true })
     setIsDemoMode(true)
     setDemoEventLabel(null)
+
+    // Schedule cinematic sequence
+    cinemaTimersRef.current.forEach(clearTimeout)
+    cinemaTimersRef.current = []
+    CINEMATIC_SEQUENCE.forEach((shot) => {
+      const id = window.setTimeout(() => {
+        setCinematicTargetId(shot.id)
+        setCinematicTitle(shot.id !== null ? shot : null)
+      }, shot.time)
+      cinemaTimersRef.current.push(id)
+    })
+    // Auto-stop after full duration
+    const endId = window.setTimeout(() => {
+      setIsDemoMode(false)
+      setIsPlaying(false)
+      setCinematicTargetId(null)
+      setCinematicTitle(null)
+    }, DEMO_DURATION_MS)
+    cinemaTimersRef.current.push(endId)
+
     setIsPlaying(true)
   }, [updateMultipleBodies])
 
   const stopDemo = useCallback(() => {
+    cinemaTimersRef.current.forEach(clearTimeout)
+    cinemaTimersRef.current = []
     setIsDemoMode(false)
     setDemoEventLabel(null)
     setIsPlaying(false)
+    setCinematicTargetId(null)
+    setCinematicTitle(null)
     if (eventLabelTimerRef.current !== null) {
       clearTimeout(eventLabelTimerRef.current)
       eventLabelTimerRef.current = null
@@ -598,13 +654,10 @@ export const CosmicVisualizerPage = () => {
       return
     }
 
-    // Start new interval
+    // Start new interval — use ms arithmetic so fractional speeds (e.g. 0.6) work correctly
+    const MS_PER_DAY = 86_400_000
     intervalIdRef.current = window.setInterval(() => {
-      setCurrentDate((prev) => {
-        const next = new Date(prev)
-        next.setDate(next.getDate() + speed)
-        return next
-      })
+      setCurrentDate((prev) => new Date(prev.getTime() + speed * MS_PER_DAY))
     }, 50)
 
     // Cleanup function
@@ -1144,10 +1197,11 @@ export const CosmicVisualizerPage = () => {
             speed={speed}
             cameraLocked={cameraLocked}
             resetCameraTrigger={resetCameraTrigger}
+            cinematicTargetId={isDemoMode ? cinematicTargetId : undefined}
           />
         </div>
 
-        {/* Demo Mode — "Watch the year unfold" button */}
+        {/* Demo Mode — "Watch the year unfold" invite button */}
         <AnimatePresence>
           {!isDemoMode && !isPlaying && (
             <motion.button
@@ -1169,50 +1223,114 @@ export const CosmicVisualizerPage = () => {
           )}
         </AnimatePresence>
 
-        {/* Demo Mode — date progress + event label overlay */}
+        {/* Demo Mode — cinematic title card (center stage) */}
+        <AnimatePresence mode="wait">
+          {isDemoMode && cinematicTitle && (
+            <motion.div
+              key={cinematicTitle.title}
+              initial={{ opacity: 0, y: 60, scale: 0.88 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -30, scale: 1.06 }}
+              transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+              className="absolute inset-0 flex items-center justify-center pointer-events-none"
+              style={{ zIndex: 10 }}
+            >
+              <div className="text-center select-none" style={{ transform: 'translateY(8%)' }}>
+                {/* Planet name — enormous, letter-spaced */}
+                <div
+                  className="font-heading font-black tracking-[0.18em] leading-none"
+                  style={{
+                    fontSize: 'clamp(4rem, 12vw, 9rem)',
+                    color: '#ffffff',
+                    textShadow: [
+                      `0 0 60px ${cinematicTitle.color}cc`,
+                      `0 0 120px ${cinematicTitle.color}66`,
+                      `0 0 200px ${cinematicTitle.color}33`,
+                      '0 2px 8px rgba(0,0,0,0.8)',
+                    ].join(', '),
+                    WebkitTextStroke: `1px ${cinematicTitle.color}44`,
+                  }}
+                >
+                  {cinematicTitle.title}
+                </div>
+
+                {/* Divider line in planet color */}
+                <motion.div
+                  initial={{ scaleX: 0 }}
+                  animate={{ scaleX: 1 }}
+                  transition={{ delay: 0.3, duration: 0.6, ease: 'easeOut' }}
+                  className="mt-4 mb-3 mx-auto h-px w-64"
+                  style={{ background: `linear-gradient(to right, transparent, ${cinematicTitle.color}cc, transparent)` }}
+                />
+
+                {/* Epithet */}
+                <div
+                  className="tracking-[0.35em] uppercase font-light"
+                  style={{
+                    fontSize: 'clamp(0.75rem, 2vw, 1.1rem)',
+                    color: `${cinematicTitle.color}dd`,
+                    textShadow: `0 0 30px ${cinematicTitle.color}88`,
+                    letterSpacing: '0.35em',
+                  }}
+                >
+                  {cinematicTitle.epithet}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Demo Mode — bottom HUD: retrograde events, progress bar, stop */}
         <AnimatePresence>
           {isDemoMode && (
             <motion.div
-              key="demo-overlay"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute bottom-24 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 pointer-events-none"
+              key="demo-hud"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 pointer-events-none"
             >
-              {/* Event label */}
+              {/* Retrograde / station event pill */}
               <AnimatePresence>
                 {demoEventLabel && (
                   <motion.div
                     key={demoEventLabel}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.9 }}
-                    className="px-4 py-1.5 rounded-full bg-cosmic-500/80 backdrop-blur-sm
-                      text-white text-sm font-semibold shadow-lg border border-cosmic-400/50"
+                    initial={{ opacity: 0, scale: 0.85, y: 6 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.85, y: -6 }}
+                    className="px-4 py-1 rounded-full backdrop-blur-sm text-white text-xs font-semibold
+                      border shadow-lg"
+                    style={{
+                      background: 'rgba(15,10,40,0.75)',
+                      borderColor: 'rgba(139,92,246,0.5)',
+                      boxShadow: '0 0 16px rgba(139,92,246,0.3)',
+                    }}
                   >
-                    ✦ {demoEventLabel}
+                    ↺ {demoEventLabel}
                   </motion.div>
                 )}
               </AnimatePresence>
 
-              {/* Progress bar */}
+              {/* Progress timeline */}
               {demoStartDateRef.current && demoEndDateRef.current && (
                 <div className="flex items-center gap-3">
-                  <span className="text-cosmic-400 text-xs">
+                  <span className="text-white/40 text-xs tabular-nums">
                     {demoStartDateRef.current.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
                   </span>
-                  <div className="w-48 h-1 rounded-full bg-cosmic-800/80 overflow-hidden">
+                  <div className="w-52 h-0.5 rounded-full bg-white/10 overflow-hidden">
                     <div
-                      className="h-full rounded-full bg-gradient-to-r from-cosmic-500 to-cosmic-300 transition-all"
+                      className="h-full rounded-full"
                       style={{
+                        background: `linear-gradient(to right, ${cinematicTitle?.color ?? '#8B5CF6'}, #ffffff88)`,
                         width: `${Math.min(100, Math.max(0,
                           (currentDate.getTime() - demoStartDateRef.current.getTime()) /
                           (demoEndDateRef.current.getTime() - demoStartDateRef.current.getTime()) * 100
-                        ))}%`
+                        ))}%`,
+                        transition: 'width 0.1s linear',
                       }}
                     />
                   </div>
-                  <span className="text-cosmic-400 text-xs">
+                  <span className="text-white/40 text-xs tabular-nums">
                     {demoEndDateRef.current.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
                   </span>
                 </div>
@@ -1220,9 +1338,9 @@ export const CosmicVisualizerPage = () => {
 
               <button
                 onClick={stopDemo}
-                className="pointer-events-auto text-cosmic-500 hover:text-cosmic-300 text-xs transition-colors"
+                className="pointer-events-auto text-white/25 hover:text-white/60 text-xs transition-colors mt-0.5"
               >
-                Stop
+                stop
               </button>
             </motion.div>
           )}

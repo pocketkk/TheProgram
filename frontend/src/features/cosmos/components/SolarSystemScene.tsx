@@ -192,6 +192,84 @@ const CameraController = ({ mode, earthPosition, controlsRef }: CameraController
   return null
 }
 
+/**
+ * Cinematic Camera Controller
+ *
+ * When `targetId` is set, smoothly lerps the camera to a dramatic close-up
+ * of the named planet. When `targetId` is null, eases the camera back to the
+ * default overview position. OrbitControls are disabled while active.
+ */
+interface CinematicCameraControllerProps {
+  targetId: string | null | undefined   // undefined = cinematic inactive
+  planetPositions: CompassMarker[]
+  controlsRef: React.RefObject<any>
+  cameraLocked: boolean
+}
+
+const CinematicCameraController = ({
+  targetId,
+  planetPositions,
+  controlsRef,
+  cameraLocked,
+}: CinematicCameraControllerProps) => {
+  const { camera } = useThree()
+  const lerpedCamPos = useRef(new THREE.Vector3(0, 15, 15))
+  const lerpedLookAt = useRef(new THREE.Vector3(0, 0, 0))
+  const isActive = targetId !== undefined
+
+  useFrame((_state, delta) => {
+    if (!controlsRef.current || !isActive) return
+    const controls = controlsRef.current
+    controls.enabled = false
+
+    let desiredCamPos: THREE.Vector3
+    let desiredLookAt: THREE.Vector3
+
+    if (targetId !== null) {
+      const marker = planetPositions.find(p => p.id === targetId)
+      const planetPos = marker ? marker.position.clone() : new THREE.Vector3(0, 0, 0)
+
+      // Direction from origin (sun) outward toward the planet
+      const dirToSun = planetPos.length() > 0.3
+        ? planetPos.clone().normalize().negate()
+        : new THREE.Vector3(0, 0, 1)
+
+      const dist = targetId === 'sun' ? 7 : Math.max(planetPos.length() * 0.55, 3)
+      // Place camera between the sun and the planet, elevated — planet against the stars
+      desiredCamPos = planetPos.clone()
+        .add(dirToSun.multiplyScalar(dist))
+        .add(new THREE.Vector3(0, dist * 0.45, 0))
+
+      desiredLookAt = planetPos
+    } else {
+      // Pull back to overview
+      desiredCamPos = new THREE.Vector3(0, 15, 15)
+      desiredLookAt = new THREE.Vector3(0, 0, 0)
+    }
+
+    const alpha = Math.min(delta * 3.5, 0.12)
+    lerpedCamPos.current.lerp(desiredCamPos, alpha)
+    lerpedLookAt.current.lerp(desiredLookAt, alpha)
+
+    camera.position.copy(lerpedCamPos.current)
+    controls.target.copy(lerpedLookAt.current)
+    controls.update()
+  })
+
+  // Re-enable controls when cinematic ends
+  useEffect(() => {
+    if (targetId === undefined && controlsRef.current) {
+      controlsRef.current.enabled = !cameraLocked
+      controlsRef.current.update()
+      // Reset lerped positions to match current camera for smooth handoff
+      lerpedCamPos.current.copy(camera.position)
+      lerpedLookAt.current.copy(controlsRef.current.target)
+    }
+  }, [targetId, controlsRef, cameraLocked, camera])
+
+  return null
+}
+
 interface SolarSystemSceneProps {
   julianDay: number
   showAspects?: boolean
@@ -220,6 +298,7 @@ interface SolarSystemSceneProps {
   speed?: number // Days per frame for trail length adjustment
   cameraLocked?: boolean // Camera lock state
   resetCameraTrigger?: number // Increment to trigger camera reset
+  cinematicTargetId?: string | null // Which planet to focus on in cinematic mode (undefined = inactive)
 }
 
 /**
@@ -261,6 +340,7 @@ export const SolarSystemScene = ({
   speed = 1,
   cameraLocked = true,
   resetCameraTrigger = 0,
+  cinematicTargetId = undefined,
 }: SolarSystemSceneProps) => {
   const controlsRef = useRef<any>(null)
   const [selectedPlanets, setSelectedPlanets] = useState<string[]>([])
@@ -440,18 +520,18 @@ export const SolarSystemScene = ({
   }, [celestialBodies, julianDay, referenceFrame, geocentricPositions, baseScale])
 
   // Effect to update OrbitControls based on cameraLocked state
-  // Only applies when not in Earth view mode (Earth view has its own camera control)
+  // Only applies when not in Earth view mode or cinematic mode
   useEffect(() => {
-    if (!controlsRef.current || cameraMode === 'earth') return
+    if (!controlsRef.current || cameraMode === 'earth' || cinematicTargetId !== undefined) return
 
     const controls = controlsRef.current
     controls.enabled = !cameraLocked
     controls.update()
-  }, [cameraLocked, cameraMode])
+  }, [cameraLocked, cameraMode, cinematicTargetId])
 
   // Effect to reset camera position when resetCameraTrigger changes
   useEffect(() => {
-    if (!controlsRef.current || resetCameraTrigger === 0) return
+    if (!controlsRef.current || resetCameraTrigger === 0 || cinematicTargetId !== undefined) return
 
     const controls = controlsRef.current
 
@@ -459,7 +539,7 @@ export const SolarSystemScene = ({
     controls.object.position.set(0, 15, 15)
     controls.target.set(0, 0, 0)
     controls.update()
-  }, [resetCameraTrigger])
+  }, [resetCameraTrigger, cinematicTargetId])
 
   // Callback for frame counter to prevent re-creation
   const incrementFrameCount = useCallback(() => {
@@ -488,6 +568,16 @@ export const SolarSystemScene = ({
           earthPosition={earthPosition}
           controlsRef={controlsRef}
         />
+
+        {/* Cinematic camera — active only during demo mode */}
+        {cinematicTargetId !== undefined && (
+          <CinematicCameraController
+            targetId={cinematicTargetId}
+            planetPositions={allPlanetPositions}
+            controlsRef={controlsRef}
+            cameraLocked={cameraLocked}
+          />
+        )}
 
         {/* Frame counter for retrograde throttling */}
         <FrameCounter onFrame={incrementFrameCount} />
