@@ -176,7 +176,11 @@ export function AstrologyPage({ chartId: chartIdProp }: AstrologyPageProps = {})
 
       // Update birth data from selected person
       if (selectedPerson.birth_date) {
-        const birthDate = new Date(selectedPerson.birth_date)
+        // Parse date parts directly to avoid UTC-midnight-to-local-time shift.
+        // new Date("1974-09-16") parses as UTC midnight, which in negative-offset
+        // timezones rolls back to the previous calendar day.
+        const [byear, bmonth, bday] = selectedPerson.birth_date.split('-').map(Number)
+        const birthDate = new Date(byear, bmonth - 1, bday)
         // Add birth time if available
         if (selectedPerson.birth_time) {
           const [hours, minutes, seconds] = selectedPerson.birth_time.split(':').map(Number)

@@ -377,7 +377,7 @@ const ProfileDisplay = ({ profile, onClear }: ProfileDisplayProps) => {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h3 className="text-xl font-medium text-white">{profile.name}</h3>
-          <p className="text-gray-400 text-sm">{new Date(profile.birth_date).toLocaleDateString()}</p>
+          <p className="text-gray-400 text-sm">{(() => { const [y,m,d] = profile.birth_date.split('-').map(Number); return new Date(y, m-1, d).toLocaleDateString(); })()}</p>
         </div>
         <button onClick={onClear} className="text-sm text-gray-400 hover:text-white">
           Clear
