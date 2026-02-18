@@ -1,14 +1,14 @@
 /**
  * DashboardPage — The Daily Reading
  *
- * A personalized cosmic landing page. Instead of stats and recent charts,
- * it surfaces today's celestial energy and invites exploration.
+ * A personalized cosmic landing page that surfaces today's celestial energy.
  *
  * Sections:
- *  1. Cosmic Greeting — moon phase hero with date in astro language
+ *  1. Cosmic Greeting — moon phase hero with SVG moon visualization
  *  2. Today's Oracles — Tarot card, daily number, I Ching hexagram
  *  3. Your Sky Today — current transits (only when birth data exists)
- *  4. Portals — feature entry cards
+ *  4. Human Design Transits — natal body graph + today's transit overlay
+ *  5. Portals — feature entry cards
  */
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
@@ -23,6 +23,7 @@ import { getMoonPhase, getMoonPhaseEmoji, type MoonPhase } from '@/lib/api/insig
 import { getDailySnapshot, type DailySnapshotResponse } from '@/lib/api/transits'
 import { getDailyHexagram, type DailyHexagram } from '@/lib/api/iching'
 import { listBirthData } from '@/lib/api/birthData'
+import { HumanDesignTransitCard } from './components/HumanDesignTransitCard'
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -50,6 +51,81 @@ function getGreeting(name?: string | null): string {
   else if (hour >= 17 && hour < 22) salutation = 'Good evening'
   else if (hour >= 22 || hour < 5) salutation = 'Still up'
   return `${salutation}${name ? `, ${name}` : ''}`
+}
+
+// ─── SVG Moon Phase ───────────────────────────────────────────────────────────
+// Renders an accurate illuminated moon using two-arc SVG path.
+// frac: 0=new, 0.5=half, 1=full. waxing: true if growing.
+
+function getMoonPath(frac: number, waxing: boolean, cx: number, cy: number, r: number): string {
+  if (frac <= 0.02) return '' // new moon — draw nothing (dark circle)
+  if (frac >= 0.98) {
+    // Full moon — full circle (handled separately)
+    return `M ${cx - r},${cy} A ${r},${r} 0 1,1 ${cx + r},${cy} A ${r},${r} 0 1,1 ${cx - r},${cy}`
+  }
+
+  // innerRx is how wide the inner arc is:
+  //   at frac=0.25 (crescent) → innerRx ≈ r*0.5
+  //   at frac=0.5 (half)     → innerRx = 0 (straight line)
+  //   at frac=0.75 (gibbous) → innerRx ≈ r*0.5
+  const innerRx = r * Math.abs(1 - 2 * frac)
+  const isGibbous = frac > 0.5
+
+  if (waxing) {
+    // Right side illuminated
+    // Outer arc: top-right to bottom-right (clockwise, right half)
+    // Inner arc: bottom-right to top-right
+    const innerSweep = isGibbous ? 0 : 1
+    return [
+      `M ${cx},${cy - r}`,
+      `A ${r},${r} 0 0,1 ${cx},${cy + r}`,   // outer right arc (clockwise)
+      `A ${innerRx},${r} 0 0,${innerSweep} ${cx},${cy - r}`, // inner arc back up
+    ].join(' ')
+  } else {
+    // Left side illuminated
+    const innerSweep = isGibbous ? 1 : 0
+    return [
+      `M ${cx},${cy - r}`,
+      `A ${r},${r} 0 0,0 ${cx},${cy + r}`,   // outer left arc (counter-clockwise)
+      `A ${innerRx},${r} 0 0,${innerSweep} ${cx},${cy - r}`, // inner arc back up
+    ].join(' ')
+  }
+}
+
+function MoonPhaseSVG({ phase, dayOfCycle }: { phase: string; dayOfCycle: number }) {
+  const r = 28
+  const cx = 36
+  const cy = 36
+  const size = 72
+
+  // Compute fraction from day of cycle (0–29)
+  const frac = Math.max(0, Math.min(1, dayOfCycle / 29.5))
+  const waxing = dayOfCycle <= 14.75
+
+  const isNew = phase.toLowerCase().includes('new')
+  const isFull = phase.toLowerCase().includes('full')
+
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+      {/* Dark circle background */}
+      <circle cx={cx} cy={cy} r={r} fill="#0f0f23" stroke="#334155" strokeWidth="1" />
+
+      {isNew ? null : isFull ? (
+        // Full moon — bright filled circle
+        <circle cx={cx} cy={cy} r={r - 1} fill="#e2e8f0" />
+      ) : (
+        // Crescent or gibbous
+        <path
+          d={getMoonPath(frac, waxing, cx, cy, r - 1)}
+          fill="#e2e8f0"
+          opacity="0.92"
+        />
+      )}
+
+      {/* Subtle outer glow ring */}
+      <circle cx={cx} cy={cy} r={r} fill="none" stroke="#94a3b8" strokeWidth="0.5" opacity="0.4" />
+    </svg>
+  )
 }
 
 // ─── Portal config ────────────────────────────────────────────────────────────
@@ -118,12 +194,12 @@ const PORTALS = [
 ]
 
 const SECONDARY_TOOLS = [
-  { id: 'vedic',       label: 'Vedic',     symbol: '☽' },
-  { id: 'iching',      label: 'I Ching',   symbol: '☯' },
-  { id: 'numerology',  label: 'Numerology',symbol: '∑' },
-  { id: 'gematria',    label: 'Gematria',  symbol: 'א' },
-  { id: 'charts',      label: 'Cosmos',    symbol: '⊙' },
-  { id: 'coloringbook',label: 'Coloring',  symbol: '✦' },
+  { id: 'vedic',        label: 'Vedic',      symbol: '☽' },
+  { id: 'iching',       label: 'I Ching',    symbol: '☯' },
+  { id: 'numerology',   label: 'Numerology', symbol: '∑' },
+  { id: 'gematria',     label: 'Gematria',   symbol: 'א' },
+  { id: 'charts',       label: 'Cosmos',     symbol: '⊙' },
+  { id: 'coloringbook', label: 'Coloring',   symbol: '✦' },
 ]
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -136,6 +212,7 @@ export const DashboardPage = ({ onNavigate }: { onNavigate: (page: string) => vo
   const [moonPhase, setMoonPhase] = useState<(MoonPhase & { date: string }) | null>(null)
   const [hexagram, setHexagram] = useState<DailyHexagram | null>(null)
   const [snapshot, setSnapshot] = useState<DailySnapshotResponse | null>(null)
+  const [hasBirthData, setHasBirthData] = useState(false)
 
   const today = new Date()
   const sunSign = getSunSign(today)
@@ -152,14 +229,19 @@ export const DashboardPage = ({ onNavigate }: { onNavigate: (page: string) => vo
 
     listBirthData().then(data => {
       if (data.length > 0) {
+        setHasBirthData(true)
         const primary = data.find(d => d.is_primary) ?? data[0]
         getDailySnapshot(primary.id).then(setSnapshot).catch(() => {})
       }
     }).catch(() => {})
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const moonEmoji = moonPhase ? getMoonPhaseEmoji(moonPhase.phase) : '🌙'
+  const moonEmoji = moonPhase ? getMoonPhaseEmoji(moonPhase.phase) : null
   const cardImage = dailyCard?.card ? getCardImage(dailyCard.card.id) : undefined
+
+  // Prefer snapshot sign data; fall back to client-computed
+  const displaySunSign = snapshot?.sun_sign || sunSign
+  const displayMoonSign = snapshot?.moon_sign || (moonPhase ? moonPhase.phase : null)
 
   return (
     <div className="space-y-6 max-w-4xl">
@@ -168,24 +250,35 @@ export const DashboardPage = ({ onNavigate }: { onNavigate: (page: string) => vo
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative rounded-2xl overflow-hidden border border-slate-800/60 p-6 md:p-8"
+        className="relative rounded-2xl overflow-hidden border border-indigo-800/40 p-6 md:p-8"
         style={{
-          background: 'linear-gradient(135deg, #0f0f23 0%, #0d1033 40%, #150d2a 100%)',
+          background: 'linear-gradient(135deg, #1a0a3e 0%, #0e1040 40%, #1a0a2e 100%)',
+          boxShadow: '0 0 40px rgba(99,60,170,0.18), 0 4px 24px rgba(0,0,0,0.5)',
         }}
       >
-        {/* Faint star field */}
+        {/* Richer star field */}
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
             backgroundImage: [
-              'radial-gradient(1px 1px at 15% 25%, rgba(255,255,255,0.4), transparent)',
-              'radial-gradient(1px 1px at 75% 18%, rgba(255,255,255,0.3), transparent)',
-              'radial-gradient(1px 1px at 55% 72%, rgba(255,255,255,0.35), transparent)',
-              'radial-gradient(1px 1px at 8%  80%, rgba(255,255,255,0.25), transparent)',
-              'radial-gradient(1px 1px at 92% 55%, rgba(255,255,255,0.3), transparent)',
-              'radial-gradient(1px 1px at 38% 45%, rgba(255,255,255,0.2), transparent)',
-              'radial-gradient(1px 1px at 68% 88%, rgba(255,255,255,0.25), transparent)',
+              'radial-gradient(1.5px 1.5px at 12% 20%, rgba(255,255,255,0.5), transparent)',
+              'radial-gradient(1px 1px at 78% 14%, rgba(255,255,255,0.4), transparent)',
+              'radial-gradient(1px 1px at 52% 68%, rgba(255,255,255,0.45), transparent)',
+              'radial-gradient(1px 1px at 6%  82%, rgba(255,255,255,0.35), transparent)',
+              'radial-gradient(1.5px 1.5px at 94% 52%, rgba(255,255,255,0.4), transparent)',
+              'radial-gradient(1px 1px at 35% 42%, rgba(255,255,255,0.3), transparent)',
+              'radial-gradient(1px 1px at 65% 90%, rgba(255,255,255,0.35), transparent)',
+              'radial-gradient(1px 1px at 44% 8%,  rgba(255,255,255,0.3), transparent)',
+              'radial-gradient(1px 1px at 88% 78%, rgba(255,255,255,0.25), transparent)',
+              'radial-gradient(1.5px 1.5px at 22% 55%, rgba(180,160,255,0.3), transparent)',
             ].join(', '),
+          }}
+        />
+        {/* Purple nebula glow */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: 'radial-gradient(ellipse at 80% 50%, rgba(120,60,200,0.12) 0%, transparent 60%)',
           }}
         />
 
@@ -194,41 +287,38 @@ export const DashboardPage = ({ onNavigate }: { onNavigate: (page: string) => vo
           <div className="flex-1 min-w-0">
             <p className="text-slate-500 text-sm mb-1">{dateStr}</p>
             <h1 className="text-3xl font-bold text-white mb-2">{greeting}</h1>
-            <p className="text-slate-400 text-sm">
-              <span className="text-amber-300/80">☀ {sunSign}</span>
-              {snapshot?.moon_sign
-                ? <span className="text-slate-500"> · </span>
-                : moonPhase ? <span className="text-slate-500"> · </span> : null}
-              {snapshot?.moon_sign
-                ? <span className="text-slate-300/70">🌙 {snapshot.moon_sign}</span>
-                : moonPhase
-                  ? <span className="text-slate-400/70">{moonPhase.phase}</span>
-                  : null}
+            <p className="text-sm flex items-center gap-2 flex-wrap">
+              <span className="text-amber-300/90">☀ {displaySunSign}</span>
+              {displayMoonSign && (
+                <>
+                  <span className="text-slate-600">·</span>
+                  <span className="text-slate-300/80">
+                    {moonEmoji ?? '🌙'} {snapshot?.moon_sign ? `Moon in ${snapshot.moon_sign}` : displayMoonSign}
+                  </span>
+                </>
+              )}
             </p>
           </div>
 
-          {/* Right: moon visual */}
+          {/* Right: SVG moon visual */}
           <div className="text-center shrink-0">
-            <div
-              className="text-6xl md:text-7xl leading-none mb-2 select-none"
-              style={{ filter: 'drop-shadow(0 0 24px rgba(148,163,184,0.45))' }}
-            >
-              {moonEmoji}
-            </div>
-            <p className="text-slate-300 text-sm font-medium">
-              {moonPhase?.phase ?? <span className="text-slate-600">···</span>}
-            </p>
-            {moonPhase && (
-              <p className="text-slate-600 text-xs mt-0.5">
-                Day {moonPhase.day_of_cycle} of 29
-              </p>
+            {moonPhase ? (
+              <>
+                <div style={{ filter: 'drop-shadow(0 0 12px rgba(148,163,184,0.35))' }}>
+                  <MoonPhaseSVG phase={moonPhase.phase} dayOfCycle={moonPhase.day_of_cycle} />
+                </div>
+                <p className="text-slate-300 text-sm font-medium mt-1.5">{moonPhase.phase}</p>
+                <p className="text-slate-600 text-xs mt-0.5">Day {moonPhase.day_of_cycle} of 29</p>
+              </>
+            ) : (
+              <div className="w-[72px] h-[72px] rounded-full bg-slate-800/40 animate-pulse" />
             )}
           </div>
         </div>
 
         {/* Moon description */}
         {moonPhase?.description && (
-          <p className="relative mt-5 pt-4 text-slate-400 text-sm italic leading-relaxed border-t border-slate-800/60">
+          <p className="relative mt-5 pt-4 text-slate-400 text-sm italic leading-relaxed border-t border-indigo-900/60">
             {moonPhase.description}
           </p>
         )}
@@ -257,19 +347,21 @@ export const DashboardPage = ({ onNavigate }: { onNavigate: (page: string) => vo
             </p>
             {dailyCard ? (
               <>
-                {cardImage ? (
-                  <img
-                    src={cardImage.url}
-                    alt={dailyCard.card.name}
-                    className="w-full aspect-[2/3] object-cover rounded-lg mb-3 opacity-90 group-hover:opacity-100 transition-opacity"
-                  />
-                ) : (
-                  <div className="w-full aspect-[2/3] rounded-lg bg-purple-950/60 border border-purple-800/20 flex items-center justify-center mb-3">
-                    <span className="text-4xl opacity-60">
-                      {dailyCard.card.suit === 'major' ? '✦' : '◆'}
-                    </span>
-                  </div>
-                )}
+                <div className="w-full overflow-hidden rounded-lg mb-3" style={{ height: '160px' }}>
+                  {cardImage ? (
+                    <img
+                      src={cardImage.url}
+                      alt={dailyCard.card.name}
+                      className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-purple-950/60 border border-purple-800/20 flex items-center justify-center">
+                      <span className="text-4xl opacity-60">
+                        {dailyCard.card.suit === 'major' ? '✦' : '◆'}
+                      </span>
+                    </div>
+                  )}
+                </div>
                 <p className="text-white text-sm font-semibold leading-tight">
                   {dailyCard.card.name}
                   {dailyCard.card.reversed && (
@@ -282,7 +374,7 @@ export const DashboardPage = ({ onNavigate }: { onNavigate: (page: string) => vo
               </>
             ) : (
               <div className="space-y-3">
-                <div className="w-full aspect-[2/3] rounded-lg bg-purple-950/30 animate-pulse" />
+                <div className="rounded-lg bg-purple-950/30 animate-pulse" style={{ height: '160px' }} />
                 <div className="h-3 bg-slate-800/60 rounded animate-pulse" />
                 <div className="h-3 w-2/3 bg-slate-800/60 rounded animate-pulse" />
               </div>
@@ -392,11 +484,13 @@ export const DashboardPage = ({ onNavigate }: { onNavigate: (page: string) => vo
           {/* Sun + Moon signs */}
           <div className="flex flex-wrap gap-2 mb-3">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs bg-amber-950/40 text-amber-300 border border-amber-800/30">
-              ☀ Sun in {snapshot.sun_sign}
+              ☀ Sun in {displaySunSign}
             </span>
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs bg-slate-800/60 text-slate-300 border border-slate-700/30">
-              🌙 Moon in {snapshot.moon_sign}
-            </span>
+            {displayMoonSign && (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs bg-slate-800/60 text-slate-300 border border-slate-700/30">
+                🌙 {snapshot.moon_sign ? `Moon in ${snapshot.moon_sign}` : displayMoonSign}
+              </span>
+            )}
           </div>
 
           {/* Energy themes */}
@@ -425,7 +519,21 @@ export const DashboardPage = ({ onNavigate }: { onNavigate: (page: string) => vo
         </motion.div>
       )}
 
-      {/* ── 4. PORTALS ─────────────────────────────────────────────────── */}
+      {/* ── 4. HUMAN DESIGN TRANSITS (conditional) ──────────────────────── */}
+      {hasBirthData && (
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.26 }}
+        >
+          <h2 className="text-xs font-semibold text-slate-600 uppercase tracking-widest mb-3">
+            Body Graph
+          </h2>
+          <HumanDesignTransitCard onNavigate={onNavigate} />
+        </motion.div>
+      )}
+
+      {/* ── 5. PORTALS ─────────────────────────────────────────────────── */}
       <div>
         <h2 className="text-xs font-semibold text-slate-600 uppercase tracking-widest mb-3">
           Explore
