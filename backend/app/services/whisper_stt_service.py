@@ -4,10 +4,17 @@ Whisper Speech-to-Text Service
 Uses faster-whisper for low-latency local transcription.
 Provides offline, free, high-quality speech recognition.
 """
+import os
 import asyncio
 import logging
 from typing import Optional
 from dataclasses import dataclass
+
+# Prevent ctranslate2 from probing for CUDA before faster-whisper is imported.
+# Without this, ctranslate2 detects a GPU but then hangs trying to load
+# libcublas.so.12 when the system only provides libcublas.so.13.
+if "CUDA_VISIBLE_DEVICES" not in os.environ:
+    os.environ["CUDA_VISIBLE_DEVICES"] = ""
 
 logger = logging.getLogger(__name__)
 
