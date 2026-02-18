@@ -595,9 +595,16 @@ export function useCompanionActions() {
     }
 
     // Build WebSocket URL from API base URL
-    const wsProtocol = apiBaseUrl.startsWith('https') ? 'wss:' : 'ws:'
-    const apiHost = apiBaseUrl.replace(/^https?:\/\//, '')
-    const wsUrl = `${wsProtocol}//${apiHost}/ws/agent`
+    let wsUrl: string
+    if (apiBaseUrl.startsWith('http')) {
+      const wsProtocol = apiBaseUrl.startsWith('https') ? 'wss:' : 'ws:'
+      const apiHost = apiBaseUrl.replace(/^https?:\/\//, '')
+      wsUrl = `${wsProtocol}//${apiHost}/ws/agent`
+    } else {
+      // Relative URL (e.g. /api) — use current host; Vite proxy handles WS routing
+      const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+      wsUrl = `${wsProtocol}//${window.location.host}${apiBaseUrl}/ws/agent`
+    }
 
     try {
       const ws = new WebSocket(wsUrl)

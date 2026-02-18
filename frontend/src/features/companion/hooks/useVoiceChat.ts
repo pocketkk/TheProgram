@@ -162,9 +162,15 @@ export function useVoiceChat(voiceSettings?: VoiceSettings): UseVoiceChatReturn 
     }
 
     // Build WebSocket URL
-    const wsProtocol = apiBaseUrl.startsWith('https') ? 'wss:' : 'ws:'
-    const apiHost = apiBaseUrl.replace(/^https?:\/\//, '')
-    const wsUrl = `${wsProtocol}//${apiHost}/ws/voice`
+    let wsUrl: string
+    if (apiBaseUrl.startsWith('http')) {
+      const wsProtocol = apiBaseUrl.startsWith('https') ? 'wss:' : 'ws:'
+      const apiHost = apiBaseUrl.replace(/^https?:\/\//, '')
+      wsUrl = `${wsProtocol}//${apiHost}/ws/voice`
+    } else {
+      const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+      wsUrl = `${wsProtocol}//${window.location.host}${apiBaseUrl}/ws/voice`
+    }
 
     // Return a promise that resolves when WebSocket is open
     return new Promise<void>((resolve, reject) => {

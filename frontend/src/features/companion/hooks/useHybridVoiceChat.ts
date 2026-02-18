@@ -509,9 +509,16 @@ export function useHybridVoiceChat(): UseHybridVoiceChatReturn {
     setConnectionStatus('connecting')
 
     const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
-    const wsProtocol = apiBaseUrl.startsWith('https') ? 'wss:' : 'ws:'
-    const apiHost = apiBaseUrl.replace(/^https?:\/\//, '').replace(/\/api$/, '')
-    const wsUrl = `${wsProtocol}//${apiHost}/api/ws/hybrid-voice`
+    let wsUrl: string
+    if (apiBaseUrl.startsWith('http')) {
+      const wsProtocol = apiBaseUrl.startsWith('https') ? 'wss:' : 'ws:'
+      const apiHost = apiBaseUrl.replace(/^https?:\/\//, '').replace(/\/api$/, '')
+      wsUrl = `${wsProtocol}//${apiHost}/api/ws/hybrid-voice`
+    } else {
+      // Relative URL (e.g. /api) — use current host; Vite proxy handles WS routing
+      const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+      wsUrl = `${wsProtocol}//${window.location.host}${apiBaseUrl}/ws/hybrid-voice`
+    }
 
     console.log('[HYBRID] Connecting to:', wsUrl)
 
