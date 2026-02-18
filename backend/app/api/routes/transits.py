@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field
 from app.core.database_sqlite import get_db
 from app.models.birth_data import BirthData
 from app.models.chart import Chart
+from app.models.app_config import AppConfig
 from app.services.transit_calculator import TransitCalculator, TransitInterpreter
 from app.services.chart_calculator import NatalChartCalculator
 
@@ -368,12 +369,14 @@ async def ai_interpret_transit(
     """
     Get AI-generated interpretation for a specific transit.
 
-    Requires ANTHROPIC_API_KEY to be set.
+    Requires Anthropic API key configured in app settings.
     """
     from app.services.ai_interpreter import AIInterpreter
 
     try:
-        interpreter = AIInterpreter()
+        config = db.query(AppConfig).filter_by(id=1).first()
+        api_key = config.anthropic_api_key if config else None
+        interpreter = AIInterpreter(api_key=api_key)
         interpretation = await interpreter.generate_transit_interpretation_async(transit_data)
 
         return {
@@ -448,7 +451,9 @@ async def ai_daily_forecast(
     }
 
     try:
-        interpreter = AIInterpreter()
+        config = db.query(AppConfig).filter_by(id=1).first()
+        api_key = config.anthropic_api_key if config else None
+        interpreter = AIInterpreter(api_key=api_key)
         forecast = await interpreter.generate_daily_transit_forecast_async(daily_snapshot)
 
         return {
@@ -492,7 +497,9 @@ async def ai_transit_report(
     )
 
     try:
-        interpreter = AIInterpreter()
+        config = db.query(AppConfig).filter_by(id=1).first()
+        api_key = config.anthropic_api_key if config else None
+        interpreter = AIInterpreter(api_key=api_key)
         report = await interpreter.generate_transit_report_async(transits, report_type=report_type)
 
         return {

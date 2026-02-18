@@ -1173,7 +1173,8 @@ IMPORTANT: Output only plain text, NO markdown formatting. Be thorough yet acces
     async def generate_hd_type_interpretation_async(
         hd_type: str,
         strategy: str,
-        authority: str
+        authority: str,
+        api_key: Optional[str] = None
     ) -> str:
         """
         Generate AI interpretation for Human Design Type, Strategy, and Authority.
@@ -1182,12 +1183,13 @@ IMPORTANT: Output only plain text, NO markdown formatting. Be thorough yet acces
             hd_type: Human Design type (e.g., "Generator", "Projector")
             strategy: Type strategy (e.g., "To Respond", "Wait for Invitation")
             authority: Inner authority (e.g., "Sacral", "Emotional")
+            api_key: Anthropic API key (defaults to ANTHROPIC_API_KEY env var)
 
         Returns:
             AI-generated interpretation
         """
         import os
-        api_key = os.getenv("ANTHROPIC_API_KEY")
+        api_key = api_key or os.getenv("ANTHROPIC_API_KEY")
         if not api_key:
             raise ValueError("Anthropic API key required")
 
@@ -1224,7 +1226,8 @@ IMPORTANT: Output only plain text, NO markdown formatting. Be warm, insightful, 
     async def generate_hd_profile_interpretation_async(
         profile: str,
         personality_line: int,
-        design_line: int
+        design_line: int,
+        api_key: Optional[str] = None
     ) -> str:
         """
         Generate AI interpretation for Human Design Profile.
@@ -1233,12 +1236,13 @@ IMPORTANT: Output only plain text, NO markdown formatting. Be warm, insightful, 
             profile: Profile name (e.g., "3/5 Martyr/Heretic")
             personality_line: Conscious line (1-6)
             design_line: Unconscious line (1-6)
+            api_key: Anthropic API key (defaults to ANTHROPIC_API_KEY env var)
 
         Returns:
             AI-generated interpretation
         """
         import os
-        api_key = os.getenv("ANTHROPIC_API_KEY")
+        api_key = api_key or os.getenv("ANTHROPIC_API_KEY")
         if not api_key:
             raise ValueError("Anthropic API key required")
 
@@ -1284,7 +1288,8 @@ IMPORTANT: Output only plain text, NO markdown formatting. Be warm and insightfu
         channel_name: str,
         gate1: int,
         gate2: int,
-        activation_type: str = "both"
+        activation_type: str = "both",
+        api_key: Optional[str] = None
     ) -> str:
         """
         Generate AI interpretation for a defined Human Design channel.
@@ -1294,12 +1299,13 @@ IMPORTANT: Output only plain text, NO markdown formatting. Be warm and insightfu
             gate1: First gate number
             gate2: Second gate number
             activation_type: How channel is activated ("personality", "design", or "both")
+            api_key: Anthropic API key (defaults to ANTHROPIC_API_KEY env var)
 
         Returns:
             AI-generated interpretation
         """
         import os
-        api_key = os.getenv("ANTHROPIC_API_KEY")
+        api_key = api_key or os.getenv("ANTHROPIC_API_KEY")
         if not api_key:
             raise ValueError("Anthropic API key required")
 
@@ -1343,7 +1349,8 @@ IMPORTANT: Output only plain text, NO markdown formatting. Be warm and empowerin
         gate_name: str,
         planet: str,
         line: int,
-        is_personality: bool
+        is_personality: bool,
+        api_key: Optional[str] = None
     ) -> str:
         """
         Generate AI interpretation for a Human Design gate activation.
@@ -1354,12 +1361,13 @@ IMPORTANT: Output only plain text, NO markdown formatting. Be warm and empowerin
             planet: Planet activating this gate
             line: Line within gate (1-6)
             is_personality: True if Personality activation, False if Design
+            api_key: Anthropic API key (defaults to ANTHROPIC_API_KEY env var)
 
         Returns:
             AI-generated interpretation
         """
         import os
-        api_key = os.getenv("ANTHROPIC_API_KEY")
+        api_key = api_key or os.getenv("ANTHROPIC_API_KEY")
         if not api_key:
             raise ValueError("Anthropic API key required")
 
@@ -1396,19 +1404,21 @@ IMPORTANT: Output only plain text, NO markdown formatting. Be specific about thi
 
     @staticmethod
     async def generate_hd_full_reading_async(
-        chart_data: Dict[str, Any]
+        chart_data: Dict[str, Any],
+        api_key: Optional[str] = None
     ) -> tuple[str, Dict[str, str]]:
         """
         Generate a comprehensive Human Design reading.
 
         Args:
             chart_data: Complete HD chart data from calculator
+            api_key: Anthropic API key (defaults to ANTHROPIC_API_KEY env var)
 
         Returns:
             Tuple of (full_reading_text, sections_dict)
         """
         import os
-        api_key = os.getenv("ANTHROPIC_API_KEY")
+        api_key = api_key or os.getenv("ANTHROPIC_API_KEY")
         if not api_key:
             raise ValueError("Anthropic API key required")
 

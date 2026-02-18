@@ -12,6 +12,7 @@ import logging
 
 from app.core.database_sqlite import get_db
 from app.models import Chart, ChartInterpretation
+from app.models.app_config import AppConfig
 from app.schemas import (
     ChartInterpretationCreate,
     ChartInterpretationUpdate,
@@ -116,7 +117,9 @@ async def generate_chart_interpretations(
 
     # Initialize AI interpreter
     try:
-        ai_interpreter = AIInterpreter(model=request.ai_model or "claude-haiku-4-5-20251001")
+        config = db.query(AppConfig).filter_by(id=1).first()
+        api_key = config.anthropic_api_key if config else None
+        ai_interpreter = AIInterpreter(api_key=api_key, model=request.ai_model or "claude-haiku-4-5-20251001")
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

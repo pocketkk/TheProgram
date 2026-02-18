@@ -14,6 +14,7 @@ import json
 
 from app.core.database_sqlite import get_db
 from app.models import Chart, ChartInterpretation
+from app.models.app_config import AppConfig
 from app.services.ai_interpreter import AIInterpreter
 from app.core.websocket import manager
 
@@ -79,7 +80,10 @@ async def generate_interpretations_ws(
 
         # Initialize AI interpreter
         try:
-            ai_interpreter = AIInterpreter(model=ai_model)
+            db = next(get_db())
+            config = db.query(AppConfig).filter_by(id=1).first()
+            api_key = config.anthropic_api_key if config else None
+            ai_interpreter = AIInterpreter(api_key=api_key, model=ai_model)
         except ValueError as e:
             await manager.send_message(connection_id, {
                 "type": "error",

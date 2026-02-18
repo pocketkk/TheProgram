@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 
 from app.core.database_sqlite import get_db
 from app.models import BirthData
+from app.models.app_config import AppConfig
 from app.services.human_design_calculator import HumanDesignCalculator
 from app.schemas.human_design import (
     HDCalculationRequest,
@@ -348,7 +349,8 @@ async def get_all_types():
 async def interpret_type(
     hd_type: str = Body(..., embed=True),
     strategy: str = Body(..., embed=True),
-    authority: str = Body(..., embed=True)
+    authority: str = Body(..., embed=True),
+    db: Session = Depends(get_db)
 ):
     """
     Get AI interpretation for Type, Strategy, and Authority combination.
@@ -357,11 +359,15 @@ async def interpret_type(
         # Import AI interpreter
         from app.services.ai_interpreter import AIInterpreter
 
+        config = db.query(AppConfig).filter_by(id=1).first()
+        api_key = config.anthropic_api_key if config else None
+
         # Generate interpretation
         interpretation = await AIInterpreter.generate_hd_type_interpretation_async(
             hd_type=hd_type,
             strategy=strategy,
-            authority=authority
+            authority=authority,
+            api_key=api_key
         )
 
         return HDTypeInterpretationResponse(
@@ -382,7 +388,8 @@ async def interpret_type(
 async def interpret_profile(
     profile: str = Body(..., embed=True),
     personality_line: int = Body(..., embed=True),
-    design_line: int = Body(..., embed=True)
+    design_line: int = Body(..., embed=True),
+    db: Session = Depends(get_db)
 ):
     """
     Get AI interpretation for a Profile.
@@ -390,10 +397,14 @@ async def interpret_profile(
     try:
         from app.services.ai_interpreter import AIInterpreter
 
+        config = db.query(AppConfig).filter_by(id=1).first()
+        api_key = config.anthropic_api_key if config else None
+
         interpretation = await AIInterpreter.generate_hd_profile_interpretation_async(
             profile=profile,
             personality_line=personality_line,
-            design_line=design_line
+            design_line=design_line,
+            api_key=api_key
         )
 
         return HDProfileInterpretationResponse(
@@ -413,7 +424,8 @@ async def interpret_channel(
     channel_name: str = Body(..., embed=True),
     gate1: int = Body(..., embed=True),
     gate2: int = Body(..., embed=True),
-    activation_type: str = Body("both", embed=True)
+    activation_type: str = Body("both", embed=True),
+    db: Session = Depends(get_db)
 ):
     """
     Get AI interpretation for a defined channel.
@@ -421,11 +433,15 @@ async def interpret_channel(
     try:
         from app.services.ai_interpreter import AIInterpreter
 
+        config = db.query(AppConfig).filter_by(id=1).first()
+        api_key = config.anthropic_api_key if config else None
+
         interpretation = await AIInterpreter.generate_hd_channel_interpretation_async(
             channel_name=channel_name,
             gate1=gate1,
             gate2=gate2,
-            activation_type=activation_type
+            activation_type=activation_type,
+            api_key=api_key
         )
 
         return HDChannelInterpretationResponse(
@@ -447,7 +463,8 @@ async def interpret_gate(
     gate_name: str = Body(..., embed=True),
     planet: str = Body(..., embed=True),
     line: int = Body(..., embed=True),
-    is_personality: bool = Body(True, embed=True)
+    is_personality: bool = Body(True, embed=True),
+    db: Session = Depends(get_db)
 ):
     """
     Get AI interpretation for a gate activation.
@@ -455,12 +472,16 @@ async def interpret_gate(
     try:
         from app.services.ai_interpreter import AIInterpreter
 
+        config = db.query(AppConfig).filter_by(id=1).first()
+        api_key = config.anthropic_api_key if config else None
+
         interpretation = await AIInterpreter.generate_hd_gate_interpretation_async(
             gate=gate,
             gate_name=gate_name,
             planet=planet,
             line=line,
-            is_personality=is_personality
+            is_personality=is_personality,
+            api_key=api_key
         )
 
         return HDGateInterpretationResponse(
@@ -531,8 +552,12 @@ async def generate_full_reading(
         # Generate full reading
         from app.services.ai_interpreter import AIInterpreter
 
+        config = db.query(AppConfig).filter_by(id=1).first()
+        api_key = config.anthropic_api_key if config else None
+
         reading, sections = await AIInterpreter.generate_hd_full_reading_async(
-            chart_data=chart_data
+            chart_data=chart_data,
+            api_key=api_key
         )
 
         return HDFullReadingResponse(
