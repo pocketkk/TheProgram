@@ -113,7 +113,7 @@ export interface BirthDataUpdate {
  */
 export async function createBirthData(data: BirthDataCreate): Promise<BirthDataResponse> {
   try {
-    const response = await apiClient.post<BirthDataResponse>('/birth-data', data)
+    const response = await apiClient.post<BirthDataResponse>('/birth-data/', data)
     return response.data
   } catch (error) {
     throw new Error(getErrorMessage(error))
