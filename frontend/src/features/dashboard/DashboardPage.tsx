@@ -107,23 +107,28 @@ function MoonPhaseSVG({ phase, dayOfCycle }: { phase: string; dayOfCycle: number
 
   return (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+      {/* Glow behind moon */}
+      {!isNew && (
+        <circle cx={cx} cy={cy} r={r + 4} fill="none" stroke="#cbd5e1" strokeWidth="6" opacity="0.06" />
+      )}
+
       {/* Dark circle background */}
-      <circle cx={cx} cy={cy} r={r} fill="#0f0f23" stroke="#334155" strokeWidth="1" />
+      <circle cx={cx} cy={cy} r={r} fill="#1a1a3e" stroke="#475569" strokeWidth="1.5" />
 
       {isNew ? null : isFull ? (
-        // Full moon — bright filled circle
+        // Full moon — bright filled circle with subtle texture hint
         <circle cx={cx} cy={cy} r={r - 1} fill="#e2e8f0" />
       ) : (
         // Crescent or gibbous
         <path
           d={getMoonPath(frac, waxing, cx, cy, r - 1)}
-          fill="#e2e8f0"
-          opacity="0.92"
+          fill="#dde5f0"
+          opacity="0.95"
         />
       )}
 
-      {/* Subtle outer glow ring */}
-      <circle cx={cx} cy={cy} r={r} fill="none" stroke="#94a3b8" strokeWidth="0.5" opacity="0.4" />
+      {/* Outer ring */}
+      <circle cx={cx} cy={cy} r={r} fill="none" stroke="#94a3b8" strokeWidth="1" opacity="0.5" />
     </svg>
   )
 }

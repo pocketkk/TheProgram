@@ -42,12 +42,14 @@ const GATE_NAMES: Record<number, string> = {
 const PLANET_SYMBOLS: Record<string, string> = {
   Sun: '☉', Moon: '☽', Mercury: '☿', Venus: '♀', Mars: '♂',
   Jupiter: '♃', Saturn: '♄', Uranus: '♅', Neptune: '♆', Pluto: '♇',
-  'True Node': '☊', 'Mean Node': '☊', Chiron: '⚷',
+  'North Node': '☊', 'South Node': '☋', 'Mean Node': '☊', Chiron: '⚷',
 }
 
-const TRANSIT_PLANETS = [
+// Priority order for display — inner planets first, outer planets last
+const PLANET_ORDER = [
   'Sun', 'Moon', 'Mercury', 'Venus', 'Mars',
-  'Jupiter', 'Saturn', 'Chiron', 'True Node',
+  'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto',
+  'North Node', 'South Node', 'Chiron',
 ]
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -177,8 +179,8 @@ function MiniBodyGraph({ definedCenters, natalChannelIds, transitChannelIds }: M
         if (!shape) return null
         const isNatal = definedCenters.includes(name)
         const isTransit = transitActivatedCenters.has(name) && !isNatal
-        const fill = isNatal ? '#78350F' : isTransit ? '#083344' : '#111827'
-        const stroke = isNatal ? '#F59E0B' : isTransit ? '#22D3EE' : '#374151'
+        const fill = isNatal ? '#78350F' : isTransit ? '#083344' : '#1e1b4b'
+        const stroke = isNatal ? '#F59E0B' : isTransit ? '#22D3EE' : '#4B5563'
         return (
           <CenterShape key={name} name={name} pos={pos} shape={shape} fill={fill} stroke={stroke} />
         )
@@ -277,21 +279,24 @@ export function HumanDesignTransitCard({ onNavigate }: HumanDesignTransitCardPro
     }
   }
 
-  // Build per-planet list
-  const activations: TransitActivation[] = TRANSIT_PLANETS
-    .filter(p => transitGateMap.has(p))
-    .map(planet => {
-      const gate = transitGateMap.get(planet)!
-      const info = GATE_MAP.get(gate)
-      const completesChannel = !!(info && natalGateSet.has(info.partner) && !natalGateSet.has(gate))
-      return {
-        planet,
-        gate,
-        completesChannel,
-        channelId: completesChannel ? info?.channelId : undefined,
-        partnerGate: completesChannel ? info?.partner : undefined,
-      }
-    })
+  // Build per-planet list — use all planets from response, sorted by priority order
+  const availablePlanets = [...transitGateMap.keys()]
+  const sortedPlanets = [
+    ...PLANET_ORDER.filter(p => transitGateMap.has(p)),
+    ...availablePlanets.filter(p => !PLANET_ORDER.includes(p)),
+  ]
+  const activations: TransitActivation[] = sortedPlanets.map(planet => {
+    const gate = transitGateMap.get(planet)!
+    const info = GATE_MAP.get(gate)
+    const completesChannel = !!(info && natalGateSet.has(info.partner) && !natalGateSet.has(gate))
+    return {
+      planet,
+      gate,
+      completesChannel,
+      channelId: completesChannel ? info?.channelId : undefined,
+      partnerGate: completesChannel ? info?.partner : undefined,
+    }
+  })
 
   const completing = activations.filter(a => a.completesChannel)
 
@@ -345,33 +350,33 @@ export function HumanDesignTransitCard({ onNavigate }: HumanDesignTransitCardPro
                 key={planet}
                 className={`flex items-center gap-2 px-2 py-1.5 rounded text-xs ${
                   completesChannel
-                    ? 'bg-cyan-950/40 border border-cyan-800/30'
-                    : 'bg-slate-900/30'
+                    ? 'bg-cyan-950/50 border border-cyan-700/40'
+                    : 'bg-slate-800/30 border border-slate-700/20'
                 }`}
               >
                 {/* Planet symbol */}
                 <span
                   className={`shrink-0 w-5 text-center font-medium ${
-                    completesChannel ? 'text-cyan-300' : 'text-slate-500'
+                    completesChannel ? 'text-cyan-300' : 'text-slate-400'
                   }`}
                 >
                   {PLANET_SYMBOLS[planet] ?? '·'}
                 </span>
 
                 {/* Gate info */}
-                <div className="flex-1 min-w-0">
-                  <span className={completesChannel ? 'text-white' : 'text-slate-400'}>
-                    Gate {gate}
+                <div className="flex-1 min-w-0 truncate">
+                  <span className={completesChannel ? 'text-white' : 'text-slate-300'}>
+                    {gate}
                   </span>
-                  <span className={`ml-1 ${completesChannel ? 'text-slate-300' : 'text-slate-600'}`}>
+                  <span className={`ml-1 ${completesChannel ? 'text-slate-300' : 'text-slate-500'}`}>
                     · {GATE_NAMES[gate] ?? ''}
                   </span>
                 </div>
 
                 {/* Activation badge */}
-                {completesChannel && channelId && partnerGate && (
-                  <span className="shrink-0 text-cyan-400 text-xs font-medium">
-                    {channelId}
+                {completesChannel && channelId && (
+                  <span className="shrink-0 text-cyan-400 font-semibold">
+                    ✦
                   </span>
                 )}
               </div>
