@@ -223,7 +223,10 @@ if _frontend_dist and _frontend_dist.exists():
     @app.get("/{full_path:path}", include_in_schema=False)
     async def serve_spa(full_path: str):
         """Catch-all: return index.html so React Router handles routing."""
-        return _FileResponse(str(_frontend_dist / "index.html"))
+        response = _FileResponse(str(_frontend_dist / "index.html"))
+        # Never cache the HTML shell — assets are cache-safe via content hashes
+        response.headers["Cache-Control"] = "no-cache, must-revalidate"
+        return response
 
     logger.info(f"Serving frontend from {_frontend_dist}")
 
