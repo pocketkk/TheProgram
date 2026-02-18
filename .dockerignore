@@ -1,0 +1,46 @@
+# ── Node ──────────────────────────────────────────────────────────────────────
+node_modules/
+frontend/node_modules/
+frontend/dist/
+
+# ── Python ────────────────────────────────────────────────────────────────────
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/.pytest_cache/
+backend/test_venv/
+backend/tests/
+backend/.env
+backend/.env.*
+
+# ── User data (never bake into the image) ─────────────────────────────────────
+backend/data/theprogram.db
+backend/data/theprogram.db-*
+backend/data/app.db
+backend/data/images/
+
+# ── Git / IDE ──────────────────────────────────────────────────────────────────
+.git/
+.gitignore
+.vscode/
+.idea/
+
+# ── Electron / desktop build artifacts ────────────────────────────────────────
+electron/
+dist/
+build/
+release/
+
+# ── Docs / website / scripts ──────────────────────────────────────────────────
+docs/
+website/
+scripts/
+deploy/
+
+# ── Misc ──────────────────────────────────────────────────────────────────────
+*.md
+*.log
+Dockerfile*
+docker-compose*
+Caddyfile*
+.dockerignore

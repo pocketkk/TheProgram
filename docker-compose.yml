@@ -1,0 +1,68 @@
+# ─── The Program — Multi-instance deployment ───────────────────────────────────
+#
+# One container per person. Each person gets their own isolated database and
+# image storage, bound to a unique localhost port that Caddy routes to.
+#
+# Add a new person:
+#   ./deploy/add-instance.sh <name> <port>
+#
+# Build the image:
+#   docker compose build
+#
+# Start all instances:
+#   docker compose up -d
+#
+# View logs for one instance:
+#   docker compose logs -f tami
+
+version: '3.8'
+
+# ── Shared image ───────────────────────────────────────────────────────────────
+x-app: &app-defaults
+  image: theprogram:latest
+  restart: unless-stopped
+  build:
+    context: .
+    dockerfile: Dockerfile
+  environment:
+    APP_ENV: production
+    DEBUG: "false"
+    FRONTEND_DIST: /app/dist
+    EPHEMERIS_PATH: /app/backend/data/ephemeris
+    USER_DATA_DIR: /data
+
+
+# ── Instances ──────────────────────────────────────────────────────────────────
+
+services:
+
+  # ── Tami ──────────────────────────────────────────────────────────────────
+  tami:
+    <<: *app-defaults
+    environment:
+      APP_ENV: production
+      DEBUG: "false"
+      FRONTEND_DIST: /app/dist
+      EPHEMERIS_PATH: /app/backend/data/ephemeris
+      USER_DATA_DIR: /data
+      SECRET_KEY: ${TAMI_SECRET_KEY:?Set TAMI_SECRET_KEY in .env}
+    volumes:
+      - /opt/theprogram/data/tami:/data
+    ports:
+      - "127.0.0.1:8001:8000"   # Only accessible via Caddy, not public internet
+
+  # ── Template — copy and uncomment for each new person ─────────────────────
+  #
+  # bob:
+  #   <<: *app-defaults
+  #   environment:
+  #     APP_ENV: production
+  #     DEBUG: "false"
+  #     FRONTEND_DIST: /app/dist
+  #     EPHEMERIS_PATH: /app/backend/data/ephemeris
+  #     USER_DATA_DIR: /data
+  #     SECRET_KEY: ${BOB_SECRET_KEY:?Set BOB_SECRET_KEY in .env}
+  #   volumes:
+  #     - /opt/theprogram/data/bob:/data
+  #   ports:
+  #     - "127.0.0.1:8002:8000"

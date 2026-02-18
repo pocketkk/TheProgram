@@ -197,6 +197,37 @@ async def shutdown_event():
     logger.info("Application shutdown complete")
 
 
+# ── Static frontend serving (web/Docker mode) ─────────────────────────────────
+# When FRONTEND_DIST is set and the directory exists, FastAPI serves the built
+# React app. Requests to /api/* are handled by routes above; everything else
+# falls through to the SPA index.html.
+import os as _os
+from pathlib import Path as _Path
+
+_frontend_dist = _Path(_os.getenv("FRONTEND_DIST", "")) if _os.getenv("FRONTEND_DIST") else None
+
+if _frontend_dist and _frontend_dist.exists():
+    from fastapi.staticfiles import StaticFiles
+    from fastapi.responses import FileResponse as _FileResponse
+
+    _assets_dir = _frontend_dist / "assets"
+    if _assets_dir.exists():
+        app.mount("/assets", StaticFiles(directory=str(_assets_dir)), name="static-assets")
+
+    # Serve any other static files at root (favicon, manifest, etc.)
+    _extra_static = [f for f in _frontend_dist.iterdir()
+                     if f.is_file() and f.name != "index.html"]
+    if _extra_static:
+        app.mount("/static-root", StaticFiles(directory=str(_frontend_dist)), name="static-root")
+
+    @app.get("/{full_path:path}", include_in_schema=False)
+    async def serve_spa(full_path: str):
+        """Catch-all: return index.html so React Router handles routing."""
+        return _FileResponse(str(_frontend_dist / "index.html"))
+
+    logger.info(f"Serving frontend from {_frontend_dist}")
+
+
 if __name__ == "__main__":
     import uvicorn
     import uvicorn

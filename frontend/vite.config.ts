@@ -4,7 +4,8 @@ import path from 'path'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  base: './', // Required for Electron file:// protocol
+  // './' for Electron file:// protocol; '/' for web/Docker builds
+  base: process.env.BUILD_TARGET === 'web' ? '/' : './',
   plugins: [react()],
   resolve: {
     alias: {

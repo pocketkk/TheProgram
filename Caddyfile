@@ -1,0 +1,36 @@
+# ─── The Program — Production Caddyfile ───────────────────────────────────────
+#
+# TLS certificates are obtained automatically from Let's Encrypt.
+# Place this file at /opt/theprogram/Caddyfile and run:
+#   caddy start --config /opt/theprogram/Caddyfile
+#
+# To add a new person:
+#   1. Run: ./deploy/add-instance.sh <name> <port>
+#   2. Uncomment/add their block below with the generated password hash
+#   3. Run: caddy reload --config /opt/theprogram/Caddyfile
+#
+# To generate a password hash:
+#   caddy hash-password --plaintext "their-password"
+
+
+# ── Tami ──────────────────────────────────────────────────────────────────────
+tami.theprogram.us {
+    # Basic auth protects the whole instance
+    # Generate hash: caddy hash-password --plaintext "password"
+    basicauth {
+        tami REPLACE_WITH_CADDY_HASH
+    }
+
+    # WebSocket support is automatic with reverse_proxy
+    reverse_proxy localhost:8001
+}
+
+
+# ── Template — copy for each new person ───────────────────────────────────────
+#
+# bob.theprogram.us {
+#     basicauth {
+#         bob REPLACE_WITH_CADDY_HASH
+#     }
+#     reverse_proxy localhost:8002
+# }

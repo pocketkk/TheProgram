@@ -4,7 +4,17 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import type { BatchGenerateItem, BatchProgressUpdate } from '@/types/image'
 
-const WS_BASE_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:8000'
+// Derive WebSocket base URL from the current page origin when running on web
+// (VITE_API_URL=/api means we're on the same host as the backend)
+function getWsBaseUrl(): string {
+  if (import.meta.env.VITE_WS_URL) return import.meta.env.VITE_WS_URL
+  const apiUrl = import.meta.env.VITE_API_URL || ''
+  if (!apiUrl.startsWith('http')) {
+    const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+    return `${proto}//${window.location.host}`
+  }
+  return 'ws://localhost:8000'
+}
 
 export interface UseBatchGenerationOptions {
   collectionId: string
@@ -53,7 +63,7 @@ export function useBatchGeneration({
 
     try {
       const ws = new WebSocket(
-        `${WS_BASE_URL}/api/ws/images/batch?collection_id=${collectionId}`
+        `${getWsBaseUrl()}/api/ws/images/batch?collection_id=${collectionId}`
       )
 
       ws.onopen = () => {
