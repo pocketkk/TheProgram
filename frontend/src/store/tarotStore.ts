@@ -195,6 +195,13 @@ export const useTarotStore = create<TarotState>()(
       // Only include decks that have at least some images
       const decksWithImages = decks.filter(d => d.image_count > 0)
       set({ availableDecks: decksWithImages })
+
+      // Auto-select the most complete deck if none is currently selected
+      const { selectedDeckId, selectDeck } = get()
+      if (!selectedDeckId && decksWithImages.length > 0) {
+        const bestDeck = [...decksWithImages].sort((a, b) => b.image_count - a.image_count)[0]
+        await selectDeck(bestDeck.id)
+      }
     } catch (error) {
       console.error('Failed to load available decks:', error)
     }

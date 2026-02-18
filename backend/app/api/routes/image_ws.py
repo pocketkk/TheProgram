@@ -21,6 +21,46 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
+async def rewrite_blocked_prompt(prompt: str, card_name: str, api_key: str) -> str:
+    """
+    Use Claude Haiku to rewrite a content-blocked image prompt.
+
+    Preserves the tarot card's spiritual and archetypal meaning while rephrasing
+    any elements that triggered Gemini's content safety filters.
+    """
+    try:
+        import anthropic
+        client = anthropic.AsyncAnthropic(api_key=api_key)
+
+        message = await client.messages.create(
+            model="claude-haiku-4-5-20251001",
+            max_tokens=400,
+            messages=[{
+                "role": "user",
+                "content": (
+                    f'Rewrite this image generation prompt for the tarot card "{card_name}" '
+                    f"so it passes AI content filters while preserving the spiritual, "
+                    f"symbolic, and archetypal meaning.\n\n"
+                    f"Original prompt: {prompt}\n\n"
+                    f"Rules:\n"
+                    f"- Keep the core symbolism and tarot meaning\n"
+                    f"- Avoid explicit violence, nudity, or graphic content\n"
+                    f"- Use metaphorical and artistic language\n"
+                    f"- Focus on symbolic rather than literal interpretations\n"
+                    f"- Return only the rewritten prompt, no explanation"
+                ),
+            }],
+        )
+
+        rewritten = message.content[0].text.strip()
+        logger.info(f"Rewrote blocked prompt for {card_name}: {rewritten[:100]}...")
+        return rewritten
+
+    except Exception as e:
+        logger.error(f"Failed to rewrite blocked prompt: {e}")
+        return prompt  # Fall back to original if rewrite fails
+
+
 class BatchGenerationManager:
     """Manages batch image generation sessions"""
 
@@ -207,6 +247,7 @@ async def run_batch_generation(
             return
 
         api_key = config.google_api_key
+        anthropic_key = config.anthropic_api_key if config.has_api_key else None
 
         # Get style from collection or override
         style = style_override or collection.style_prompt or ""
@@ -312,13 +353,15 @@ async def run_batch_generation(
                 }
                 purpose = purpose_map.get(collection.collection_type, "custom")
 
-                # Generate image with retry for "no image data" errors
+                # Generate image with retry for transient errors and content blocks
                 # Pass reference_image for style consistency (None for first card)
                 result = None
                 max_retries = 3
+                prompt_to_use = prompt
+                content_rewrite_attempted = False
                 for retry in range(max_retries):
                     result = await service.generate_image(
-                        prompt=prompt,
+                        prompt=prompt_to_use,
                         purpose=purpose,
                         style=style,
                         reference_image=reference_image,  # None for first, set after first success
@@ -331,8 +374,27 @@ async def run_batch_generation(
                     if result.success:
                         break  # Success, exit retry loop
 
+                    # Content blocked — rewrite with Claude and retry once
+                    if result.error and result.error.startswith("CONTENT_BLOCKED"):
+                        if not content_rewrite_attempted and anthropic_key:
+                            content_rewrite_attempted = True
+                            logger.warning(f"Content blocked for {item_name}, rewriting prompt with AI...")
+                            await manager.send_progress(
+                                current=idx,
+                                total=total,
+                                item_name=item_name,
+                                item_key=item_key,
+                                status="retrying",
+                                error="Content filtered — rewriting prompt with AI...",
+                            )
+                            prompt_to_use = await rewrite_blocked_prompt(prompt_to_use, item_name, anthropic_key)
+                            await asyncio.sleep(2.0)
+                            continue
+                        else:
+                            break  # Still blocked after rewrite, give up
+
                     # Check if it's a "no image data" error that might succeed on retry
-                    if result.error and "no image" in result.error.lower():
+                    elif result.error and "no image" in result.error.lower():
                         if retry < max_retries - 1:
                             logger.warning(f"No image data for {item_name}, retrying ({retry + 1}/{max_retries})...")
                             await asyncio.sleep(5.0)  # Wait before retry

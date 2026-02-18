@@ -3,7 +3,7 @@
  */
 import { useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, Button } from '@/components/ui'
-import { Pause, Play, X, CheckCircle, AlertCircle, Sparkles } from 'lucide-react'
+import { Pause, Play, X, CheckCircle, AlertCircle, Sparkles, RefreshCw } from 'lucide-react'
 import type { BatchProgressUpdate } from '@/types/image'
 
 interface BatchProgressProps {
@@ -88,7 +88,7 @@ export function BatchProgress({
         <div>
           <div className="flex justify-between text-sm mb-2">
             <span className="text-gray-400">
-              {isComplete ? 'Complete!' : isPaused ? 'Paused' : 'Generating...'}
+              {isComplete ? 'Complete!' : isPaused ? 'Paused' : progress?.status === 'retrying' ? 'Rewriting...' : 'Generating...'}
             </span>
             <span className="text-celestial-purple font-semibold">
               {current} / {total} cards
@@ -118,6 +118,9 @@ export function BatchProgress({
               {progress.status === 'generating' && (
                 <div className="w-5 h-5 border-3 border-celestial-purple border-t-transparent rounded-full animate-spin flex-shrink-0 mt-0.5"></div>
               )}
+              {progress.status === 'retrying' && (
+                <RefreshCw className="w-5 h-5 text-amber-400 animate-spin flex-shrink-0 mt-0.5" />
+              )}
               {progress.status === 'complete' && (
                 <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
               )}
@@ -126,7 +129,10 @@ export function BatchProgress({
               )}
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium truncate">{progress.item_name}</p>
-                {progress.error && (
+                {progress.status === 'retrying' && progress.error && (
+                  <p className="text-xs text-amber-400 mt-1">{progress.error}</p>
+                )}
+                {progress.status === 'failed' && progress.error && (
                   <p className="text-xs text-red-400 mt-1">{progress.error}</p>
                 )}
               </div>

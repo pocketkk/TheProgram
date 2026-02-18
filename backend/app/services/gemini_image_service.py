@@ -221,11 +221,12 @@ class GeminiImageService:
                 image_data, mime_type, width, height = self._extract_image(response)
 
                 if not image_data:
+                    is_blocked = mime_type == "CONTENT_BLOCKED"
                     return GeneratedImageResult(
                         success=False,
                         prompt=prompt,
                         enhanced_prompt=enhanced,
-                        error="No image data in response",
+                        error="CONTENT_BLOCKED: Image was filtered by safety systems" if is_blocked else "No image data in response",
                     )
 
                 if progress_callback:
@@ -353,7 +354,7 @@ class GeminiImageService:
                 finish_reason = str(candidate.finish_reason)
                 if 'SAFETY' in finish_reason or 'BLOCKED' in finish_reason:
                     logger.error(f"Content blocked by safety filters: {finish_reason}")
-                    return None, "", 0, 0
+                    return None, "CONTENT_BLOCKED", 0, 0
 
             if not hasattr(candidate, 'content') or candidate.content is None:
                 logger.error("No content in Gemini response candidate")
