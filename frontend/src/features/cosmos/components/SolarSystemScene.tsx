@@ -285,15 +285,20 @@ const CinematicCameraController = ({
     controls.update()
   })
 
-  // Re-enable controls when cinematic ends
+  // Re-enable controls on unmount (component is only mounted while cinematic is active,
+  // so unmounting == demo ended). The previous approach used a [targetId] effect but that
+  // never fired with undefined because the component was already removed from the tree.
+  const cameraLockedRef = useRef(cameraLocked)
+  cameraLockedRef.current = cameraLocked
+
   useEffect(() => {
-    if (targetId === undefined && controlsRef.current) {
-      controlsRef.current.enabled = !cameraLocked
-      controlsRef.current.update()
-      lerpedCamPos.current.copy(camera.position)
-      lerpedLookAt.current.copy(controlsRef.current.target)
+    return () => {
+      if (controlsRef.current) {
+        controlsRef.current.enabled = !cameraLockedRef.current
+        controlsRef.current.update()
+      }
     }
-  }, [targetId, controlsRef, cameraLocked, camera])
+  }, [controlsRef]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return null
 }
