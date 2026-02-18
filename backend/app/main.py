@@ -42,10 +42,10 @@ app.add_middleware(
 )
 
 
-# Root endpoint
-@app.get("/")
+# API info endpoint (root is reserved for SPA in web mode)
+@app.get("/api/info")
 async def root():
-    """Root endpoint - API information"""
+    """API information"""
     return {
         "name": settings.APP_NAME,
         "version": "0.1.0",
@@ -229,7 +229,6 @@ if _frontend_dist and _frontend_dist.exists():
 
 
 if __name__ == "__main__":
-    import uvicorn
     import uvicorn
     # Pass the app object directly to avoid import issues in frozen app
     uvicorn.run(
