@@ -215,7 +215,15 @@ const CinematicCameraController = ({
   const { camera } = useThree()
   const lerpedCamPos = useRef(new THREE.Vector3(0, 15, 15))
   const lerpedLookAt = useRef(new THREE.Vector3(0, 0, 0))
+  const orbitTimeRef = useRef(0)
   const isActive = targetId !== undefined
+
+  // Reset orbit clock whenever we enter orbit mode
+  useEffect(() => {
+    if (targetId === '__orbit__') {
+      orbitTimeRef.current = 0
+    }
+  }, [targetId])
 
   useFrame((_state, delta) => {
     if (!controlsRef.current || !isActive) return
@@ -225,24 +233,45 @@ const CinematicCameraController = ({
     let desiredCamPos: THREE.Vector3
     let desiredLookAt: THREE.Vector3
 
-    if (targetId !== null) {
+    if (targetId === '__orbit__') {
+      // ── Slow majestic orbit around the solar system ──────────────────────
+      orbitTimeRef.current += delta
+
+      const t = orbitTimeRef.current
+      const RADIUS      = 24                         // distance from origin
+      const AZ_SPEED    = (Math.PI / 180) * 5        // 5°/s → full circle in 72 s
+      const BASE_AZ     = Math.PI / 4                // start at 45° (near default)
+      const BASE_ELEV   = (Math.PI / 180) * 28       // 28° base elevation
+      const ELEV_AMP    = (Math.PI / 180) * 18       // ±18° gentle dip & rise
+      const ELEV_PERIOD = 0.08                       // slow sine period
+
+      const azimuth   = BASE_AZ + t * AZ_SPEED
+      const elevation = BASE_ELEV + Math.sin(t * ELEV_PERIOD) * ELEV_AMP
+
+      desiredCamPos = new THREE.Vector3(
+        RADIUS * Math.cos(elevation) * Math.cos(azimuth),
+        RADIUS * Math.sin(elevation),
+        RADIUS * Math.cos(elevation) * Math.sin(azimuth),
+      )
+      desiredLookAt = new THREE.Vector3(0, 0, 0)
+
+    } else if (targetId !== null) {
+      // ── Planet close-up ──────────────────────────────────────────────────
       const marker = planetPositions.find(p => p.id === targetId)
       const planetPos = marker ? marker.position.clone() : new THREE.Vector3(0, 0, 0)
 
-      // Direction from origin (sun) outward toward the planet
       const dirToSun = planetPos.length() > 0.3
         ? planetPos.clone().normalize().negate()
         : new THREE.Vector3(0, 0, 1)
 
       const dist = targetId === 'sun' ? 7 : Math.max(planetPos.length() * 0.55, 3)
-      // Place camera between the sun and the planet, elevated — planet against the stars
       desiredCamPos = planetPos.clone()
         .add(dirToSun.multiplyScalar(dist))
         .add(new THREE.Vector3(0, dist * 0.45, 0))
-
       desiredLookAt = planetPos
+
     } else {
-      // Pull back to overview
+      // ── Pull back to overview ─────────────────────────────────────────────
       desiredCamPos = new THREE.Vector3(0, 15, 15)
       desiredLookAt = new THREE.Vector3(0, 0, 0)
     }
@@ -261,7 +290,6 @@ const CinematicCameraController = ({
     if (targetId === undefined && controlsRef.current) {
       controlsRef.current.enabled = !cameraLocked
       controlsRef.current.update()
-      // Reset lerped positions to match current camera for smooth handoff
       lerpedCamPos.current.copy(camera.position)
       lerpedLookAt.current.copy(controlsRef.current.target)
     }
@@ -646,7 +674,7 @@ export const SolarSystemScene = ({
         )}
 
         {/* Cinematic targeting reticle — corner brackets around featured planet */}
-        {cinematicTargetId !== undefined && cinematicTargetId !== null && (
+        {cinematicTargetId !== undefined && cinematicTargetId !== null && cinematicTargetId !== '__orbit__' && (
           <CinematicPlanetHighlight
             targetId={cinematicTargetId}
             planetPositions={allPlanetPositions}

@@ -267,10 +267,16 @@ const CINEMATIC_SEQUENCE: CinematicShot[] = [
   { id: 'uranus',  title: 'URANUS',  epithet: 'The Awakener',         color: '#72C8C8', time: 21000 },
   { id: 'neptune', title: 'NEPTUNE', epithet: 'The Mystic',           color: '#4169E1', time: 24000 },
   { id: 'pluto',   title: 'PLUTO',   epithet: 'Lord of the Underworld', color: '#9B8B78', time: 27000 },
-  { id: null,      title: '',        epithet: '',                     color: '',        time: 30000 }, // pull back
+  { id: null,      title: '',        epithet: '',                     color: '',        time: 30000 }, // brief pull-back before orbit
 ]
 
-const DEMO_DURATION_MS = 33_000
+// After the planet tour ends the demo enters a free-orbit phase for ~28 s,
+// then eases back to the overview. Total runtime is driven by 2 years of
+// planetary data at speed=0.6 d/frame → ~61 s.
+const TOUR_END_MS    = 33_000  // tour pull-back starts
+const ORBIT_START_MS = 36_000  // orbit phase begins (3 s for camera to settle)
+const RETURN_MS      = 57_000  // begin easing back to overview
+const DEMO_DURATION_MS = 70_000 // safety-net fallback; date-based stop fires ~61 s
 
 export const CosmicVisualizerPage = () => {
   const [currentDate, setCurrentDate] = useState(new Date())
@@ -540,28 +546,31 @@ export const CosmicVisualizerPage = () => {
   const eventLabelTimerRef = useRef<number | null>(null)
 
   // Cinematic camera state
-  const [cinematicTargetId, setCinematicTargetId] = useState<string | null>(null)
+  // string = focus planet, null = pull-back to overview, undefined = controller inactive
+  const [cinematicTargetId, setCinematicTargetId] = useState<string | null | undefined>(undefined)
   const [cinematicTitle, setCinematicTitle] = useState<CinematicShot | null>(null)
   const cinemaTimersRef = useRef<number[]>([])
 
   const startDemo = useCallback(() => {
-    const oneYearAgo = new Date()
-    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1)
-    demoStartDateRef.current = oneYearAgo
+    const twoYearsAgo = new Date()
+    twoYearsAgo.setFullYear(twoYearsAgo.getFullYear() - 2)
+    demoStartDateRef.current = twoYearsAgo
     demoEndDateRef.current = new Date()
     prevRetroRef.current = {}
     retroCheckCounter.current = 0
 
-    setCurrentDate(oneYearAgo)
+    setCurrentDate(twoYearsAgo)
     setReferenceFrame('geocentric')
     setSpeed(0.6)
     updateMultipleBodies({ trail: true })
     setIsDemoMode(true)
     setDemoEventLabel(null)
 
-    // Schedule cinematic sequence
+    // ── Schedule cinematic timeline ────────────────────────────────────────
     cinemaTimersRef.current.forEach(clearTimeout)
     cinemaTimersRef.current = []
+
+    // Planet tour (0 – 33 s)
     CINEMATIC_SEQUENCE.forEach((shot) => {
       const id = window.setTimeout(() => {
         setCinematicTargetId(shot.id)
@@ -569,14 +578,25 @@ export const CosmicVisualizerPage = () => {
       }, shot.time)
       cinemaTimersRef.current.push(id)
     })
-    // Auto-stop after full duration
-    const endId = window.setTimeout(() => {
+
+    // Orbit phase (36 s): camera slowly sweeps around the solar system
+    cinemaTimersRef.current.push(window.setTimeout(() => {
+      setCinematicTargetId('__orbit__')
+      setCinematicTitle(null)
+    }, ORBIT_START_MS))
+
+    // Begin return to overview (57 s)
+    cinemaTimersRef.current.push(window.setTimeout(() => {
+      setCinematicTargetId(null)
+    }, RETURN_MS))
+
+    // Safety-net stop
+    cinemaTimersRef.current.push(window.setTimeout(() => {
       setIsDemoMode(false)
       setIsPlaying(false)
-      setCinematicTargetId(null)
+      setCinematicTargetId(undefined)
       setCinematicTitle(null)
-    }, DEMO_DURATION_MS)
-    cinemaTimersRef.current.push(endId)
+    }, DEMO_DURATION_MS))
 
     setIsPlaying(true)
   }, [updateMultipleBodies])
@@ -587,7 +607,8 @@ export const CosmicVisualizerPage = () => {
     setIsDemoMode(false)
     setDemoEventLabel(null)
     setIsPlaying(false)
-    setCinematicTargetId(null)
+    // Pass undefined (not null) to deactivate the cinematic controller
+    setCinematicTargetId(undefined as unknown as null)
     setCinematicTitle(null)
     if (eventLabelTimerRef.current !== null) {
       clearTimeout(eventLabelTimerRef.current)
@@ -1198,7 +1219,7 @@ export const CosmicVisualizerPage = () => {
             speed={speed}
             cameraLocked={cameraLocked}
             resetCameraTrigger={resetCameraTrigger}
-            cinematicTargetId={isDemoMode ? cinematicTargetId : undefined}
+            cinematicTargetId={cinematicTargetId}
             cinematicColor={cinematicTitle?.color}
           />
         </div>
