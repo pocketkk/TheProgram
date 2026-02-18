@@ -40,7 +40,7 @@ class WhisperSTTService:
     def __init__(
         self,
         model_size: str = "base",  # tiny, base, small, medium, large-v3
-        device: str = "auto",  # auto, cpu, cuda
+        device: str = "cpu",  # cpu, cuda (force cpu to avoid libcublas hang)
         compute_type: str = "int8"  # int8, float16, float32
     ):
         """
@@ -120,14 +120,21 @@ class WhisperSTTService:
             return None
 
         # Run transcription in thread pool to avoid blocking
-        loop = asyncio.get_event_loop()
-        return await loop.run_in_executor(
-            None,
-            self._transcribe_sync,
-            audio_data,
-            sample_rate,
-            language
-        )
+        loop = asyncio.get_running_loop()
+        try:
+            return await asyncio.wait_for(
+                loop.run_in_executor(
+                    None,
+                    self._transcribe_sync,
+                    audio_data,
+                    sample_rate,
+                    language
+                ),
+                timeout=30.0
+            )
+        except asyncio.TimeoutError:
+            logger.error("Transcription timed out after 30s")
+            return None
 
     def _transcribe_sync(
         self,
@@ -138,7 +145,11 @@ class WhisperSTTService:
         """Synchronous transcription (runs in thread pool)"""
         import numpy as np
 
-        model = self._get_model()
+        try:
+            model = self._get_model()
+        except Exception as e:
+            logger.error(f"Failed to load Whisper model: {e}")
+            return None
 
         # Convert bytes to numpy array (16-bit PCM)
         try:
