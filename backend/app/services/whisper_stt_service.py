@@ -173,16 +173,14 @@ class WhisperSTTService:
             return None
 
         try:
-            # Run transcription with VAD filtering
+            # Run transcription without VAD filter — silero VAD requires a
+            # network download on first use which can hang in server context.
+            # Silence is already filtered above by amplitude check.
             segments, info = model.transcribe(
                 audio_float,
                 beam_size=5,
                 language=language,
-                vad_filter=True,  # Filter out non-speech
-                vad_parameters=dict(
-                    min_silence_duration_ms=500,
-                    speech_pad_ms=200
-                )
+                vad_filter=False,
             )
 
             # Collect all text
