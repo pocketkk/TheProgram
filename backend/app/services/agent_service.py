@@ -1040,7 +1040,7 @@ class AgentService:
     def __init__(
         self,
         api_key: Optional[str] = None,
-        model: str = "claude-sonnet-4-20250514"
+        model: str = "claude-sonnet-4-6"
     ):
         """
         Initialize the agent service.

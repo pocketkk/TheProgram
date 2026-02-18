@@ -533,7 +533,7 @@ async def validate_api_key(db: Session = Depends(get_db)):
         return ApiKeyValidateResponse(
             valid=True,
             message="API key is valid and working correctly.",
-            model_access=["claude-haiku-4-5-20251001", "claude-sonnet-4-5-20250514"],
+            model_access=["claude-haiku-4-5-20251001", "claude-sonnet-4-6"],
         )
 
     except Exception as e:
@@ -722,7 +722,7 @@ async def validate_google_api_key(db: Session = Depends(get_db)):
 
         # Make a minimal test request
         response = client.models.generate_content(
-            model="gemini-2.0-flash-exp",
+            model="gemini-2.0-flash",
             contents="test",
             config={"max_output_tokens": 10},
         )
@@ -731,7 +731,7 @@ async def validate_google_api_key(db: Session = Depends(get_db)):
         return ApiKeyValidateResponse(
             valid=True,
             message="Google API key is valid and working correctly.",
-            model_access=["gemini-2.0-flash-exp", "gemini-2.5-flash-image"],
+            model_access=["gemini-2.0-flash", "gemini-2.0-flash-exp-image-generation"],
         )
 
     except ImportError:

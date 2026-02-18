@@ -231,7 +231,7 @@ class GeminiTTSProvider(TTSProvider):
 
         try:
             async with client.aio.live.connect(
-                model="gemini-2.0-flash-exp",
+                model="gemini-2.0-flash",
                 config=config
             ) as session:
                 # Send the text to speak

@@ -167,7 +167,7 @@ async def generate_chart_interpretations(
                 if existing:
                     # Update existing (create new version)
                     existing.ai_description = interp["description"]
-                    existing.ai_model = request.ai_model or "claude-3-5-sonnet-20241022"
+                    existing.ai_model = request.ai_model or "claude-sonnet-4-6"
                     existing.version += 1
                     db.commit()
                     db.refresh(existing)
@@ -181,7 +181,7 @@ async def generate_chart_interpretations(
                         element_key=element_key,
                         astro_system=chart_astro_system,  # Set from parent chart
                         ai_description=interp["description"],
-                        ai_model=request.ai_model or "claude-3-5-sonnet-20241022",
+                        ai_model=request.ai_model or "claude-sonnet-4-6",
                         ai_prompt_version="v1.0",
                         version=1,
                         is_approved="pending"

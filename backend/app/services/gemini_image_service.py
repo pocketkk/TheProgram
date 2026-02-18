@@ -105,7 +105,7 @@ class GeminiImageService:
     def __init__(
         self,
         api_key: Optional[str] = None,
-        model: str = "gemini-2.0-flash-exp",  # Only model that supports image generation
+        model: str = "gemini-2.0-flash-exp-image-generation",  # Model that supports image generation
         max_concurrent: int = 1,  # Sequential to avoid rate limits
     ):
         """

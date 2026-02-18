@@ -397,7 +397,7 @@ class LiveSession:
             # Use the async context manager for live connect
             logger.info("Creating Gemini Live connection...")
             self._context_manager = self.client.aio.live.connect(
-                model="gemini-2.0-flash-exp",
+                model="gemini-2.0-flash",
                 config=self.config
             )
             # Enter the context manager
