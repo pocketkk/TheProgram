@@ -127,7 +127,7 @@ export async function createCollection(
 ): Promise<CollectionInfo> {
   try {
     const response = await apiClient.post<CollectionInfo>(
-      '/images/collections/',
+      '/images/collections',
       data
     )
     return response.data
