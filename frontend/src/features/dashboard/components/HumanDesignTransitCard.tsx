@@ -255,6 +255,7 @@ export function HumanDesignTransitCard({ onNavigate }: HumanDesignTransitCardPro
   const transitGateMap = new Map<string, number>()
   const allTransitGates = new Set<number>()
   for (const [planet, pos] of Object.entries(transits.current_positions)) {
+    if (!pos) continue
     const gate = longitudeToGate(pos.longitude)
     transitGateMap.set(planet, gate)
     allTransitGates.add(gate)
