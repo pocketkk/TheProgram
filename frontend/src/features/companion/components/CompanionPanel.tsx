@@ -5,10 +5,9 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Send, Trash2, Loader2, Sparkles, Key, ExternalLink, Mic, MicOff } from 'lucide-react'
+import { X, Send, Trash2, Loader2, Sparkles, Key, ExternalLink, MicOff } from 'lucide-react'
 import { useCompanionStore } from '../stores/companionStore'
 import { useCompanionActions } from '../hooks/useCompanionActions'
-import { useHybridVoiceChat } from '../hooks/useHybridVoiceChat'
 import { CompanionAvatar } from './CompanionAvatar'
 
 interface CompanionPanelProps {
@@ -36,16 +35,7 @@ export function CompanionPanel({ onMinimize }: CompanionPanelProps) {
 
   const { sendMessage, clearHistory, connect, isConnected } = useCompanionActions()
 
-  // Hybrid voice
-  const {
-    connectionStatus: voiceStatus,
-    voiceState,
-    sttReady,
-    ttsReady,
-    connect: connectVoice,
-    startListening,
-    stopListening,
-  } = useHybridVoiceChat()
+  // Voice input disabled (coming soon)
 
   // Panel size constraints
   const MIN_WIDTH = 320
@@ -127,46 +117,10 @@ export function CompanionPanel({ onMinimize }: CompanionPanelProps) {
     }
   }
 
-  // Handle mic button click
-  const handleMicClick = async () => {
-    if (voiceState === 'listening') {
-      stopListening()
-    } else if (voiceState === 'idle' || voiceState === 'speaking') {
-      try {
-        if (voiceStatus !== 'connected') {
-          await connectVoice()
-        }
-        await startListening()
-      } catch (error) {
-        console.error('Failed to start listening:', error)
-      }
-    }
-  }
-
-  // Get mic button styling based on voice state
-  const getMicButtonStyle = () => {
-    switch (voiceState) {
-      case 'listening':
-        return 'bg-red-500 hover:bg-red-400 text-white'
-      case 'transcribing':
-        return 'bg-yellow-500 text-white'
-      case 'thinking':
-        return 'bg-purple-500 text-white'
-      case 'speaking':
-        return 'bg-green-500 text-white'
-      default:
-        return 'bg-slate-700 hover:bg-slate-600 text-slate-300'
-    }
-  }
-
   const undismissedInsights = pendingInsights.filter(i => !i.dismissed)
 
   // Status text
   const getStatusText = () => {
-    if (voiceState === 'listening') return 'Listening...'
-    if (voiceState === 'transcribing') return 'Transcribing...'
-    if (voiceState === 'thinking') return 'Thinking...'
-    if (voiceState === 'speaking') return 'Speaking...'
     if (isGenerating) return 'Thinking...'
     if (isConnected) return 'Ready to explore'
     if (connectionStatus === 'no_api_key') return 'API key needed'
@@ -198,17 +152,6 @@ export function CompanionPanel({ onMinimize }: CompanionPanelProps) {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {/* Voice Status Indicators */}
-          {voiceStatus === 'connected' && (
-            <div className="flex items-center gap-1">
-              <span className={`text-[10px] px-1.5 py-0.5 rounded ${sttReady ? 'bg-green-500/20 text-green-400' : 'bg-slate-600/50 text-slate-500'}`}>
-                STT
-              </span>
-              <span className={`text-[10px] px-1.5 py-0.5 rounded ${ttsReady ? 'bg-green-500/20 text-green-400' : 'bg-slate-600/50 text-slate-500'}`}>
-                TTS
-              </span>
-            </div>
-          )}
           <button
             onClick={clearHistory}
             className="p-2 text-slate-400 hover:text-slate-200 hover:bg-slate-700/50 rounded-lg transition-colors"
@@ -355,24 +298,20 @@ export function CompanionPanel({ onMinimize }: CompanionPanelProps) {
             onChange={e => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder={isConnected ? 'Ask your guide...' : 'Connecting...'}
-            disabled={!isConnected || voiceState === 'listening'}
+            disabled={!isConnected}
             rows={1}
             className="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 resize-none focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 disabled:opacity-50"
             style={{ maxHeight: 100 }}
           />
-          {/* Mic Button */}
-          <motion.button
+          {/* Mic Button — voice coming soon */}
+          <button
             type="button"
-            onClick={handleMicClick}
-            disabled={voiceState === 'transcribing' || voiceState === 'thinking'}
-            className={`p-2.5 rounded-xl transition-colors disabled:opacity-50 ${getMicButtonStyle()}`}
-            whileTap={{ scale: 0.95 }}
-            animate={voiceState === 'listening' ? { scale: [1, 1.05, 1] } : {}}
-            transition={voiceState === 'listening' ? { duration: 1, repeat: Infinity } : {}}
-            title={voiceState === 'listening' ? 'Stop listening' : 'Start voice input'}
+            disabled
+            title="Voice input coming soon"
+            className="p-2.5 rounded-xl opacity-30 cursor-not-allowed text-gray-500"
           >
-            {voiceState === 'listening' ? <Mic size={18} /> : <MicOff size={18} />}
-          </motion.button>
+            <MicOff size={18} />
+          </button>
           {/* Send Button */}
           <button
             type="submit"
