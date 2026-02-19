@@ -158,7 +158,7 @@ export const useCompanionStore = create<CompanionStore>()(
   persist(
     (set, _get) => ({
       // Initial UI State
-      isExpanded: false,
+      isExpanded: true,
       position: 'bottom-right',
       chatMode: 'text',
 
