@@ -1,175 +1,183 @@
-# The Program - Desktop Astrology Application
+# The Program
 
-A professional desktop astrology application for personal chart analysis, featuring Western (Tropical), Vedic (Jyotish), and Human Design systems.
+A personal desktop astrology application with Western, Vedic, and Human Design systems and an AI guide who sees your chart as you navigate it.
 
-## Overview
+**No prebuilt binaries are provided.** Build from source — it takes about 5 minutes.
 
-**The Program** is an Electron-based desktop app with a Python/FastAPI backend and React/TypeScript frontend. All data is stored locally in SQLite.
-
-**Version**: 1.0.0
-**Platforms**: Linux, Windows, macOS
-
-## Download
-
-Get the latest release from [GitHub Releases](https://github.com/pocketkk/TheProgram/releases):
-
-| Platform | Download |
-|----------|----------|
-| **Linux** | `.AppImage` (universal) or `.deb` (Debian/Ubuntu) |
-| **Windows** | `.exe` installer |
-| **macOS** | `.dmg` (Apple Silicon) |
-
-> **Note**: macOS users may need to right-click → Open the first time (unsigned app).
+---
 
 ## Features
 
-- **Western Astrology**: 15+ house systems, aspects, progressions, returns, synastry, composites
-- **Vedic Astrology**: 16 divisional charts, Vimshottari Dasha, Shadbala, Ashtakavarga
-- **Human Design**: 9 centers, 64 gates, 36 channels, type/strategy/authority
-- **AI Interpretations**: Claude AI integration for personalized readings
-- **3D Cosmic Visualizer**: Real-time solar system visualization
-- **PDF Reports**: Professional chart exports
-- **Offline-First**: Works without internet (except AI features)
+- **Western Astrology** — 15+ house systems, aspects, progressions, solar returns, synastry, composite charts, Human Design Gates overlaid
+- **Vedic Astrology** — 16 divisional charts, Vimshottari Dasha, Shadbala, Ashtakavarga, North/South Indian styles, Lahiri and True Chitrapaksha ayanamsa
+- **Human Design** — 9 centers, 64 gates, 36 channels, type/strategy/authority, transit body graph
+- **AI Guide** — Claude-powered assistant that sees whatever page you're on and reads your chart across all three systems simultaneously
+- **3D Cosmic Visualizer** — Real-time solar system with your natal placements, step forward or back through time
+- **Tarot & I Ching** — Daily cards, spreads, hexagrams with AI interpretation
+- **Numerology & Gematria** — Daily number, life path, full gematria analysis
+- **Journal** — Chart-aware journaling connected to transits
+- **Studio** — AI-generated custom tarot decks and planet imagery via Gemini
+- **PDF Reports** — Professional chart exports
+- **Offline-first** — Everything runs locally; internet only needed for AI features
 
-## Quick Start
+---
 
-### Install from Release
+## Requirements
 
-Download from [Releases](https://github.com/pocketkk/TheProgram/releases), then:
+- **Node.js** 18+
+- **Python** 3.10+
+- **npm** 9+
 
-- **Linux AppImage**: `chmod +x *.AppImage && ./The\ Program-*.AppImage`
-- **Linux .deb**: `sudo dpkg -i theprogram_*.deb`
-- **Windows**: Run the `.exe` installer
-- **macOS**: Open the `.dmg`, drag to Applications, right-click → Open first time
+---
 
-### Development Setup
-
-**Prerequisites:**
-- Node.js 18+
-- Python 3.10+
+## Setup
 
 ```bash
-# 1. Clone and install
-git clone <repo-url>
+git clone https://github.com/pocketkk/TheProgram.git
 cd TheProgram
+```
 
-# 2. Backend setup
+### 1. Backend
+
+```bash
 cd backend
-python -m venv test_venv
-source test_venv/bin/activate
+python -m venv venv
+source venv/bin/activate      # Windows: venv\Scripts\activate
 pip install -r requirements.txt
+```
 
-# 3. Frontend setup
+Create your `.env`:
+
+```bash
+cp .env.example .env
+```
+
+Open `.env` and set your secret key:
+
+```bash
+# Generate a secure key:
+openssl rand -hex 32
+
+# Paste the output as:
+SECRET_KEY=<your-generated-key>
+```
+
+That's the only required change. Everything else in `.env.example` has working defaults.
+
+### 2. Frontend
+
+```bash
 cd ../frontend
 npm install
+```
 
-# 4. Root electron deps
+### 3. Electron (desktop shell)
+
+```bash
 cd ..
 npm install
 ```
 
-### Running in Development
+---
 
-**Option A: Three terminals**
+## Running
+
+Open three terminals:
+
+**Terminal 1 — Backend**
 ```bash
-# Terminal 1: Backend
-cd backend && source test_venv/bin/activate
+cd backend
+source venv/bin/activate
 uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+```
 
-# Terminal 2: Frontend (Vite dev server)
-cd frontend && npm run dev
+**Terminal 2 — Frontend**
+```bash
+cd frontend
+npm run dev
+```
 
-# Terminal 3: Electron
+**Terminal 3 — Electron**
+```bash
 npm run electron:start
 ```
 
-**Option B: All-in-one** (if configured)
-```bash
-npm run dev:all
-```
+The app opens as a desktop window. You can also use it in the browser at `http://localhost:3001`.
 
-### Building for Distribution
+On first launch you'll be asked to set a password and enter your birth data.
 
-```bash
-# Build everything and package
-npm run dist
+---
 
-# Or step by step:
-npm run build:frontend    # Build React app
-npm run build:backend     # Bundle Python with PyInstaller
-npm run build:electron    # Compile Electron TypeScript
-npm run dist:linux        # Create AppImage and .deb
-```
+## API Keys
 
-Output appears in `release/`.
+API keys are stored in the app's database — not in `.env`. After setup:
+
+1. Open **Settings** in the app
+2. Enter your **Anthropic API key** (required for the AI Guide) — get one at [console.anthropic.com](https://console.anthropic.com)
+3. Optionally enter a **Google Gemini key** for Studio image generation
+
+The Guide typically costs $1–5/month with normal use.
+
+---
 
 ## Project Structure
 
 ```
 TheProgram/
-├── backend/           # Python FastAPI server
-│   ├── app/           # Application code
-│   │   ├── api/       # Route handlers
-│   │   ├── core/      # Config, database
-│   │   ├── models_sqlite/  # SQLAlchemy models
-│   │   ├── schemas/   # Pydantic schemas
-│   │   └── services/  # Business logic
-│   ├── data/          # SQLite database
+├── backend/               # Python FastAPI server
+│   ├── app/
+│   │   ├── api/routes/    # API endpoints
+│   │   ├── services/      # Business logic
+│   │   ├── models/        # SQLAlchemy models
+│   │   ├── schemas/       # Pydantic schemas
+│   │   └── core/          # Config, database
+│   ├── data/              # SQLite database
 │   └── requirements.txt
-│
-├── frontend/          # React TypeScript app
+├── frontend/              # React TypeScript app
 │   ├── src/
-│   │   ├── components/
-│   │   ├── features/  # Feature modules
-│   │   ├── lib/       # API clients, utilities
-│   │   └── types/
+│   │   ├── features/      # Feature modules
+│   │   ├── components/    # Shared UI components
+│   │   └── lib/api/       # API clients
 │   └── package.json
-│
-├── electron/          # Desktop wrapper
-│   ├── main.ts        # Main process
-│   ├── preload.ts     # Preload script
-│   └── python-manager.ts  # Backend subprocess manager
-│
-├── release/           # Built packages
-├── build/             # App icons
-└── package.json       # Electron build config
+├── electron/              # Desktop wrapper
+│   ├── main.ts
+│   └── preload.ts
+└── package.json
 ```
 
-## Configuration
+---
 
-Create `backend/.env`:
-```bash
-SECRET_KEY=your-random-secret-key
-ANTHROPIC_API_KEY=sk-ant-...  # Optional, for AI features
-```
-
-## Technology Stack
+## Tech Stack
 
 | Layer | Technology |
 |-------|------------|
-| Desktop Shell | Electron |
+| Desktop shell | Electron |
 | Frontend | React 18, TypeScript, Vite, Three.js |
 | Backend | Python 3.10+, FastAPI, SQLAlchemy |
-| Database | SQLite |
-| Calculations | Swiss Ephemeris |
-| AI | Anthropic Claude |
+| Database | SQLite (local file) |
+| Calculations | Swiss Ephemeris (pyswisseph) |
+| AI | Anthropic Claude, Google Gemini |
+
+---
 
 ## Testing
 
 ```bash
-# Frontend tests
-cd frontend && npm run test:run
+# Backend
+cd backend && source venv/bin/activate && pytest
 
-# Backend tests
-cd backend && source test_venv/bin/activate && pytest
+# Frontend
+cd frontend && npm run test:run
 ```
+
+---
+
+## Hosted Option
+
+Don't want to run it yourself? I personally host a small number of instances on solar-powered infrastructure in the Oregon Cascades — $25/month, your own private instance, Guide included, no API key needed. Email [hello@theprogram.us](mailto:hello@theprogram.us).
+
+---
 
 ## License
 
-Uses Swiss Ephemeris (AGPL for open source, commercial license available from Astrodienst AG).
-
-## Data Storage
-
-All data stored locally:
-- **Development**: `backend/data/app.db`
-- **Packaged App**: `~/.config/theprogram/data/theprogram.db`
+Uses Swiss Ephemeris — AGPL for open source use. Commercial license available from [Astrodienst AG](https://www.astro.com/swisseph/) if needed.
