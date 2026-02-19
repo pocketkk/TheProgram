@@ -983,7 +983,12 @@
       });
       const result = await resp.json();
       if (!resp.ok) throw new Error(result.detail || 'Something went wrong.');
-      const dest = result.token ? `${result.url}?token=${encodeURIComponent(result.token)}` : result.url;
+      let dest = result.url;
+      if (result.token) {
+        const params = new URLSearchParams({ token: result.token });
+        if (result.expires_at) params.set('expires_at', result.expires_at);
+        dest = `${result.url}?${params.toString()}`;
+      }
       window.location.href = dest;
     } catch (err) {
       loading.style.display = 'none';

@@ -21,6 +21,7 @@ import { AstrologyPage } from './features/astrology'
 import { FloatingCompanion } from './features/companion'
 import { AppLayout } from './components/layout/AppLayout'
 import { ErrorBoundary } from './components/common/ErrorBoundary'
+import { TrialBanner } from './components/common/TrialBanner'
 import { useAuthStore } from './store/authStore'
 import { Spinner } from './components/ui'
 import { listBirthData } from './lib/api/birthData'
@@ -148,6 +149,7 @@ function App() {
   // Authenticated with birth data: show main app with AI companion
   return (
     <>
+      <TrialBanner />
       <AppLayout currentPage={currentPage} onNavigate={setCurrentPage}>
         {currentPage === 'dashboard' && (
           <ErrorBoundary featureName="Dashboard">

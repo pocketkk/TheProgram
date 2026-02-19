@@ -41,6 +41,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const urlToken = urlParams.get('token')
     if (urlToken) {
       localStorage.setItem(STORAGE_KEY_TOKEN, urlToken)
+      const expiresAt = urlParams.get('expires_at')
+      if (expiresAt) localStorage.setItem('trial_expires_at', expiresAt)
       window.history.replaceState({}, '', window.location.pathname)
     }
 

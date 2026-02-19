@@ -166,10 +166,10 @@ async def start_trial(req: TrialRequest):
         save_state(state)
         raise HTTPException(500, f"Failed to start trial: {result.stderr[-300:]}")
 
-    # Update expiry in state
-    expires = datetime.utcnow().isoformat()
+    # Update expiry in state (start + 15 min)
+    expires_at = datetime.utcnow() + timedelta(minutes=TRIAL_MINUTES)
     state = load_state()
-    state[slot]["expires"] = expires
+    state[slot]["expires"] = expires_at.isoformat()
     save_state(state)
 
     # Schedule expiry via asyncio — no sudo needed
@@ -182,5 +182,6 @@ async def start_trial(req: TrialRequest):
         "url": f"https://{slot}.theprogram.us",
         "slot": slot,
         "expires_minutes": TRIAL_MINUTES,
+        "expires_at": expires_at.isoformat() + "Z",
         "token": token,
     }
