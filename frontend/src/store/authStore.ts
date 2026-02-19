@@ -36,6 +36,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   checkAuthStatus: async () => {
     set({ isLoading: true, error: null })
 
+    // Check URL for auto-login token (used by trial instances)
+    const urlParams = new URLSearchParams(window.location.search)
+    const urlToken = urlParams.get('token')
+    if (urlToken) {
+      localStorage.setItem(STORAGE_KEY_TOKEN, urlToken)
+      window.history.replaceState({}, '', window.location.pathname)
+    }
+
     try {
       // First, check if password is set up on backend
       const status = await authApi.getStatus()
