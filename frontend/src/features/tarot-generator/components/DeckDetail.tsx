@@ -14,6 +14,7 @@ import {
   ThumbsUp,
   Eye,
   MessageSquare,
+  Layers,
 } from 'lucide-react'
 import { CardGrid } from './CardPreview'
 import { BatchProgress } from './BatchProgress'
@@ -27,7 +28,7 @@ import {
 import { useBatchGeneration } from '../hooks/useBatchGeneration'
 import { useTarotPromptStore } from '../stores/useTarotPromptStore'
 import { useRefreshDeck } from '../hooks/useTarotDecks'
-import { updateCollection } from '@/lib/api/images'
+import { updateCollection, generateCardBack } from '@/lib/api/images'
 import type { CollectionWithImages } from '@/lib/api/images'
 import type { BatchGenerateItem, ImageInfo } from '@/types/image'
 
@@ -48,6 +49,8 @@ export function DeckDetail({ deck, onBack, onDelete }: DeckDetailProps) {
     card: TarotCard
     image: ImageInfo
   } | null>(null)
+  const [isGeneratingCardBack, setIsGeneratingCardBack] = useState(false)
+  const [cardBackPrompt, setCardBackPrompt] = useState('')
   const { refreshDeck } = useRefreshDeck()
   const getPromptForCard = useTarotPromptStore(state => state.getPromptForCard)
 
@@ -192,6 +195,28 @@ export function DeckDetail({ deck, onBack, onDelete }: DeckDetailProps) {
   const handleRefineComplete = () => {
     setSelectedCardForRefine(null)
     refreshDeck(deck.id)
+  }
+
+  // Generate card back
+  const handleGenerateCardBack = async () => {
+    setIsGeneratingCardBack(true)
+    try {
+      const result = await generateCardBack(
+        deck.id,
+        cardBackPrompt || undefined
+      )
+      if (result.success) {
+        refreshDeck(deck.id)
+        setCardBackPrompt('')
+      } else {
+        alert(`Failed to generate card back: ${result.error}`)
+      }
+    } catch (error) {
+      console.error('Card back generation error:', error)
+      alert(`Failed to generate card back: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    } finally {
+      setIsGeneratingCardBack(false)
+    }
   }
 
   // Batch generation
@@ -392,6 +417,77 @@ export function DeckDetail({ deck, onBack, onDelete }: DeckDetailProps) {
           </div>
         </CardContent>
       </Card>
+
+      {/* Card Back Section - shown when deck has approved style */}
+      {deck.reference_image_id && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Layers className="w-5 h-5 text-celestial-purple" />
+              Card Back Design
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col md:flex-row gap-6 items-start">
+              {/* Current Card Back Preview */}
+              <div className="w-32 h-44 flex-shrink-0 rounded-lg border border-gray-700 overflow-hidden">
+                {deck.card_back_url ? (
+                  <img
+                    src={deck.card_back_url}
+                    alt="Card Back"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gray-800 flex items-center justify-center">
+                    <span className="text-gray-500 text-sm text-center px-2">No card back generated</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Card Back Controls */}
+              <div className="flex-1">
+                <p className="text-sm text-gray-400 mb-3">
+                  Generate a custom card back design that matches your deck's style.
+                  This will be used when cards are face-down in readings.
+                </p>
+
+                {/* Prompt Input */}
+                <div className="mb-3">
+                  <label className="block text-sm text-gray-400 mb-1">
+                    Card Back Design Prompt (optional)
+                  </label>
+                  <textarea
+                    value={cardBackPrompt}
+                    onChange={(e) => setCardBackPrompt(e.target.value)}
+                    placeholder="e.g., Ornate mystical design with sacred geometry, celestial symbols, intricate border..."
+                    rows={2}
+                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:border-celestial-purple focus:outline-none text-sm resize-none"
+                  />
+                </div>
+
+                <Button
+                  onClick={handleGenerateCardBack}
+                  disabled={isGeneratingCardBack || batchGen.isGenerating}
+                  variant={deck.card_back_url ? 'outline' : 'primary'}
+                  data-testid="tarot-btn-generate-card-back"
+                >
+                  {isGeneratingCardBack ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <Layers className="w-4 h-4 mr-2" />
+                      {deck.card_back_url ? 'Regenerate Card Back' : 'Generate Card Back'}
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Style Preview Panel - shown when preview is pending approval */}
       {hasPreviewPendingApproval && firstImage && !batchGen.isGenerating && (

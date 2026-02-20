@@ -109,6 +109,13 @@ class ImageCollection(BaseModel):
         comment="Approved reference image for style consistency"
     )
 
+    card_back_image_id = Column(
+        String,
+        ForeignKey('generated_images.id', ondelete='SET NULL'),
+        nullable=True,
+        comment="Generated card back image for the deck"
+    )
+
     prompt_tradition = Column(
         String(50),
         nullable=True,
@@ -127,6 +134,13 @@ class ImageCollection(BaseModel):
     reference_image = relationship(
         'GeneratedImage',
         foreign_keys=[reference_image_id],
+        lazy='select',
+        post_update=True
+    )
+
+    card_back_image = relationship(
+        'GeneratedImage',
+        foreign_keys=[card_back_image_id],
         lazy='select',
         post_update=True
     )
